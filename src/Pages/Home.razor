@@ -1,6 +1,10 @@
 @page "/"
 @using SupremeAI.Models
+@using SupremeAI.Services
 @inject IJSRuntime JS
+@inject SubscriptionService Subscription
+@inject NavigationManager Nav
+@implements IDisposable
 
 <div class="sai-shell @(IsDark ? "" : "sai-light")">
 
@@ -67,12 +71,32 @@
                     }
                 </svg>
             </button>
+            <button class="sai-plans-btn" @onclick='() => Nav.NavigateTo("/pricing")'>
+                <span class="sai-gem-badge @Subscription.CurrentPlan.GemClass" style="font-size:0.65rem;padding:0.1rem 0.4rem">@Subscription.CurrentPlan.Name</span>
+                Plans
+            </button>
             <button class="sai-signin-btn">Sign In</button>
         </div>
     </header>
 
     <!-- ─── Body ─── -->
     <div class="sai-body">
+
+        <!-- ─── Upgrade prompt overlay ─── -->
+        @if (ShowUpgradePrompt)
+        {
+            <div class="sai-upgrade-overlay" @onclick="() => ShowUpgradePrompt = false">
+                <div class="sai-upgrade-modal" @onclick:stopPropagation="true">
+                    <button class="sai-upgrade-close" @onclick="() => ShowUpgradePrompt = false" aria-label="Close">
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                    </button>
+                    <div class="sai-upgrade-icon">🔒</div>
+                    <h3 class="sai-upgrade-title">@UpgradePromptTitle</h3>
+                    <p class="sai-upgrade-desc">@UpgradePromptDesc</p>
+                    <button class="sai-upgrade-cta" @onclick="GoToPricing">View Plans</button>
+                </div>
+            </div>
+        }
 
         <!-- ─── Model Sidebar ─── -->
         <aside class="sai-model-sidebar" aria-label="Model selection">
@@ -103,14 +127,22 @@
                 @foreach (var model in ModelCatalogue.ChatModels)
                 {
                     var isSelected = SelectedIds.Contains(model.Id);
-                    <li class="sai-model-item @(isSelected ? "selected" : "")"
+                    var isLocked = !Subscription.IsModelAllowed(model.Id);
+                    <li class="sai-model-item @(isSelected ? "selected" : "") @(isLocked ? "locked" : "")"
                         role="option" aria-selected="@isSelected" tabindex="0"
                         @onclick="() => ToggleModel(model.Id)"
                         @onkeydown="(e) => HandleModelKey(e, model.Id)">
                         <div class="sai-checkbox">
-                            <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="1 6 5 10 11 2" />
-                            </svg>
+                            @if (isLocked)
+                            {
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                            }
+                            else
+                            {
+                                <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="1 6 5 10 11 2" />
+                                </svg>
+                            }
                         </div>
                         <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
                         <div class="sai-model-info">
@@ -476,6 +508,9 @@
     private string SelectedVideoModelId = ModelCatalogue.VideoModels[1].Id;
     private string VideoPrompt = "";
     private string VideoDuration = "5s";
+    private bool ShowUpgradePrompt = false;
+    private string UpgradePromptTitle = "";
+    private string UpgradePromptDesc = "";
     private string VideoResult = "";
     private string VideoGenStatus = "loading";
     private string CreativeStyle = "story";
@@ -539,11 +574,71 @@
 
     private void ToggleTheme() => IsDark = !IsDark;
     private void SwitchPane(string pane) => ActivePane = pane;
+    private void GoToPricing() { ShowUpgradePrompt = false; Nav.NavigateTo("/pricing"); }
+
+    protected override void OnInitialized()
+    {
+        Subscription.OnPlanChanged += OnPlanChanged;
+        EnforceCurrentPlanLimits();
+    }
+
+    public void Dispose() => Subscription.OnPlanChanged -= OnPlanChanged;
+
+    private void OnPlanChanged()
+    {
+        EnforceCurrentPlanLimits();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void EnforceCurrentPlanLimits()
+    {
+        var plan = Subscription.CurrentPlan;
+        // Remove models not allowed by the new plan
+        SelectedIds.RemoveWhere(id => !Subscription.IsModelAllowed(id));
+        // Trim to the max allowed count
+        if (plan.MaxModels > 0 && SelectedIds.Count > plan.MaxModels)
+        {
+            var trimmed = SelectedIds.Take(plan.MaxModels).ToHashSet();
+            SelectedIds = trimmed;
+        }
+        if (SelectedIds.Count == 0)
+        {
+            var fallback = ModelCatalogue.ChatModels.FirstOrDefault(m => !m.ComingSoon && plan.AllowedTiers.Contains(m.Tier))?.Id ?? "";
+            if (!string.IsNullOrEmpty(fallback)) SelectedIds.Add(fallback);
+        }
+        SelectionMode = "custom";
+    }
 
     private void ToggleModel(string id)
     {
-        if (SelectedIds.Contains(id)) { if (SelectedIds.Count == 1) return; SelectedIds.Remove(id); }
-        else SelectedIds.Add(id);
+        if (SelectedIds.Contains(id))
+        {
+            if (SelectedIds.Count == 1) return;
+            SelectedIds.Remove(id);
+        }
+        else
+        {
+            if (!Subscription.IsModelAllowed(id))
+            {
+                var model = ModelCatalogue.ChatModels.First(m => m.Id == id);
+                var requiredPlan = SubscriptionPlans.Plans.FirstOrDefault(p => p.AllowedTiers.Contains(model.Tier));
+                UpgradePromptTitle = "Model locked";
+                UpgradePromptDesc = requiredPlan is not null
+                    ? $"{model.Name} ({model.TierLabel} tier) is available on {requiredPlan.Name} and above. Upgrade your plan to unlock it."
+                    : $"{model.Name} is not available on your current plan. Upgrade to unlock it.";
+                ShowUpgradePrompt = true;
+                return;
+            }
+            var maxModels = Subscription.CurrentPlan.MaxModels;
+            if (maxModels > 0 && SelectedIds.Count >= maxModels)
+            {
+                UpgradePromptTitle = $"{Subscription.CurrentPlan.Name} plan limit reached";
+                UpgradePromptDesc = $"Your {Subscription.CurrentPlan.Name} plan supports up to {maxModels} model{(maxModels == 1 ? "" : "s")} at once. Upgrade to select more.";
+                ShowUpgradePrompt = true;
+                return;
+            }
+            SelectedIds.Add(id);
+        }
         SelectionMode = "custom";
     }
 
@@ -552,11 +647,29 @@
     private void ApplyMode(string mode)
     {
         SelectionMode = mode;
-        if (mode == "all") SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Select(m => m.Id));
-        else if (mode == "default") SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Where(m => m.DefaultSelected).Select(m => m.Id));
+        var plan = Subscription.CurrentPlan;
+        if (mode == "all")
+        {
+            var allowed = ModelCatalogue.ChatModels.Where(m => plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+            if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+            SelectedIds = new HashSet<string>(allowed);
+        }
+        else if (mode == "default")
+        {
+            var allowed = ModelCatalogue.ChatModels.Where(m => m.DefaultSelected && plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+            if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+            SelectedIds = new HashSet<string>(allowed);
+        }
     }
 
-    private void SelectAll() { SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Select(m => m.Id)); SelectionMode = "all"; }
+    private void SelectAll()
+    {
+        var plan = Subscription.CurrentPlan;
+        var allowed = ModelCatalogue.ChatModels.Where(m => plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+        if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+        SelectedIds = new HashSet<string>(allowed);
+        SelectionMode = "all";
+    }
 
     private void ClearAll()
     {
