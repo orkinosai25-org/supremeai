@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300">
+  <defs>
+    <!-- Light background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#F8FAFB"/>
+      <stop offset="50%"  stop-color="#EFF6FF"/>
+      <stop offset="100%" stop-color="#F0FDF4"/>
+    </linearGradient>
+
+    <!-- Gold gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFE066"/>
+      <stop offset="40%"  stop-color="#FFD700"/>
+      <stop offset="80%"  stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+
+    <!-- Emerald gradient -->
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#6EE7B7"/>
+      <stop offset="40%"  stop-color="#50C878"/>
+      <stop offset="80%"  stop-color="#2E8B57"/>
+      <stop offset="100%" stop-color="#50C878"/>
+    </linearGradient>
+
+    <!-- Rainbow for letters -->
+    <linearGradient id="rainbowText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#E53935"/>
+      <stop offset="20%"  stop-color="#FB8C00"/>
+      <stop offset="40%"  stop-color="#43A047"/>
+      <stop offset="60%"  stop-color="#1E88E5"/>
+      <stop offset="80%"  stop-color="#8E24AA"/>
+      <stop offset="100%" stop-color="#E53935"/>
+    </linearGradient>
+
+    <!-- Diamond -->
+    <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#D0ECF5"/>
+      <stop offset="50%"  stop-color="#A0D0E8"/>
+      <stop offset="100%" stop-color="#E8F4FF"/>
+    </linearGradient>
+
+    <!-- Rainbow mascot -->
+    <linearGradient id="mascotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#60D0F0"/>
+      <stop offset="35%"  stop-color="#7C3AED"/>
+      <stop offset="70%"  stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00B4DB"/>
+      <stop offset="60%"  stop-color="#9B59B6"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+
+    <!-- Drop shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.18)"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#bgGrad)"/>
+
+  <!-- Top gold accent border -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#goldGrad)"/>
+
+  <!-- ═══════ CROWN ═══════ -->
+  <g transform="translate(135, 140) scale(0.62)" filter="url(#shadow)">
+    <!-- Base -->
+    <ellipse cx="0" cy="82" rx="140" ry="21" fill="url(#goldGrad)"/>
+    <ellipse cx="0" cy="75" rx="140" ry="17" fill="none" stroke="silver" stroke-width="3"/>
+    <polygon points="0,66 8,74 0,82 -8,74" fill="url(#diamondGrad)" stroke="#90C0D0" stroke-width="1.2"/>
+    <circle cx="-90" cy="75" r="4" fill="silver"/>
+    <circle cx="90"  cy="75" r="4" fill="silver"/>
+    <!-- Left spike -->
+    <path d="M-140,76 L-168,-45 L-96,53 Z" fill="#FFF5CC" stroke="url(#goldGrad)" stroke-width="3"/>
+    <circle cx="-168" cy="-45" r="7" fill="url(#goldGrad)"/>
+    <circle cx="-168" cy="-45" r="4" fill="silver"/>
+    <!-- Right spike -->
+    <path d="M140,76 L168,-45 L96,53 Z"  fill="#FFF5CC" stroke="url(#goldGrad)" stroke-width="3"/>
+    <circle cx="168" cy="-45" r="7" fill="url(#goldGrad)"/>
+    <circle cx="168" cy="-45" r="4" fill="silver"/>
+    <!-- Center spike -->
+    <path d="M-54,70 L0,-100 L54,70 Z"   fill="#FFF5CC" stroke="url(#goldGrad)" stroke-width="3.5"/>
+    <polygon points="0,-30 11,-20 0,-10 -11,-20" fill="url(#diamondGrad)" stroke="#90C0D0" stroke-width="1.5"/>
+    <circle cx="0" cy="-100" r="8" fill="url(#goldGrad)"/>
+    <circle cx="0" cy="-100" r="5" fill="silver"/>
+    <!-- Body -->
+    <path d="M-140,76 L-96,53 L-54,70 L0,-100 L54,70 L96,53 L140,76 L140,82 L-140,82 Z"
+          fill="#FFF5CC" stroke="url(#goldGrad)" stroke-width="2"/>
+  </g>
+
+  <!-- ═══════ MASCOT ═══════ -->
+  <g transform="translate(900, 150) scale(0.75)">
+    <!-- Orbit back -->
+    <path d="M -110,55 A 118,45 -30 0 0 92,-36"
+          fill="none" stroke="url(#orbitGrad)" stroke-width="13" stroke-linecap="round" opacity="0.85"/>
+    <!-- Brain body -->
+    <ellipse cx="8" cy="-8" rx="80" ry="70" fill="url(#mascotGrad)"/>
+    <ellipse cx="-48" cy="8" rx="34" ry="28" fill="#9B59B6" opacity="0.9"/>
+    <ellipse cx="12" cy="-44" rx="24" ry="10" fill="rgba(255,255,255,0.22)"/>
+    <!-- Swirl -->
+    <path d="M 44,-44 Q 71,-53 80,-36 Q 85,-23 66,-18"
+          fill="none" stroke="#FACC15" stroke-width="9" stroke-linecap="round" opacity="0.8"/>
+    <!-- Bottom -->
+    <path d="M-80,-8 Q-70,63 8,66 Q82,66 86,-8 Z" fill="#EC4899" opacity="0.5"/>
+    <!-- Tendrils -->
+    <path d="M -18,63 Q-27,86 -35,71 Q-43,57 -27,54"
+          fill="none" stroke="#C026D3" stroke-width="11" stroke-linecap="round"/>
+    <path d="M 8,66 Q 4,94 0,80"
+          fill="none" stroke="url(#orbitGrad)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M 31,61 Q 49,91 58,72 Q 63,57 49,52"
+          fill="none" stroke="#9B59B6" stroke-width="9" stroke-linecap="round"/>
+    <!-- Orbit front -->
+    <path d="M -120,12 A 118,45 -30 0 1 100,-50"
+          fill="none" stroke="url(#orbitGrad)" stroke-width="13" stroke-linecap="round" opacity="0.95"/>
+    <circle cx="99" cy="-52" r="8" fill="#3B82F6"/>
+    <circle cx="99" cy="-52" r="5" fill="#60D0F0"/>
+    <path d="M-113,2 Q-126,-54 -63,-77"
+          fill="none" stroke="#5EEAD4" stroke-width="7" stroke-linecap="round" opacity="0.65"/>
+    <!-- Eyes -->
+    <path d="M -14,-22 Q -9,-29 -4,-22"  fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M 18,-22 Q 23,-29 28,-22"   fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- ═══════ TEXT ═══════ -->
+  <!-- Emerald S -->
+  <text x="248" y="192"
+        font-family="'Trebuchet MS', 'Gill Sans', 'Century Gothic', sans-serif"
+        font-size="88" font-weight="bold"
+        fill="url(#emeraldGrad)" stroke="#1A6B3A" stroke-width="2.5"
+        filter="url(#shadow)">S</text>
+
+  <!-- "upreme" rainbow -->
+  <text x="312" y="192"
+        font-family="'Trebuchet MS', 'Gill Sans', 'Century Gothic', sans-serif"
+        font-size="88" font-weight="bold"
+        fill="url(#rainbowText)"
+        filter="url(#shadow)">upreme</text>
+
+  <!-- AI diamond/silver -->
+  <text x="750" y="192"
+        font-family="'Trebuchet MS', 'Gill Sans', 'Century Gothic', sans-serif"
+        font-size="88" font-weight="bold"
+        fill="url(#diamondGrad)"
+        stroke="#90B8CC" stroke-width="2"
+        filter="url(#shadow)">AI</text>
+
+  <!-- Tagline -->
+  <text x="600" y="255"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-size="16" fill="#64748B" letter-spacing="5" text-anchor="middle">
+    THE ULTIMATE AI PLATFORM
+  </text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="296" width="1200" height="4" fill="url(#goldGrad)"/>
+</svg>
