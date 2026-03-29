@@ -1,0 +1,679 @@
+@page "/"
+@using SupremeAI.Models
+@inject IJSRuntime JS
+
+<div class="sai-shell @(IsDark ? "" : "sai-light")">
+
+    <!-- ─── Top Bar ─── -->
+    <header class="sai-topbar">
+        <!-- Crown wordmark logo -->
+        <a href="/" class="sai-brand" aria-label="SupremeAI home">
+            <svg viewBox="0 0 210 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                    <linearGradient id="hw-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFE566" /><stop offset="50%" stop-color="#FFD700" /><stop offset="100%" stop-color="#B8860B" />
+                    </linearGradient>
+                    <linearGradient id="hw-emerald" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#6EE7B7" /><stop offset="100%" stop-color="#059669" />
+                    </linearGradient>
+                    <linearGradient id="hw-diamond" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FFFFFF" /><stop offset="35%" stop-color="#C6E8F5" /><stop offset="70%" stop-color="#E8F4F8" /><stop offset="100%" stop-color="#FFFFFF" />
+                    </linearGradient>
+                    <linearGradient id="hw-silver" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#E8E8E8" /><stop offset="50%" stop-color="#C0C0C0" /><stop offset="100%" stop-color="#E8E8E8" />
+                    </linearGradient>
+                    <filter id="hw-glow-gold">
+                        <feGaussianBlur stdDeviation="1.2" result="blur" />
+                        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                </defs>
+                <g filter="url(#hw-glow-gold)">
+                    <rect x="1" y="18" width="26" height="5" rx="1.5" fill="url(#hw-gold)" />
+                    <polygon points="3,18 3,7 9,13 14,2 19,13 25,7 25,18" fill="url(#hw-gold)" />
+                    <ellipse cx="14" cy="2.5" rx="2.8" ry="2.2" fill="#C6E8F5" opacity="0.95" />
+                    <circle cx="4" cy="8.5" r="1.6" fill="#50C878" opacity="0.9" />
+                    <circle cx="24" cy="8.5" r="1.6" fill="#50C878" opacity="0.9" />
+                </g>
+                <text x="1" y="44" font-family="Georgia,'Times New Roman',serif" font-size="28" font-weight="800" fill="url(#hw-emerald)">S</text>
+                <text x="21" y="44" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="700" fill="url(#hw-silver)">UPREME</text>
+                <text x="153" y="46" font-family="Georgia,'Times New Roman',serif" font-size="25" font-weight="800" fill="url(#hw-diamond)">ai</text>
+            </svg>
+        </a>
+
+        <!-- Content-type pane tabs -->
+        <nav class="sai-pane-tabs" aria-label="Content panes">
+            @foreach (var (id, label, icon) in PaneDefs)
+            {
+                <button class="sai-pane-tab @(ActivePane == id ? "active" : "")"
+                        @onclick="() => SwitchPane(id)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="tab-icon">
+                        @((MarkupString)icon)
+                    </svg>
+                    @label
+                </button>
+            }
+        </nav>
+
+        <div class="sai-topbar-actions">
+            <button class="sai-icon-btn" @onclick="ToggleTheme" title="Toggle theme">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (IsDark)
+                    {
+                        <text>&#x2600;</text>
+                    }
+                    else
+                    {
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    }
+                </svg>
+            </button>
+            <button class="sai-signin-btn">Sign In</button>
+        </div>
+    </header>
+
+    <!-- ─── Body ─── -->
+    <div class="sai-body">
+
+        <!-- ─── Model Sidebar ─── -->
+        <aside class="sai-model-sidebar" aria-label="Model selection">
+            <div class="sai-sidebar-header">
+                <h2 class="sai-sidebar-title">Models</h2>
+                <span class="sai-count-badge">@CountBadgeText</span>
+            </div>
+            <div class="sai-select-row">
+                <button class="sai-select-btn" @onclick="SelectAll">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2" /></svg>
+                    Select All
+                </button>
+                <button class="sai-select-btn secondary" @onclick="ClearAll">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                    Clear All
+                </button>
+            </div>
+            <div class="sai-preset-row" role="group">
+                @foreach (var mode in new[] { "all", "default", "custom" })
+                {
+                    <button class="sai-preset-btn @(SelectionMode == mode ? "active" : "")"
+                            @onclick="() => ApplyMode(mode)">
+                        @(char.ToUpper(mode[0]) + mode[1..])
+                    </button>
+                }
+            </div>
+            <ul class="sai-model-list" role="listbox" aria-multiselectable="true">
+                @foreach (var model in ModelCatalogue.ChatModels)
+                {
+                    var isSelected = SelectedIds.Contains(model.Id);
+                    <li class="sai-model-item @(isSelected ? "selected" : "")"
+                        role="option" aria-selected="@isSelected" tabindex="0"
+                        @onclick="() => ToggleModel(model.Id)"
+                        @onkeydown="(e) => HandleModelKey(e, model.Id)">
+                        <div class="sai-checkbox">
+                            <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 6 5 10 11 2" />
+                            </svg>
+                        </div>
+                        <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                        <div class="sai-model-info">
+                            <div class="sai-model-name">
+                                @model.Name@if (model.ComingSoon) {<span style="font-size:0.62em;opacity:0.5"> (soon)</span>}
+                            </div>
+                            <div class="sai-model-provider">@model.Provider</div>
+                        </div>
+                        <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                    </li>
+                }
+            </ul>
+        </aside>
+
+        <!-- CHAT PANE -->
+        <section class="sai-pane @(ActivePane == "chat" ? "active" : "")" aria-label="Chat">
+            @if (Conversations.Count > 0 && Conversations.Last().Responses.Count > 1)
+            {
+                <div class="sai-resp-header">
+                    <div class="sai-resp-tabs" role="tablist">
+                        @foreach (var resp in Conversations.Last().Responses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
+                            <button class="sai-resp-tab" role="tab">
+                                <span class="sai-tab-dot" style="background:@(m?.Color ?? "#888")"></span>
+                                @(m?.Name ?? resp.ModelId)
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="sai-response-grid @GridColClass">
+                @if (!Conversations.Any())
+                {
+                    <div class="sai-empty">
+                        <svg class="sai-empty-crown" viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="ec-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#FFE566" /><stop offset="50%" stop-color="#FFD700" /><stop offset="100%" stop-color="#B8860B" />
+                                </linearGradient>
+                                <filter id="ec-glow"><feGaussianBlur stdDeviation="1.5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+                            </defs>
+                            <g filter="url(#ec-glow)">
+                                <rect x="4" y="44" width="88" height="14" rx="5" fill="url(#ec-gold)" opacity="0.92" />
+                                <polygon points="8,44 8,16 26,30 48,6 70,30 88,16 88,44" fill="url(#ec-gold)" opacity="0.92" />
+                                <ellipse cx="48" cy="7" rx="7" ry="5.5" fill="#C6E8F5" />
+                                <circle cx="10" cy="21" r="4.5" fill="#50C878" />
+                                <circle cx="86" cy="21" r="4.5" fill="#50C878" />
+                            </g>
+                        </svg>
+                        <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">SupremeAI</span></p>
+                        <p class="sai-empty-sub">Select models on the left, then type your prompt. Compare AI responses side by side.</p>
+                        <div class="sai-chips">
+                            @foreach (var (text, lbl) in SuggestionChips)
+                            {
+                                <button class="sai-chip" @onclick="() => SetSuggestion(text)">@lbl</button>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var conv in Conversations)
+                    {
+                        @foreach (var resp in conv.Responses)
+                        {
+                            var model = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
+                            <div class="sai-card">
+                                <div class="sai-card-header">
+                                    <div class="sai-card-logo" style="background:@(model?.Color ?? "#888")20;color:@(model?.Color ?? "#888")">@(model?.Initial ?? "?")</div>
+                                    <span class="sai-card-model-name">@(model?.Name ?? resp.ModelId)</span>
+                                    @if (model is not null)
+                                    {
+                                        <span class="sai-gem-badge @model.TierCssClass" style="margin-right:0.2rem">@model.TierLabel</span>
+                                    }
+                                    <div class="sai-card-status @resp.Status"></div>
+                                </div>
+                                <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
+                                    @if (resp.Status == "loading")
+                                    {
+                                        <span class="sai-skeleton sai-skeleton-md"></span>
+                                        <span class="sai-skeleton sai-skeleton-lg"></span>
+                                        <span class="sai-skeleton sai-skeleton-sm"></span>
+                                    }
+                                    else { @resp.Text }
+                                </div>
+                                <div class="sai-card-footer">
+                                    <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
+                                    <button class="sai-card-action-btn" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+            <div class="sai-prompt-wrap">
+                <div class="sai-prompt-context">
+                    <span class="sai-context-tag">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                        Chat
+                    </span>
+                    <span class="sai-context-div">·</span>
+                    <span class="sai-context-models">@ModelContextText</span>
+                </div>
+                <div class="sai-prompt-form">
+                    <textarea class="sai-prompt-input" rows="1" placeholder="Ask all selected models…"
+                              maxlength="8000" @bind="ChatPrompt" @bind:event="oninput"
+                              @onkeydown="HandlePromptKey"></textarea>
+                    <span class="sai-char-count">@ChatPrompt.Length.ToString("N0") / 8,000</span>
+                    <button class="sai-send-btn" @onclick="SubmitChatPrompt" disabled="@(!CanSend)" aria-label="Send">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- IMAGES PANE -->
+        <section class="sai-pane @(ActivePane == "images" ? "active" : "")" aria-label="Image generation">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon images">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Image Generation</h2><p class="sai-pane-subtitle">Create stunning visuals with Azure AI vision models</p></div>
+                </div>
+                <div class="sai-model-cards-grid">
+                    @foreach (var model in ModelCatalogue.ImageModels)
+                    {
+                        <div class="sai-model-card @(SelectedImageModelId == model.Id ? "selected" : "")" @onclick="() => SelectedImageModelId = model.Id">
+                            <div class="sai-model-card-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-card-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="sai-model-card-provider">@model.Provider</div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+                <div class="sai-results-area">
+                    @if (string.IsNullOrEmpty(ImageResult))
+                    {
+                        <div class="sai-pane-empty">Select a model above and describe an image to generate</div>
+                    }
+                    else
+                    {
+                        var imgModel = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+                        <div class="sai-card" style="max-width:520px;margin:0 auto">
+                            <div class="sai-card-header">
+                                <div class="sai-card-logo" style="background:@(imgModel?.Color ?? "#888")20;color:@(imgModel?.Color ?? "#888")">@(imgModel?.Initial ?? "?")</div>
+                                <span class="sai-card-model-name">@(imgModel?.Name ?? SelectedImageModelId)</span>
+                                <div class="sai-card-status @ImageGenStatus"></div>
+                            </div>
+                            <div class="sai-card-body">@((MarkupString)ImageResult)</div>
+                        </div>
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="A majestic mountain landscape at golden hour, photorealistic…"
+                                  @bind="ImagePrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="sai-select" @bind="ImageStyle">
+                            <option value="vivid">Vivid</option><option value="natural">Natural</option>
+                            <option value="cinematic">Cinematic</option><option value="anime">Anime</option>
+                        </select>
+                        <button class="sai-send-btn" @onclick="SubmitImagePrompt" disabled="@string.IsNullOrWhiteSpace(ImagePrompt)" aria-label="Generate image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" /><polyline points="21 15 16 10 5 21" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEO PANE -->
+        <section class="sai-pane @(ActivePane == "video" ? "active" : "")" aria-label="Video generation">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon video">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Video Generation</h2><p class="sai-pane-subtitle">Generate AI-powered video clips from text prompts</p></div>
+                </div>
+                <div class="sai-model-cards-grid">
+                    @foreach (var model in ModelCatalogue.VideoModels)
+                    {
+                        <div class="sai-model-card @(SelectedVideoModelId == model.Id ? "selected" : "")" @onclick="() => SelectedVideoModelId = model.Id">
+                            <div class="sai-model-card-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-card-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="sai-model-card-provider">@model.Provider</div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+                <div class="sai-results-area">
+                    @if (string.IsNullOrEmpty(VideoResult))
+                    {
+                        <div class="sai-pane-empty">Select a model above and describe a video scene to create</div>
+                    }
+                    else
+                    {
+                        var vidModel = ModelCatalogue.VideoModels.FirstOrDefault(x => x.Id == SelectedVideoModelId);
+                        <div class="sai-card" style="max-width:520px;margin:0 auto">
+                            <div class="sai-card-header">
+                                <div class="sai-card-logo" style="background:@(vidModel?.Color ?? "#888")20;color:@(vidModel?.Color ?? "#888")">@(vidModel?.Initial ?? "?")</div>
+                                <span class="sai-card-model-name">@(vidModel?.Name ?? SelectedVideoModelId)</span>
+                                <div class="sai-card-status @VideoGenStatus"></div>
+                            </div>
+                            <div class="sai-card-body">@((MarkupString)VideoResult)</div>
+                        </div>
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="A time-lapse of a city skyline at sunset with moving clouds…"
+                                  @bind="VideoPrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="sai-select" @bind="VideoDuration">
+                            <option value="5s">5 sec</option><option value="10s">10 sec</option><option value="30s">30 sec</option>
+                        </select>
+                        <button class="sai-send-btn" @onclick="SubmitVideoPrompt" disabled="@string.IsNullOrWhiteSpace(VideoPrompt)" aria-label="Generate video">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CREATIVE WRITING PANE -->
+        <section class="sai-pane @(ActivePane == "creative" ? "active" : "")" aria-label="Creative writing">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon creative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Creative Writing</h2><p class="sai-pane-subtitle">Stories, poetry, scripts, and imaginative content</p></div>
+                </div>
+                <div class="sai-style-chips">
+                    @foreach (var (id, lbl) in CreativeStyles)
+                    {
+                        <button class="sai-style-chip @(CreativeStyle == id ? "active" : "")" @onclick="() => CreativeStyle = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-response-grid @(CreativeResponses.Count >= 2 ? "cols-2" : "cols-1")" style="flex:1;overflow-y:auto">
+                    @if (!CreativeResponses.Any())
+                    {
+                        <div class="sai-pane-empty" style="grid-column:1/-1">Choose a writing style above and describe what you'd like to create</div>
+                    }
+                    else
+                    {
+                        @foreach (var (modelId, text, done) in CreativeResponses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == modelId);
+                            <div class="sai-card">
+                                <div class="sai-card-header">
+                                    <div class="sai-card-logo" style="background:@(m?.Color ?? "#888")20;color:@(m?.Color ?? "#888")">@(m?.Initial ?? "?")</div>
+                                    <span class="sai-card-model-name">@(m?.Name ?? modelId)</span>
+                                    <div class="sai-card-status @(done ? "done" : "loading")"></div>
+                                </div>
+                                <div class="sai-card-body @(done ? "" : "thinking")">
+                                    @if (!done)
+                                    {
+                                        <span class="sai-skeleton sai-skeleton-lg"></span>
+                                        <span class="sai-skeleton sai-skeleton-md"></span>
+                                    }
+                                    else { @text }
+                                </div>
+                                <div class="sai-card-footer">
+                                    <span style="font-size:0.7rem;color:var(--sai-text-muted)">✍️ @CreativeStyle</span>
+                                    <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="What would you like to write? Give a theme, characters, or brief…"
+                                  @bind="CreativePrompt" @bind:event="oninput" maxlength="8000"></textarea>
+                        <button class="sai-send-btn" @onclick="SubmitCreativePrompt" disabled="@string.IsNullOrWhiteSpace(CreativePrompt)" aria-label="Write">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CODE PANE -->
+        <section class="sai-pane @(ActivePane == "code" ? "active" : "")" aria-label="Code assistant">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon code">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Code Assistant</h2><p class="sai-pane-subtitle">Write, explain, debug, and review code with AI</p></div>
+                </div>
+                <div class="sai-style-chips">
+                    @foreach (var (id, lbl) in CodeLanguages)
+                    {
+                        <button class="sai-style-chip @(CodeLang == id ? "active" : "")" @onclick="() => CodeLang = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-style-chips" style="padding-top:0.3rem">
+                    @foreach (var (id, lbl) in CodeTasks)
+                    {
+                        <button class="sai-style-chip @(CodeTask == id ? "active" : "")" @onclick="() => CodeTask = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-response-grid @(CodeResponses.Count >= 2 ? "cols-2" : "cols-1")" style="flex:1;overflow-y:auto">
+                    @if (!CodeResponses.Any())
+                    {
+                        <div class="sai-pane-empty" style="grid-column:1/-1">Pick a language and task above, then describe what you need</div>
+                    }
+                    else
+                    {
+                        @foreach (var (modelId, text, done) in CodeResponses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == modelId);
+                            <div class="sai-card">
+                                <div class="sai-card-header">
+                                    <div class="sai-card-logo" style="background:@(m?.Color ?? "#888")20;color:@(m?.Color ?? "#888")">@(m?.Initial ?? "?")</div>
+                                    <span class="sai-card-model-name">@(m?.Name ?? modelId)</span>
+                                    <div class="sai-card-status @(done ? "done" : "loading")"></div>
+                                </div>
+                                <div class="sai-card-body @(done ? "" : "thinking")" style="font-family:var(--font-mono);font-size:0.85rem">
+                                    @if (!done)
+                                    {
+                                        <span class="sai-skeleton sai-skeleton-lg"></span>
+                                        <span class="sai-skeleton sai-skeleton-sm"></span>
+                                    }
+                                    else { @text }
+                                </div>
+                                <div class="sai-card-footer">
+                                    <span style="font-size:0.7rem;color:var(--sai-text-muted)">💻 @CodeLang · @CodeTask</span>
+                                    <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="Describe what you need, or paste code to explain / debug…"
+                                  @bind="CodePrompt" @bind:event="oninput" maxlength="8000"></textarea>
+                        <button class="sai-send-btn" @onclick="SubmitCodePrompt" disabled="@string.IsNullOrWhiteSpace(CodePrompt)" aria-label="Generate code">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+@code {
+    private bool IsDark = true;
+    private string ActivePane = "chat";
+    private string SelectionMode = "all";
+    private HashSet<string> SelectedIds = new(ModelCatalogue.ChatModels.Select(m => m.Id));
+    private List<Conversation> Conversations = [];
+    private string ChatPrompt = "";
+    private string SelectedImageModelId = ModelCatalogue.ImageModels[0].Id;
+    private string ImagePrompt = "";
+    private string ImageStyle = "vivid";
+    private string ImageResult = "";
+    private string ImageGenStatus = "loading";
+    private string SelectedVideoModelId = ModelCatalogue.VideoModels[1].Id;
+    private string VideoPrompt = "";
+    private string VideoDuration = "5s";
+    private string VideoResult = "";
+    private string VideoGenStatus = "loading";
+    private string CreativeStyle = "story";
+    private string CreativePrompt = "";
+    private List<(string ModelId, string Text, bool Done)> CreativeResponses = [];
+    private string CodeLang = "any";
+    private string CodeTask = "write";
+    private string CodePrompt = "";
+    private List<(string ModelId, string Text, bool Done)> CodeResponses = [];
+
+    private static readonly (string id, string label, string icon)[] PaneDefs =
+    [
+        ("chat",     "Chat",     "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>"),
+        ("images",   "Images",   "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><polyline points=\"21 15 16 10 5 21\"/>"),
+        ("video",    "Video",    "<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>"),
+        ("creative", "Creative", "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z\"/>"),
+        ("code",     "Code",     "<polyline points=\"16 18 22 12 16 6\"/><polyline points=\"8 6 2 12 8 18\"/>"),
+    ];
+
+    private static readonly (string id, string label)[] CreativeStyles =
+    [
+        ("story","📖 Story"),("poem","🌸 Poem"),("script","🎬 Script"),
+        ("blog","📝 Blog Post"),("email","✉️ Email"),("pitch","💼 Pitch"),("lyrics","🎵 Lyrics"),
+    ];
+
+    private static readonly (string id, string label)[] CodeLanguages =
+    [
+        ("any","⚡ Any"),("python","🐍 Python"),("typescript","🔷 TypeScript"),
+        ("javascript","🟡 JavaScript"),("rust","🦀 Rust"),("go","🐹 Go"),
+        ("java","☕ Java"),("csharp","💜 C#"),("sql","🗃️ SQL"),
+    ];
+
+    private static readonly (string id, string label)[] CodeTasks =
+    [
+        ("write","✍️ Write"),("explain","🔍 Explain"),("debug","🐛 Debug"),
+        ("review","👁️ Review"),("test","✅ Tests"),("optimize","⚡ Optimize"),
+    ];
+
+    private static readonly (string text, string label)[] SuggestionChips =
+    [
+        ("Explain quantum computing in simple terms","💡 Explain quantum computing"),
+        ("Write a Python function to sort a list of dicts","🐍 Python sort function"),
+        ("What are the biggest AI breakthroughs in 2025?","🚀 AI breakthroughs 2025"),
+        ("Compare AWS vs Azure vs GCP for a startup","☁️ Cloud provider comparison"),
+    ];
+
+    private string CountBadgeText => SelectionMode == "all" ? "All" : SelectedIds.Count.ToString();
+    private string ModelContextText =>
+        SelectionMode == "all" ? "All models selected" :
+        SelectedIds.Count == 1 ? "1 model selected" : $"{SelectedIds.Count} models selected";
+    private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && SelectedIds.Count > 0;
+    private string GridColClass
+    {
+        get
+        {
+            if (!Conversations.Any()) return "cols-1";
+            var n = Conversations.Last().Responses.Count;
+            return $"cols-{Math.Min(n, 3)}";
+        }
+    }
+
+    private void ToggleTheme() => IsDark = !IsDark;
+    private void SwitchPane(string pane) => ActivePane = pane;
+
+    private void ToggleModel(string id)
+    {
+        if (SelectedIds.Contains(id)) { if (SelectedIds.Count == 1) return; SelectedIds.Remove(id); }
+        else SelectedIds.Add(id);
+        SelectionMode = "custom";
+    }
+
+    private void HandleModelKey(KeyboardEventArgs e, string id) { if (e.Key is "Enter" or " ") ToggleModel(id); }
+
+    private void ApplyMode(string mode)
+    {
+        SelectionMode = mode;
+        if (mode == "all") SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Select(m => m.Id));
+        else if (mode == "default") SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Where(m => m.DefaultSelected).Select(m => m.Id));
+    }
+
+    private void SelectAll() { SelectedIds = new HashSet<string>(ModelCatalogue.ChatModels.Select(m => m.Id)); SelectionMode = "all"; }
+
+    private void ClearAll()
+    {
+        var fallback = ModelCatalogue.ChatModels.FirstOrDefault(m => !m.ComingSoon)?.Id ?? "";
+        SelectedIds = fallback.Length > 0 ? [fallback] : [];
+        SelectionMode = "custom";
+    }
+
+    private void HandlePromptKey(KeyboardEventArgs e) { if (e.Key == "Enter" && !e.ShiftKey && CanSend) SubmitChatPrompt(); }
+    private void SetSuggestion(string text) => ChatPrompt = text;
+
+    private async void SubmitChatPrompt()
+    {
+        if (!CanSend) return;
+        var prompt = ChatPrompt.Trim();
+        ChatPrompt = "";
+        var selectedModels = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id)).ToList();
+        var conv = new Conversation { Prompt = prompt, Responses = selectedModels.Select(m => new ModelResponse { ModelId = m.Id }).ToList() };
+        Conversations.Add(conv);
+        StateHasChanged();
+
+        var tasks = selectedModels.Select(async (model, idx) =>
+        {
+            await Task.Delay(idx * 220 + Random.Shared.Next(300));
+            var resp = conv.Responses.First(r => r.ModelId == model.Id);
+            var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
+            var startMs = Environment.TickCount;
+            var totalChars = demoText.Length;
+            var chunkSize = Math.Max(1, totalChars / 60);
+            var charIndex = 0;
+            while (charIndex < totalChars)
+            {
+                charIndex = Math.Min(charIndex + chunkSize, totalChars);
+                resp.Text = demoText[..charIndex];
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(50);
+            }
+            resp.Status = "done";
+            resp.Tokens = totalChars / 4;
+            resp.Ms = Environment.TickCount - startMs;
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async void SubmitImagePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(ImagePrompt)) return;
+        var prompt = ImagePrompt.Trim();
+        var model = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+        ImageGenStatus = "loading";
+        ImageResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:180px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating image…</p></div>";
+        ImagePrompt = "";
+        StateHasChanged();
+        await Task.Delay(2000);
+        ImageGenStatus = "done";
+        ImageResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:180px;background:linear-gradient(135deg,{model?.Color ?? "#888"}22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🖼️ Image generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>Connect Azure AI Foundry to render real images.</p></div>";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void SubmitVideoPrompt()
+    {
+        if (string.IsNullOrWhiteSpace(VideoPrompt)) return;
+        var prompt = VideoPrompt.Trim();
+        VideoGenStatus = "loading";
+        VideoResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:160px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating video…</p></div>";
+        VideoPrompt = "";
+        StateHasChanged();
+        await Task.Delay(3000);
+        VideoGenStatus = "done";
+        VideoResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:160px;background:linear-gradient(135deg,#E0115F22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🎬 Video generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>Connect Azure AI Foundry for real video output.</p></div>";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void SubmitCreativePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(CreativePrompt)) return;
+        var prompt = CreativePrompt.Trim();
+        CreativePrompt = "";
+        var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
+        CreativeResponses = models.Select(m => (m.Id, "", false)).ToList();
+        StateHasChanged();
+        var tasks = models.Select(async (model, idx) =>
+        {
+            await Task.Delay(1200 + idx * 600);
+            var text = $"{prompt}\n\n{ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length]}";
+            CreativeResponses[idx] = (model.Id, text, true);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async void SubmitCodePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(CodePrompt)) return;
+        var prompt = CodePrompt.Trim();
+        CodePrompt = "";
+        var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
+        CodeResponses = models.Select(m => (m.Id, "", false)).ToList();
+        StateHasChanged();
+        var tasks = models.Select(async (model, idx) =>
+        {
+            await Task.Delay(1000 + idx * 500);
+            var lang = CodeLang != "any" ? CodeLang : "code";
+            var text = $"# {prompt} — {lang}\n# Task: {CodeTask}\n# Connect Azure AI Foundry for real output\n\n{ModelCatalogue.DemoResponses[(idx + 2) % ModelCatalogue.DemoResponses.Length]}";
+            CodeResponses[idx] = (model.Id, text, true);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task CopyText(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    private static string EscHtml(string s) =>
+        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+}
