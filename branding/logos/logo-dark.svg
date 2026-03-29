@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80" role="img" aria-label="SupremeAI logo">
+  <title>SupremeAI</title>
+  <defs>
+    <linearGradient id="crown-grad-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Crown icon -->
+  <g transform="translate(8, 12)">
+    <!-- Crown base band -->
+    <rect x="0" y="38" width="48" height="8" rx="2" fill="url(#crown-grad-dark)" />
+    <!-- Crown points -->
+    <polygon points="4,38 4,18 16,28 24,10 32,28 44,18 44,38" fill="url(#crown-grad-dark)" />
+    <!-- Crown jewels -->
+    <circle cx="24" cy="13" r="3" fill="#00E5FF" opacity="0.9" />
+    <circle cx="8"  cy="20" r="2" fill="#7C3AED" opacity="0.9" />
+    <circle cx="40" cy="20" r="2" fill="#7C3AED" opacity="0.9" />
+    <!-- AI circuit dots -->
+    <circle cx="12" cy="50" r="1.5" fill="#00E5FF" opacity="0.6" />
+    <circle cx="24" cy="50" r="1.5" fill="#00E5FF" opacity="0.6" />
+    <circle cx="36" cy="50" r="1.5" fill="#00E5FF" opacity="0.6" />
+    <line x1="13.5" y1="50" x2="22.5" y2="50" stroke="#00E5FF" stroke-width="0.75" opacity="0.4" />
+    <line x1="25.5" y1="50" x2="34.5" y2="50" stroke="#00E5FF" stroke-width="0.75" opacity="0.4" />
+  </g>
+  <!-- Wordmark -->
+  <text x="72" y="36" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.5" fill="#FFFFFF">Supreme</text>
+  <text x="72" y="61" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="16" font-weight="400" letter-spacing="6" fill="#00E5FF">AI</text>
+  <!-- Tagline -->
+  <text x="72" y="75" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="8" font-weight="300" letter-spacing="1.5" fill="#FFFFFF" opacity="0.45">AI-POWERED DEVOPS</text>
+</svg>
