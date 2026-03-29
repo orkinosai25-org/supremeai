@@ -262,6 +262,17 @@
         <!-- IMAGES PANE -->
         <section class="sai-pane @(ActivePane == "images" ? "active" : "")" aria-label="Image generation">
             <div class="sai-pane-inner">
+                @if (!Subscription.CurrentPlan.Multimodal)
+                {
+                    <div class="sai-pane-locked">
+                        <div class="sai-pane-locked-box">
+                            <div class="sai-upgrade-icon">🖼️🔒</div>
+                            <h3 class="sai-upgrade-title">Image generation requires a multimodal plan</h3>
+                            <p class="sai-upgrade-desc">Image generation requires a multimodal plan. Upgrade to <strong>Pro</strong>, <strong>Creative</strong>, or <strong>Enterprise</strong> to generate images with DALL-E 3 and more.</p>
+                            <button class="sai-upgrade-cta" @onclick='() => Nav.NavigateTo("/pricing")'>View Plans</button>
+                        </div>
+                    </div>
+                }
                 <div class="sai-pane-header">
                     <div class="sai-pane-icon images">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
@@ -316,6 +327,17 @@
         <!-- VIDEO PANE -->
         <section class="sai-pane @(ActivePane == "video" ? "active" : "")" aria-label="Video generation">
             <div class="sai-pane-inner">
+                @if (!Subscription.CurrentPlan.VideoGeneration)
+                {
+                    <div class="sai-pane-locked">
+                        <div class="sai-pane-locked-box">
+                            <div class="sai-upgrade-icon">🎬🔒</div>
+                            <h3 class="sai-upgrade-title">Video generation requires Creative or above</h3>
+                            <p class="sai-upgrade-desc">Upgrade to <strong>Creative</strong> or <strong>Enterprise</strong> to generate videos with Runway, Pika, and Sora.</p>
+                            <button class="sai-upgrade-cta" @onclick='() => Nav.NavigateTo("/pricing")'>View Plans</button>
+                        </div>
+                    </div>
+                }
                 <div class="sai-pane-header">
                     <div class="sai-pane-icon video">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>

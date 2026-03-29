@@ -1,6 +1,6 @@
 namespace SupremeAI.Models;
 
-public enum PlanTier { Free, Pro, Creative, Enterprise }
+public enum PlanTier { Free, Starter, Pro, Creative, Enterprise }
 
 public class SubscriptionPlan
 {
@@ -69,6 +69,35 @@ public static class SubscriptionPlans
             ],
             Color = "#C0C0C0",
             GemClass = "sai-gem-silver",
+        },
+        new()
+        {
+            Tier = PlanTier.Starter,
+            Name = "Starter",
+            Price = "£7",
+            PriceSuffix = "/month",
+            MaxModels = 1,
+            MessagesPerDay = 50,
+            Multimodal = false,
+            VideoGeneration = false,
+            AudioGeneration = false,
+            Uploads = false,
+            MaxUploadMb = 0,
+            HdImageGeneration = false,
+            MultiAgentWorkflows = false,
+            CommercialUse = false,
+            TeamsAndAdmin = false,
+            AllowedTiers = [ModelTier.Diamond, ModelTier.Emerald, ModelTier.Gold, ModelTier.Silver],
+            Features =
+            [
+                "1 model at a time",
+                "Access to all models (GPT-4o, Claude, Gemini, Grok)",
+                "50 messages per day",
+                "No multimodal",
+                "No file uploads",
+            ],
+            Color = "#7FFFD4",
+            GemClass = "sai-gem-aquamarine",
         },
         new()
         {
