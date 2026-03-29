@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SupremeAI — Multi-Model Platform</title>
+  <title>SupremeAI — Multi-Model AI Platform</title>
   <link rel="icon" type="image/svg+xml" href="../branding/favicon.svg"/>
   <link rel="stylesheet" href="styles.css"/>
 </head>
@@ -12,23 +12,81 @@
   <!-- ─── HEADER ─── -->
   <header class="app-header">
     <div class="header-inner">
+
+      <!-- Crown wordmark logo: S(emerald) UPREME(silver) ai(diamond) with gold crown -->
       <a href="#" class="brand-logo" aria-label="SupremeAI home">
-        <img src="../branding/favicon.svg" alt="" class="brand-icon" width="36" height="36"/>
-        <span class="brand-text">
-          <span class="brand-s">S</span><span class="brand-upreme">UPREME</span><span class="brand-ai">ai</span>
-        </span>
+        <svg class="crown-wordmark" viewBox="0 0 210 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="hw-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#FFE566"/>
+              <stop offset="50%"  stop-color="#FFD700"/>
+              <stop offset="100%" stop-color="#B8860B"/>
+            </linearGradient>
+            <linearGradient id="hw-emerald" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stop-color="#6EE7B7"/>
+              <stop offset="100%" stop-color="#059669"/>
+            </linearGradient>
+            <linearGradient id="hw-diamond" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#FFFFFF"/>
+              <stop offset="35%"  stop-color="#C6E8F5"/>
+              <stop offset="70%"  stop-color="#E8F4F8"/>
+              <stop offset="100%" stop-color="#FFFFFF"/>
+            </linearGradient>
+            <linearGradient id="hw-silver" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#E8E8E8"/>
+              <stop offset="50%"  stop-color="#C0C0C0"/>
+              <stop offset="100%" stop-color="#E8E8E8"/>
+            </linearGradient>
+            <filter id="hw-glow-gold">
+              <feGaussianBlur stdDeviation="1.2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Gold Crown (centred above the S letter) -->
+          <g filter="url(#hw-glow-gold)">
+            <rect x="1" y="18" width="26" height="5"  rx="1.5" fill="url(#hw-gold)"/>
+            <polygon points="3,18 3,7 9,13 14,2 19,13 25,7 25,18" fill="url(#hw-gold)"/>
+            <!-- Jewels: centre diamond, two side emeralds -->
+            <ellipse cx="14" cy="2.5" rx="2.8" ry="2.2" fill="#C6E8F5" opacity="0.95"/>
+            <circle  cx="4"  cy="8.5" r="1.6" fill="#50C878" opacity="0.9"/>
+            <circle  cx="24" cy="8.5" r="1.6" fill="#50C878" opacity="0.9"/>
+          </g>
+          <!-- S — emerald green, large -->
+          <text x="1"   y="44" font-family="Georgia,'Times New Roman',serif" font-size="28" font-weight="800" fill="url(#hw-emerald)">S</text>
+          <!-- UPREME — silver -->
+          <text x="21"  y="44" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="700" fill="url(#hw-silver)">UPREME</text>
+          <!-- ai — diamond/crystal -->
+          <text x="153" y="46" font-family="Georgia,'Times New Roman',serif" font-size="25" font-weight="800" fill="url(#hw-diamond)">ai</text>
+        </svg>
       </a>
 
-      <nav class="header-nav" aria-label="Main navigation">
-        <a href="#" class="nav-link active">Chat</a>
-        <a href="#" class="nav-link">Arena</a>
-        <a href="#" class="nav-link">Benchmarks</a>
-        <a href="#" class="nav-link">Settings</a>
+      <!-- Content-type pane tabs -->
+      <nav class="content-type-nav" aria-label="Content panes">
+        <button class="content-tab active" data-pane="chat" aria-selected="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Chat
+        </button>
+        <button class="content-tab" data-pane="images">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Images
+        </button>
+        <button class="content-tab" data-pane="video">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Video
+        </button>
+        <button class="content-tab" data-pane="creative">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Creative
+        </button>
+        <button class="content-tab" data-pane="code">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Code
+        </button>
       </nav>
 
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="themeToggle" aria-label="Toggle theme" title="Toggle light/dark">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"/>
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
           </svg>
@@ -41,47 +99,98 @@
   <!-- ─── MAIN ─── -->
   <main class="app-main">
 
-    <!-- ─── MODEL SELECTOR PANEL ─── -->
-    <aside class="model-panel" aria-label="Model selection">
+    <!-- ─── MODEL PANEL (left sidebar) ─────────────────────────────── -->
+    <aside class="model-panel" aria-label="Model selection" id="modelPanel">
       <div class="panel-header">
         <h2 class="panel-title">Models</h2>
         <span class="panel-badge" id="selectedCount">All</span>
       </div>
 
-      <!-- Quick-select tabs -->
+      <!-- Select All / Clear All -->
+      <div class="select-actions">
+        <button class="select-action-btn" id="btnSelectAll">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2"/></svg>
+          Select All
+        </button>
+        <button class="select-action-btn secondary" id="btnClearAll">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+          Clear All
+        </button>
+      </div>
+
+      <!-- Quick-select presets -->
       <div class="quick-select" role="group" aria-label="Quick model selection">
         <button class="quick-btn active" data-mode="all"     id="btnAll">All</button>
         <button class="quick-btn"        data-mode="default" id="btnDefault">Default</button>
         <button class="quick-btn"        data-mode="custom"  id="btnCustom">Custom</button>
       </div>
 
-      <!-- Model list -->
+      <!-- Model list with checkboxes -->
       <ul class="model-list" id="modelList" role="listbox" aria-multiselectable="true" aria-label="Available models">
         <!-- Populated by JS -->
       </ul>
     </aside>
 
-    <!-- ─── CHAT AREA ─── -->
-    <section class="chat-area" aria-label="Chat">
+    <!-- ─── CHAT PANE ────────────────────────────────────────────────── -->
+    <section class="app-pane active" id="chatPane" aria-label="Chat">
 
-      <!-- Response columns header (shows when >1 model active) -->
+      <!-- Model response tabs (visible when multiple models selected) -->
       <div class="response-header" id="responseHeader" hidden>
         <div class="response-tabs" id="responseTabs" role="tablist">
-          <!-- Tabs populated by JS -->
+          <!-- Populated by JS -->
+        </div>
+        <div class="response-header-actions">
+          <button class="tab-action-btn" id="btnLayoutToggle" title="Toggle split/stacked view">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
+          </button>
         </div>
       </div>
 
-      <!-- Response columns -->
+      <!-- Response grid -->
       <div class="response-grid" id="responseGrid">
         <div class="empty-state" id="emptyState">
-          <img src="../branding/logo-mascot.svg" alt="SupremeAI mascot" width="120" height="120" class="empty-mascot"/>
-          <p class="empty-title">Ask anything</p>
-          <p class="empty-sub">Select models above, then type your prompt.</p>
+          <!-- Crown SVG empty state illustration -->
+          <svg class="empty-crown-svg" viewBox="0 0 96 84" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ec-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FFE566"/>
+                <stop offset="50%" stop-color="#FFD700"/>
+                <stop offset="100%" stop-color="#B8860B"/>
+              </linearGradient>
+              <filter id="ec-glow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <g filter="url(#ec-glow)">
+              <rect x="6"  y="54" width="84" height="16" rx="5" fill="url(#ec-gold)" opacity="0.9"/>
+              <polygon points="10,54 10,20 28,36 48,8 68,36 86,20 86,54" fill="url(#ec-gold)" opacity="0.9"/>
+              <ellipse cx="48" cy="9"  rx="7" ry="5.5" fill="#C6E8F5"/>
+              <circle  cx="12" cy="24" r="4.5" fill="#50C878"/>
+              <circle  cx="84" cy="24" r="4.5" fill="#50C878"/>
+            </g>
+          </svg>
+          <p class="empty-title">Ask anything with <span class="brand-gradient-text">SupremeAI</span></p>
+          <p class="empty-sub">Select models on the left, then type your prompt. Compare AI responses side by side.</p>
+          <div class="suggestion-chips">
+            <button class="chip-btn" onclick="setPromptSuggestion('Explain quantum computing in simple terms')">💡 Explain quantum computing</button>
+            <button class="chip-btn" onclick="setPromptSuggestion('Write a Python function to sort a list of dictionaries by key')">🐍 Python sort function</button>
+            <button class="chip-btn" onclick="setPromptSuggestion('What are the biggest AI breakthroughs in 2025?')">🚀 AI breakthroughs 2025</button>
+            <button class="chip-btn" onclick="setPromptSuggestion('Compare AWS vs Azure vs GCP for a startup')">☁️ Cloud provider comparison</button>
+          </div>
         </div>
       </div>
 
       <!-- Prompt bar -->
       <div class="prompt-bar-wrap">
+        <div class="prompt-context-bar">
+          <span class="context-label" id="contextLabel">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chat
+          </span>
+          <span class="context-divider">·</span>
+          <span class="context-models" id="contextModels">All models selected</span>
+        </div>
         <form class="prompt-bar" id="promptForm" autocomplete="off">
           <div class="prompt-input-wrap">
             <textarea
@@ -96,7 +205,7 @@
           <div class="prompt-actions">
             <span class="char-count" id="charCount">0 / 8,000</span>
             <button type="submit" class="btn btn-primary btn-send" id="sendBtn" disabled aria-label="Send prompt">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
               </svg>
             </button>
@@ -104,6 +213,192 @@
         </form>
       </div>
     </section>
+
+    <!-- ─── IMAGES PANE ───────────────────────────────────────────────── -->
+    <section class="app-pane" id="imagesPane" aria-label="Image generation" hidden>
+      <div class="pane-inner">
+        <div class="pane-header-block">
+          <div class="pane-icon pane-icon-images">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div>
+            <h2 class="pane-title">Image Generation</h2>
+            <p class="pane-subtitle">Create stunning visuals with Azure AI vision models</p>
+          </div>
+        </div>
+
+        <div class="model-cards-grid" id="imageModelCards"></div>
+
+        <div class="generated-results" id="imageResults">
+          <div class="pane-empty">
+            <p>Select a model above and describe an image to generate</p>
+          </div>
+        </div>
+
+        <div class="prompt-bar-wrap">
+          <form class="prompt-bar" id="imagePromptForm" autocomplete="off">
+            <div class="prompt-input-wrap">
+              <textarea id="imagePromptInput" class="prompt-input" rows="1" placeholder="A majestic mountain landscape at golden hour, photorealistic…" aria-label="Image prompt" maxlength="4000"></textarea>
+            </div>
+            <div class="prompt-actions">
+              <select class="style-select" id="imageStyle" aria-label="Image style">
+                <option value="vivid">Vivid</option>
+                <option value="natural">Natural</option>
+                <option value="cinematic">Cinematic</option>
+                <option value="anime">Anime</option>
+              </select>
+              <button type="submit" class="btn btn-primary btn-send" aria-label="Generate image">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VIDEO PANE ────────────────────────────────────────────────── -->
+    <section class="app-pane" id="videoPane" aria-label="Video generation" hidden>
+      <div class="pane-inner">
+        <div class="pane-header-block">
+          <div class="pane-icon pane-icon-video">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          </div>
+          <div>
+            <h2 class="pane-title">Video Generation</h2>
+            <p class="pane-subtitle">Generate AI-powered video clips from text prompts</p>
+          </div>
+        </div>
+
+        <div class="model-cards-grid" id="videoModelCards"></div>
+
+        <div class="generated-results" id="videoResults">
+          <div class="pane-empty">
+            <p>Select a model above and describe a video scene to create</p>
+          </div>
+        </div>
+
+        <div class="prompt-bar-wrap">
+          <form class="prompt-bar" id="videoPromptForm" autocomplete="off">
+            <div class="prompt-input-wrap">
+              <textarea id="videoPromptInput" class="prompt-input" rows="1" placeholder="A time-lapse of a city skyline at sunset with moving clouds…" aria-label="Video prompt" maxlength="4000"></textarea>
+            </div>
+            <div class="prompt-actions">
+              <select class="style-select" id="videoDuration" aria-label="Video duration">
+                <option value="5s">5 sec</option>
+                <option value="10s">10 sec</option>
+                <option value="30s">30 sec</option>
+              </select>
+              <button type="submit" class="btn btn-primary btn-send" aria-label="Generate video">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CREATIVE WRITING PANE ─────────────────────────────────────── -->
+    <section class="app-pane" id="creativePane" aria-label="Creative writing" hidden>
+      <div class="pane-inner">
+        <div class="pane-header-block">
+          <div class="pane-icon pane-icon-creative">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div>
+            <h2 class="pane-title">Creative Writing</h2>
+            <p class="pane-subtitle">Stories, poetry, scripts, and imaginative content</p>
+          </div>
+        </div>
+
+        <!-- Creative writing style chips -->
+        <div class="style-chips-row" id="creativeStyleChips">
+          <button class="style-chip active" data-style="story">📖 Story</button>
+          <button class="style-chip" data-style="poem">🌸 Poem</button>
+          <button class="style-chip" data-style="script">🎬 Script</button>
+          <button class="style-chip" data-style="blog">�� Blog Post</button>
+          <button class="style-chip" data-style="email">✉️ Email</button>
+          <button class="style-chip" data-style="pitch">💼 Pitch</button>
+          <button class="style-chip" data-style="lyrics">🎵 Lyrics</button>
+        </div>
+
+        <div class="response-grid cols-1" id="creativeResponseGrid">
+          <div class="pane-empty">
+            <p>Choose a writing style above and describe what you'd like to create</p>
+          </div>
+        </div>
+
+        <div class="prompt-bar-wrap">
+          <form class="prompt-bar" id="creativePromptForm" autocomplete="off">
+            <div class="prompt-input-wrap">
+              <textarea id="creativePromptInput" class="prompt-input" rows="1" placeholder="What would you like to write? Give a theme, characters, or brief…" aria-label="Creative writing prompt" maxlength="8000"></textarea>
+            </div>
+            <div class="prompt-actions">
+              <button type="submit" class="btn btn-primary btn-send" aria-label="Write">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CODE PANE ─────────────────────────────────────────────────── -->
+    <section class="app-pane" id="codePane" aria-label="Code assistant" hidden>
+      <div class="pane-inner">
+        <div class="pane-header-block">
+          <div class="pane-icon pane-icon-code">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div>
+            <h2 class="pane-title">Code Assistant</h2>
+            <p class="pane-subtitle">Write, explain, debug, and review code with AI</p>
+          </div>
+        </div>
+
+        <!-- Language chips -->
+        <div class="style-chips-row" id="langChips">
+          <button class="style-chip active" data-lang="any">⚡ Any</button>
+          <button class="style-chip" data-lang="python">🐍 Python</button>
+          <button class="style-chip" data-lang="typescript">🔷 TypeScript</button>
+          <button class="style-chip" data-lang="javascript">🟡 JavaScript</button>
+          <button class="style-chip" data-lang="rust">🦀 Rust</button>
+          <button class="style-chip" data-lang="go">🐹 Go</button>
+          <button class="style-chip" data-lang="java">☕ Java</button>
+          <button class="style-chip" data-lang="csharp">💜 C#</button>
+          <button class="style-chip" data-lang="sql">🗃️ SQL</button>
+        </div>
+
+        <!-- Task chips -->
+        <div class="style-chips-row" id="taskChips">
+          <button class="task-chip active" data-task="write">✍️ Write</button>
+          <button class="task-chip" data-task="explain">🔍 Explain</button>
+          <button class="task-chip" data-task="debug">🐛 Debug</button>
+          <button class="task-chip" data-task="review">👁️ Review</button>
+          <button class="task-chip" data-task="test">✅ Tests</button>
+          <button class="task-chip" data-task="optimize">⚡ Optimize</button>
+        </div>
+
+        <div class="response-grid cols-1" id="codeResponseGrid">
+          <div class="pane-empty">
+            <p>Pick a language and task above, then describe what you need</p>
+          </div>
+        </div>
+
+        <div class="prompt-bar-wrap">
+          <form class="prompt-bar" id="codePromptForm" autocomplete="off">
+            <div class="prompt-input-wrap">
+              <textarea id="codePromptInput" class="prompt-input" rows="1" placeholder="Describe what you need, or paste code to explain / debug…" aria-label="Code prompt" maxlength="8000"></textarea>
+            </div>
+            <div class="prompt-actions">
+              <button type="submit" class="btn btn-primary btn-send" aria-label="Generate code">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <script src="app.js"></script>
