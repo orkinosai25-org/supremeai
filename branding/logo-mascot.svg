@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- Rainbow gradient for orbit ring and body -->
+    <linearGradient id="rainbowOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00B4DB"/>
+      <stop offset="30%"  stop-color="#7C3AED"/>
+      <stop offset="60%"  stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+
+    <linearGradient id="brainTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#60D0F0"/>
+      <stop offset="40%" stop-color="#48AAFF"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <linearGradient id="brainBottom" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#EC4899"/>
+      <stop offset="50%"  stop-color="#C026D3"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <linearGradient id="lobeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <linearGradient id="rainbowAccent" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FACC15"/>
+      <stop offset="50%"  stop-color="#4ADE80"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Transparent background -->
+  <rect width="400" height="400" fill="none"/>
+
+  <!-- ═══════ ORBIT RING (background arc, bottom-left) ═══════ -->
+  <g transform="translate(200, 200)">
+    <!-- Bottom orbit arc (pink/purple) -->
+    <path d="M -120,60 A 130,50 -30 0 0 100,-40"
+          fill="none" stroke="url(#rainbowOuter)" stroke-width="14"
+          stroke-linecap="round" opacity="0.9"/>
+
+    <!-- ═══════ BRAIN / PLANET BODY ═══════ -->
+    <!-- Main body (blue top) -->
+    <ellipse cx="10" cy="-10" rx="90" ry="80" fill="url(#brainTop)" opacity="0.95"/>
+
+    <!-- Brain left lobe (purple bulge) -->
+    <ellipse cx="-55" cy="10" rx="40" ry="35" fill="url(#lobeLeft)" opacity="0.9"/>
+
+    <!-- Brain wave/fold lines on body for brain texture -->
+    <path d="M -30,-30 Q -10,-50 20,-30 Q 40,-15 55,-35"
+          fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M -50,10 Q -35,-5 -20,10 Q -5,25 15,5"
+          fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Rainbow swirl / comet accent (top right) -->
+    <path d="M 50,-50 Q 80,-60 90,-40 Q 95,-25 75,-20"
+          fill="none" stroke="url(#rainbowAccent)" stroke-width="10"
+          stroke-linecap="round" opacity="0.85"/>
+
+    <!-- Bottom half pink/magenta -->
+    <path d="M -90,-10 Q -80,70 10,75 Q 90,75 95,-10 Z"
+          fill="url(#brainBottom)" opacity="0.6"/>
+
+    <!-- Brain bottom curly roots/tendrils -->
+    <path d="M -20,70 Q -30,95 -40,80 Q -50,65 -30,60"
+          fill="none" stroke="url(#brainBottom)" stroke-width="12"
+          stroke-linecap="round" opacity="0.85"/>
+    <path d="M 10,73 Q 5,105 0,90"
+          fill="none" stroke="url(#rainbowOuter)" stroke-width="10"
+          stroke-linecap="round" opacity="0.8"/>
+    <path d="M 35,68 Q 55,100 65,80 Q 70,65 55,58"
+          fill="none" stroke="url(#lobeLeft)" stroke-width="10"
+          stroke-linecap="round" opacity="0.8"/>
+
+    <!-- ═══════ ORBIT RING (foreground arc, top-right) ═══════ -->
+    <path d="M -130,15 A 130,50 -30 0 1 110,-55"
+          fill="none" stroke="url(#rainbowOuter)" stroke-width="14"
+          stroke-linecap="round" opacity="0.95" filter="url(#softGlow)"/>
+
+    <!-- Orbit dot (planet node) -->
+    <circle cx="108" cy="-57" r="9" fill="#3B82F6" opacity="0.9"/>
+    <circle cx="108" cy="-57" r="5" fill="#60D0F0"/>
+
+    <!-- Top orbit arc (cyan) -->
+    <path d="M -125,5 Q -140,-60 -70,-85"
+          fill="none" stroke="#5EEAD4" stroke-width="8"
+          stroke-linecap="round" opacity="0.7"/>
+
+    <!-- ═══════ FACE (smiley) ═══════ -->
+    <!-- Eyes -->
+    <path d="M -15,-25 Q -10,-32 -5,-25" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M 20,-25 Q 25,-32 30,-25"  fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Highlight on top of brain -->
+    <ellipse cx="15" cy="-50" rx="28" ry="12" fill="rgba(255,255,255,0.25)"/>
+    <ellipse cx="-55" cy="-5" rx="12" ry="8" fill="rgba(255,255,255,0.2)"/>
+  </g>
+</svg>
