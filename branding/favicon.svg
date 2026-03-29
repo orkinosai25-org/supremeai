@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="SupremeAI favicon">
+  <title>SupremeAI</title>
+  <defs>
+    <linearGradient id="fav-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D0D1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E1040;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="url(#fav-bg)" />
+  <!-- Crown -->
+  <g transform="translate(4, 4)">
+    <rect x="1" y="17" width="22" height="4" rx="1" fill="url(#fav-grad)" />
+    <polygon points="2,17 2,8 8,13 12,4 16,13 22,8 22,17" fill="url(#fav-grad)" />
+    <circle cx="12" cy="5" r="2" fill="#00E5FF" />
+  </g>
+</svg>

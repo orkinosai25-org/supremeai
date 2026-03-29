@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="SupremeAI icon">
+  <title>SupremeAI Icon</title>
+  <defs>
+    <linearGradient id="icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D0D1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E1040;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="64" height="64" rx="14" fill="url(#bg-grad)" />
+  <!-- Crown -->
+  <g transform="translate(8, 8)">
+    <!-- Crown base band -->
+    <rect x="2" y="34" width="44" height="8" rx="2" fill="url(#icon-grad)" />
+    <!-- Crown points -->
+    <polygon points="5,34 5,16 15,25 24,8 33,25 43,16 43,34" fill="url(#icon-grad)" />
+    <!-- Crown jewels -->
+    <circle cx="24" cy="10" r="3.5" fill="#00E5FF" />
+    <circle cx="7"  cy="18" r="2.5" fill="#A78BFA" />
+    <circle cx="41" cy="18" r="2.5" fill="#A78BFA" />
+    <!-- Circuit nodes -->
+    <circle cx="11" cy="46" r="1.5" fill="#00E5FF" opacity="0.7" />
+    <circle cx="24" cy="46" r="1.5" fill="#00E5FF" opacity="0.7" />
+    <circle cx="37" cy="46" r="1.5" fill="#00E5FF" opacity="0.7" />
+    <line x1="12.5" y1="46" x2="22.5" y2="46" stroke="#00E5FF" stroke-width="1" opacity="0.4" />
+    <line x1="25.5" y1="46" x2="35.5" y2="46" stroke="#00E5FF" stroke-width="1" opacity="0.4" />
+  </g>
+</svg>
