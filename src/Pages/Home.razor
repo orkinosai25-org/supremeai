@@ -4,6 +4,8 @@
 @inject IJSRuntime JS
 @inject SubscriptionService Subscription
 @inject NavigationManager Nav
+@inject HttpClient Http
+@inject AiApiService AiApi
 @implements IDisposable
 
 <div class="sai-shell @(IsDark ? "" : "sai-light")">
@@ -713,25 +715,58 @@
         Conversations.Add(conv);
         StateHasChanged();
 
+        // Build the messages list for the API (single user turn for now)
+        var apiMessages = new[] { new ApiChatMessage { Role = "user", Content = prompt } };
+
         var tasks = selectedModels.Select(async (model, idx) =>
         {
-            await Task.Delay(idx * 220 + Random.Shared.Next(300));
             var resp = conv.Responses.First(r => r.ModelId == model.Id);
-            var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
             var startMs = Environment.TickCount;
-            var totalChars = demoText.Length;
-            var chunkSize = Math.Max(1, totalChars / 60);
-            var charIndex = 0;
-            while (charIndex < totalChars)
+
+            // Try the real backend API first
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
+
+            if (apiResult is not null)
             {
-                charIndex = Math.Min(charIndex + chunkSize, totalChars);
-                resp.Text = demoText[..charIndex];
-                await InvokeAsync(StateHasChanged);
-                await Task.Delay(50);
+                // API call succeeded – stream the text character by character for the same UX
+                var text = apiResult.Status == "error"
+                    ? $"[Error from {model.Name}: {apiResult.ErrorMessage}]"
+                    : apiResult.Text;
+
+                var totalChars = text.Length;
+                var chunkSize = Math.Max(1, totalChars / 60);
+                var charIndex = 0;
+                while (charIndex < totalChars)
+                {
+                    charIndex = Math.Min(charIndex + chunkSize, totalChars);
+                    resp.Text = text[..charIndex];
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(25);
+                }
+                resp.Status = apiResult.Status == "error" ? "error" : "done";
+                resp.Tokens = apiResult.Tokens;
+                resp.Ms     = apiResult.Ms > 0 ? apiResult.Ms : Environment.TickCount - startMs;
             }
-            resp.Status = "done";
-            resp.Tokens = totalChars / 4;
-            resp.Ms = Environment.TickCount - startMs;
+            else
+            {
+                // Fallback: API unreachable – use demo response with staggered delay
+                await Task.Delay(idx * 220 + Random.Shared.Next(300));
+                var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
+                var totalChars = demoText.Length;
+                var chunkSize = Math.Max(1, totalChars / 60);
+                var charIndex = 0;
+                while (charIndex < totalChars)
+                {
+                    charIndex = Math.Min(charIndex + chunkSize, totalChars);
+                    resp.Text = demoText[..charIndex];
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(50);
+                }
+                resp.Status = "done";
+                resp.Tokens = totalChars / 4;
+                resp.Ms = Environment.TickCount - startMs;
+            }
+
             await InvokeAsync(StateHasChanged);
         });
         await Task.WhenAll(tasks);
@@ -746,9 +781,26 @@
         ImageResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:180px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating image…</p></div>";
         ImagePrompt = "";
         StateHasChanged();
-        await Task.Delay(2000);
+
+        var apiResult = await AiApi.ImageAsync(SelectedImageModelId, prompt);
+
         ImageGenStatus = "done";
-        ImageResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:180px;background:linear-gradient(135deg,{model?.Color ?? "#888"}22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🖼️ Image generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>Connect Azure AI Foundry to render real images.</p></div>";
+        if (apiResult is not null && apiResult.Status == "done" && !string.IsNullOrWhiteSpace(apiResult.ImageUrl))
+        {
+            var revised = string.IsNullOrWhiteSpace(apiResult.RevisedPrompt) ? "" :
+                $"<p style='margin-top:0.5rem;font-size:0.75rem;color:var(--sai-text-muted)'>Revised: {EscHtml(apiResult.RevisedPrompt)}</p>";
+            ImageResult = $"<div style='text-align:center;padding:1rem'><img src='{apiResult.ImageUrl}' alt='Generated image' style='max-width:100%;border-radius:10px' />{revised}</div>";
+        }
+        else
+        {
+            // Fallback placeholder
+            var errorMsg = apiResult?.ErrorMessage;
+            var note = string.IsNullOrWhiteSpace(errorMsg)
+                ? "Connect Azure AI Foundry to render real images."
+                : EscHtml(errorMsg);
+            ImageResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:180px;background:linear-gradient(135deg,{model?.Color ?? "#888"}22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🖼️ Image generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>{note}</p></div>";
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -774,10 +826,19 @@
         var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
         CreativeResponses = models.Select(m => (m.Id, "", false)).ToList();
         StateHasChanged();
+
+        var systemPrompt = $"You are a creative writing assistant. Write in the style of a {CreativeStyle}. Be imaginative and engaging.";
+        var apiMessages  = new[] {
+            new ApiChatMessage { Role = "system", Content = systemPrompt },
+            new ApiChatMessage { Role = "user",   Content = prompt },
+        };
+
         var tasks = models.Select(async (model, idx) =>
         {
-            await Task.Delay(1200 + idx * 600);
-            var text = $"{prompt}\n\n{ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length]}";
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
+            var text = apiResult is { Status: "done" }
+                ? apiResult.Text
+                : $"{prompt}\n\n{ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length]}";
             CreativeResponses[idx] = (model.Id, text, true);
             await InvokeAsync(StateHasChanged);
         });
@@ -792,11 +853,21 @@
         var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
         CodeResponses = models.Select(m => (m.Id, "", false)).ToList();
         StateHasChanged();
+
+        var langNote   = CodeLang != "any" ? $" Use {CodeLang}." : "";
+        var systemPrompt = $"You are an expert software engineer. Task: {CodeTask}.{langNote} Respond with clean, well-commented code.";
+        var apiMessages  = new[] {
+            new ApiChatMessage { Role = "system", Content = systemPrompt },
+            new ApiChatMessage { Role = "user",   Content = prompt },
+        };
+
         var tasks = models.Select(async (model, idx) =>
         {
-            await Task.Delay(1000 + idx * 500);
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
             var lang = CodeLang != "any" ? CodeLang : "code";
-            var text = $"# {prompt} — {lang}\n# Task: {CodeTask}\n# Connect Azure AI Foundry for real output\n\n{ModelCatalogue.DemoResponses[(idx + 2) % ModelCatalogue.DemoResponses.Length]}";
+            var text = apiResult is { Status: "done" }
+                ? apiResult.Text
+                : $"# {prompt} — {lang}\n# Task: {CodeTask}\n# Connect Azure AI Foundry for real output\n\n{ModelCatalogue.DemoResponses[(idx + 2) % ModelCatalogue.DemoResponses.Length]}";
             CodeResponses[idx] = (model.Id, text, true);
             await InvokeAsync(StateHasChanged);
         });
