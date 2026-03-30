@@ -407,6 +407,12 @@ body {
   border-color: rgba(192, 192, 192, 0.22);
 }
 
+.sai-gem-aquamarine {
+  background: rgba(127, 255, 212, 0.12);
+  color: var(--sai-aquamarine);
+  border-color: rgba(127, 255, 212, 0.25);
+}
+
 /* ═══ PANES ═══════════════════════════════════════════════════════════════════ */
 .sai-pane {
   flex: 1;
@@ -877,6 +883,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 /* Results area */
@@ -988,6 +995,390 @@ body {
 }
 
 .sai-signin-btn:hover { filter: brightness(1.08); box-shadow: 0 0 20px rgba(80,200,120,0.42); }
+
+/* ═══ Plans button ════════════════════════════════════════════════════════════ */
+.sai-plans-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--sai-border);
+  background: transparent;
+  color: var(--sai-text-sec);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.16s;
+  font-family: var(--font-sans);
+}
+.sai-plans-btn:hover { background: var(--sai-bg-hover); color: var(--sai-text); border-color: var(--sai-emerald); }
+
+/* ═══ Locked model items ══════════════════════════════════════════════════════ */
+.sai-model-item.locked { opacity: 0.45; cursor: pointer; }
+.sai-model-item.locked:hover { opacity: 0.65; }
+.sai-model-item.locked .sai-checkbox { border-color: var(--sai-text-muted); background: transparent; }
+
+/* ═══ Pane-level locked overlay ═════════════════════════════════════════════ */
+.sai-pane-locked {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(7, 13, 20, 0.82);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sai-pane-locked-box {
+  background: var(--sai-bg-elevated);
+  border: 1px solid var(--sai-border);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2.25rem;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+}
+
+/* ═══ Upgrade overlay & modal ════════════════════════════════════════════════ */
+.sai-upgrade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(7, 13, 20, 0.72);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sai-upgrade-modal {
+  position: relative;
+  background: var(--sai-bg-elevated);
+  border: 1px solid var(--sai-border);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2.25rem;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.08), 0 24px 48px rgba(0,0,0,0.5);
+}
+
+.sai-upgrade-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--sai-text-muted);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: var(--radius-sm);
+  line-height: 0;
+  transition: color 0.15s;
+}
+.sai-upgrade-close:hover { color: var(--sai-text); }
+
+.sai-upgrade-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+.sai-upgrade-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sai-text);
+  margin: 0 0 0.5rem;
+}
+
+.sai-upgrade-desc {
+  font-size: 0.85rem;
+  color: var(--sai-text-sec);
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+.sai-upgrade-cta {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--sai-grad-emerald);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(80,200,120,0.3);
+  transition: all 0.16s;
+  font-family: var(--font-sans);
+}
+.sai-upgrade-cta:hover { filter: brightness(1.1); box-shadow: 0 0 24px rgba(80,200,120,0.45); }
+
+/* ═══ Pricing page ═══════════════════════════════════════════════════════════ */
+.sai-pricing-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.sai-pricing-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.sai-pricing-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: var(--sai-text);
+  margin: 0 0 0.6rem;
+}
+
+.sai-pricing-subtitle {
+  font-size: 1rem;
+  color: var(--sai-text-sec);
+  margin: 0;
+}
+
+.sai-gradient-text {
+  background: var(--sai-grad-emerald);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sai-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto 3rem;
+}
+
+.sai-plan-card {
+  position: relative;
+  background: var(--sai-bg-elevated);
+  border: 1px solid var(--sai-border-sub);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sai-plan-card:hover {
+  border-color: var(--plan-color, var(--sai-emerald));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--plan-color, var(--sai-emerald)) 20%, transparent);
+}
+
+.sai-plan-card.popular {
+  border-color: var(--sai-emerald);
+  box-shadow: 0 0 28px rgba(80,200,120,0.15);
+}
+
+.sai-plan-card.current {
+  border-color: var(--plan-color, var(--sai-emerald));
+  box-shadow: 0 0 28px color-mix(in srgb, var(--plan-color, var(--sai-emerald)) 22%, transparent);
+}
+
+.sai-plan-badge {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--sai-grad-emerald);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.sai-plan-badge.current-badge {
+  background: linear-gradient(135deg, var(--sai-gold-lt), var(--sai-gold), var(--sai-gold-dk));
+}
+
+.sai-plan-header { margin-bottom: 1.25rem; }
+
+.sai-plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.sai-plan-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--sai-text);
+  line-height: 1;
+}
+
+.sai-plan-suffix {
+  font-size: 0.8rem;
+  color: var(--sai-text-sec);
+}
+
+.sai-plan-stats {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sai-plan-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--sai-text-muted);
+}
+
+.sai-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sai-plan-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--sai-text-sec);
+  line-height: 1.4;
+}
+
+.sai-plan-feature svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--plan-color, var(--sai-emerald));
+}
+
+.sai-plan-cta {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--cta-color, var(--sai-emerald));
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--cta-color, var(--sai-emerald));
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s;
+  font-family: var(--font-sans);
+}
+
+.sai-plan-cta:hover:not(:disabled) {
+  background: var(--cta-color, var(--sai-emerald));
+  color: #000;
+}
+
+.sai-plan-cta.active-cta {
+  background: var(--sai-bg-hover);
+  border-color: var(--sai-border-sub);
+  color: var(--sai-text-muted);
+  cursor: default;
+}
+
+/* ═══ Add-ons ════════════════════════════════════════════════════════════════ */
+.sai-addons-section {
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.sai-addons-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--sai-text);
+  margin: 0 0 0.35rem;
+}
+
+.sai-addons-sub {
+  font-size: 0.875rem;
+  color: var(--sai-text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.sai-addons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.sai-addon-card {
+  background: var(--sai-bg-elevated);
+  border: 1px solid var(--sai-border-sub);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  text-align: left;
+  transition: border-color 0.18s;
+}
+
+.sai-addon-card:hover { border-color: var(--sai-gold); }
+
+.sai-addon-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sai-text);
+  margin-bottom: 0.2rem;
+}
+
+.sai-addon-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--sai-gold);
+  margin-bottom: 0.35rem;
+}
+
+.sai-addon-desc {
+  font-size: 0.78rem;
+  color: var(--sai-text-muted);
+  line-height: 1.4;
+}
+
+/* ═══ Comparison table ═══════════════════════════════════════════════════════ */
+.sai-compare-section {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.sai-compare-wrap { overflow-x: auto; margin-top: 1.5rem; }
+
+.sai-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.sai-compare-table th,
+.sai-compare-table td {
+  padding: 0.6rem 0.9rem;
+  text-align: center;
+  border-bottom: 1px solid var(--sai-border-sub);
+  color: var(--sai-text-sec);
+  white-space: nowrap;
+}
+
+.sai-compare-table th {
+  padding-bottom: 0.75rem;
+}
+
+.sai-compare-table td:first-child {
+  text-align: left;
+  color: var(--sai-text);
+  font-weight: 500;
+}
+
+.sai-compare-table tr:last-child td { border-bottom: none; }
+
+.sai-compare-table tr:hover td { background: var(--sai-bg-hover); }
 
 /* ═══ Light theme ══════════════════════════════════════════════════════════════ */
 body.sai-light {
