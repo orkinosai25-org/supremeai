@@ -3,6 +3,33 @@ using SupremeAI.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Load .env file (if present) ───────────────────────────────────────────────
+// Supports running with `dotnet run` without setting environment variables.
+// The .env file is the same directory as the project (src/SupremeAI.Api/.env).
+var envFile = Path.Combine(AppContext.BaseDirectory, ".env");
+// Also try the project source directory when running in development
+var envFileDev = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+foreach (var ef in new[] { envFile, envFileDev })
+{
+    if (File.Exists(ef))
+    {
+        foreach (var line in File.ReadAllLines(ef))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
+            var eq = trimmed.IndexOf('=');
+            if (eq < 0) continue;
+            var key = trimmed[..eq].Trim();
+            var val = trimmed[(eq + 1)..].Trim();
+            // Only set if not already in environment (env vars take precedence)
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+                Environment.SetEnvironmentVariable(key, val);
+        }
+        Console.WriteLine($"[INFO] Loaded environment from {ef}");
+        break;
+    }
+}
+
 // ── Key Vault integration (optional) ─────────────────────────────────────────
 // If AZURE_KEYVAULT_URI or AzureKeyVaultUri is configured, load all secrets
 // into the configuration system so providers can read them via IConfiguration.
