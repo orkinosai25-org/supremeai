@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SupremeAI.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Azure OpenAI SDK for GPT-4o, GPT-4o-mini, o1-preview, DALL-E 3 -->
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <!-- Azure AI Inference SDK for serverless model endpoints (Phi, Llama, Mistral, etc.) -->
+    <PackageReference Include="Azure.AI.Inference" Version="1.0.0-beta.5" />
+    <!-- Azure Key Vault for secrets management -->
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.0" />
+    <!-- Azure DefaultAzureCredential for managed identity support -->
+    <PackageReference Include="Azure.Identity" Version="1.18.0" />
+    <!-- Swagger / OpenAPI -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+  </ItemGroup>
+
+</Project>
