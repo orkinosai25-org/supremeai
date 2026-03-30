@@ -74,7 +74,7 @@ public static class SubscriptionPlans
         {
             Tier = PlanTier.Starter,
             Name = "Starter",
-            Price = "£7",
+            Price = "£5",
             PriceSuffix = "/month",
             MaxModels = 1,
             MessagesPerDay = 50,
