@@ -8,6 +8,7 @@
 |----------|-------------|
 | [Epics](docs/epics.md) | High-level epic descriptions with goals, key outcomes, and story counts |
 | [User Stories](docs/user-stories.md) | Full backlog of user stories with acceptance criteria, priorities, and story points |
+| [Investor Pitch Deck](docs/pitch-deck.md) | Full investor pitch deck — problem, solution, market, business model, roadmap, and ask |
 
 ## Backlog at a Glance
 
