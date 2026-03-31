@@ -7,7 +7,9 @@
 ## Slide 1 — Cover
 
 **SupremeAI**
-*The Universal AI Platform & Meta-Intelligence Layer*
+*Benchmarking-Driven Multi-Model Orchestration & Sovereign AI Intelligence Platform*
+
+> SupremeAI is a benchmarking-driven multi-model orchestration platform built on Azure AI Foundry that automatically evaluates, routes, and improves responses across foundation models while generating datasets to train its own enterprise reasoning layer.
 
 - Website: [github.com/orkinosai25-org/supremeai](https://github.com/orkinosai25-org/supremeai)
 - Contact: [founder@supremeai.io](mailto:founder@supremeai.io)
@@ -17,269 +19,388 @@
 
 ## Slide 2 — The Problem
 
-**AI is fragmented, expensive, and impossible to evaluate objectively.**
+**AI is fragmented, untrustworthy to evaluate, and inaccessible at scale.**
 
-| Pain Point | Impact |
-|------------|--------|
-| 50+ competing LLMs with no single access point | Enterprises spend weeks on procurement and integration |
-| Model quality is opaque and self-reported | Developers cannot trust vendor benchmarks |
-| Per-API costs spiral unpredictably at scale | Startups and indie developers are priced out |
-| No independent "truth layer" that benchmarks and improves over time | The AI community lacks a shared, neutral evaluator |
+| Pain Point | Who Suffers | Impact |
+|------------|-------------|--------|
+| 100+ competing LLMs with no unified access point | Developers, enterprises | Weeks lost on procurement, integration, and API wrangling |
+| Model quality is opaque and vendor self-reported | Enterprise AI teams, researchers | No trusted baseline for buy/build decisions |
+| Per-API costs spiral unpredictably | Startups, indie developers | Priced out before they can iterate |
+| Multimodal capability (video, audio, vision) locked behind separate, incompatible APIs | Product teams | Complex, brittle multi-vendor architectures |
+| No neutral, reproducible evaluation infrastructure | LLM developers, regulators | Billions spent on models with no independent audit trail |
 
-> *"Every team is rebuilding the same LLM router. No one is building the brain that connects them all."*
+> *"Every team is rebuilding the same LLM router. No one is building the independent brain that evaluates, connects, and improves them all."*
 
 ---
 
 ## Slide 3 — The Solution
 
-**SupremeAI is a unified LLM-as-a-Service platform with a self-improving meta-intelligence layer.**
+**SupremeAI is three complementary engines on a single platform.**
 
-1. **Universal Model Access** — one subscription unlocks every major LLM on Azure AI Foundry (GPT-4o, Llama 3, Mistral, Phi-3, and more), with a single API and UI.
-2. **Predictable Pricing** — $5/month (limited) to $39/month (unlimited), eliminating token-level cost anxiety.
-3. **The Supreme LLM** — our proprietary meta-model that interviews, benchmarks, and learns from every model on the platform, then publishes transparent findings to the global AI community.
+### Engine 1 — Multi-Model Orchestration Control Layer
+A single subscription unlocks every model on Azure AI Foundry. Users choose their model per request, run multiple models in parallel to compare responses, and access multimodal capabilities (text, vision, video, agents) — all through one unified API and UI.
 
----
+### Engine 2 — Benchmarking-as-a-Service (B2B)
+An independent, reproducible evaluation platform that enterprises, LLM developers, research labs, and government procurement teams use to score and compare models across accuracy, latency, cost, safety, and domain-specific tasks — without relying on vendor self-reporting.
 
-## Slide 4 — Product Overview
-
-### 4.1 Platform Tiers
-
-| Tier | Price | Capabilities |
-|------|-------|--------------|
-| **Starter** | $5 / mo | Access to 10 top models, 100 K tokens/mo, community benchmarks |
-| **Pro** | $19 / mo | Access to all 50+ models, 1 M tokens/mo, priority routing |
-| **Unlimited** | $39 / mo | Unlimited tokens, early access to Supreme LLM outputs, API access |
-| **Enterprise** | Custom | SSO, SLA, private deployment, fine-tuning credits |
-
-### 4.2 The Supreme LLM — Our Differentiator
-
-```
-┌─────────────────────────────────────────────────────┐
-│                  SUPREME LLM                        │
-│  ┌───────┐  ┌───────┐  ┌──────────┐  ┌──────────┐  │
-│  │ GPT-4o│  │Llama 3│  │ Mistral  │  │  Phi-3   │  │
-│  └───┬───┘  └───┬───┘  └────┬─────┘  └────┬─────┘  │
-│      └──────────┴───────────┴─────────────┘         │
-│           Benchmark · Interview · Learn             │
-│                       │                             │
-│              Publish to AI Community                │
-└─────────────────────────────────────────────────────┘
-```
-
-- **Benchmark Engine** — automated, reproducible scoring across accuracy, latency, cost, and safety.
-- **Interview Protocol** — adversarial prompting sessions that probe reasoning depth, hallucination rate, and instruction following.
-- **Continuous Retraining** — Supreme LLM distils the best capabilities from every model it evaluates.
-- **Community Reporting** — open leaderboard and detailed model cards published after every evaluation cycle.
+### Engine 3 — Evaluation-Driven Distillation (Supreme LLM)
+SupremeAI runs structured multi-model evaluation pipelines, curates the highest-quality response signals, and uses them to continuously train a proprietary reasoning model — the Supreme LLM — that gets smarter the more models it evaluates.
 
 ---
 
-## Slide 5 — Market Opportunity
+## Slide 4 — Platform Architecture
 
-### Total Addressable Market (TAM)
+SupremeAI is an infrastructure play, not a single-model gamble.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Layer 5 — Supreme LLM (proprietary reasoning model)            │
+│             Trained on structured evaluation pipeline outputs    │
+├──────────────────────────────────────────────────────────────────┤
+│  Layer 4 — Training Dataset Generator                           │
+│             Curates high-quality signals from evaluation results │
+├──────────────────────────────────────────────────────────────────┤
+│  Layer 3 — Benchmarking Intelligence Platform (B2B revenue)     │
+│             Accuracy · Latency · Cost · Hallucination · Safety   │
+├──────────────────────────────────────────────────────────────────┤
+│  Layer 2 — Multi-Model Orchestration Engine                     │
+│             Parallel responses · Smart routing · Model picker    │
+├──────────────────────────────────────────────────────────────────┤
+│  Layer 1 — Azure AI Foundry Model Catalogue                     │
+│   GPT-4o · Llama 3 · Mistral · Phi-4 · Sora · Whisper · +50    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+Each layer creates compounding value: more users → more evaluation data → better Supreme LLM → stronger benchmarking product → more enterprise customers → more training data.
+
+---
+
+## Slide 5 — Product: Subscription Tiers
+
+Every tier draws from the same Azure AI Foundry catalogue. Higher tiers unlock parallel model usage, multimodal capabilities, and B2B evaluation APIs.
+
+| Feature | Starter £5/mo | Pro £19/mo | Unlimited £39/mo | Enterprise (Custom) |
+|---------|:-------------:|:----------:|:----------------:|:-------------------:|
+| Model selection from Azure AI Foundry catalogue | ✅ (top 10) | ✅ (all 50+) | ✅ (all 50+) | ✅ + private models |
+| Monthly token allowance | 100 K | 1 M | Unlimited | Unlimited |
+| Simultaneous multi-model responses | ❌ | ✅ (up to 3) | ✅ (up to 10) | ✅ Unlimited |
+| Side-by-side model comparison UI | ❌ | ✅ | ✅ | ✅ |
+| Multimodal — vision & image generation | ❌ | ✅ | ✅ | ✅ |
+| Multimodal — video generation (Sora etc.) | ❌ | ❌ | ✅ | ✅ |
+| Voice & audio models (Whisper etc.) | ❌ | ✅ | ✅ | ✅ |
+| Agentic & function-calling models | ❌ | ✅ | ✅ | ✅ |
+| Community benchmark leaderboard | ✅ | ✅ | ✅ | ✅ |
+| Supreme LLM evaluation reports (early access) | ❌ | ❌ | ✅ | ✅ |
+| B2B Benchmarking API access | ❌ | ❌ | ❌ | ✅ |
+| SSO, SLA, private deployment | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## Slide 6 — Product: Multi-Model Simultaneous Responses
+
+**Higher tiers let users run multiple models on the same prompt at once**, compare outputs side-by-side, and choose — or blend — the best answer.
+
+```
+User prompt: "Draft a product announcement for our new AI feature"
+         │
+         ├──► GPT-4o        → Response A (formal, detailed)
+         ├──► Mistral Large  → Response B (concise, punchy)
+         ├──► Llama 3.3 70B  → Response C (creative, casual)
+         └──► Phi-4          → Response D (technical, precise)
+                │
+         Side-by-side comparison UI
+                │
+         User selects, merges, or routes to Supreme LLM for synthesis
+```
+
+Use cases:
+- **A/B content testing** — which tone resonates best?
+- **Safety cross-checking** — do all models agree on a sensitive query?
+- **Cost optimisation** — route to cheapest model that meets quality bar
+- **Ensemble answers** — synthesise the best from multiple responses
+
+---
+
+## Slide 7 — Product: The Supreme LLM (Evaluation-Driven Distillation)
+
+The Supreme LLM is not trained on raw model outputs. It is trained on **structured evaluation pipeline results** — a legally sound, reproducible approach to building a proprietary reasoning model.
+
+```
+Multi-model evaluation pipeline
+       │
+       ├─ Benchmark task sent to Model A, B, C, D simultaneously
+       ├─ Responses scored automatically (accuracy, latency, safety)
+       ├─ Human-in-the-loop quality review for ambiguous cases
+       └─ High-quality (task, winning-response, reasoning trace) tuples
+              │
+       Curated training dataset
+              │
+       Supreme LLM fine-tuning (RLHF + Constitutional AI)
+              │
+       Supreme LLM — continuously improving reasoning model
+              │
+       ┌─────┴──────────────────────────┐
+       │ Open leaderboard & model cards  │  (community trust + B2B sales)
+       └────────────────────────────────┘
+```
+
+**Investor framing:** This is an evaluation-driven distillation architecture — a recursive model improvement loop where each benchmarking cycle generates proprietary training signal, compounding SupremeAI's advantage over time.
+
+---
+
+## Slide 8 — Revenue Model
+
+SupremeAI has three distinct, high-margin revenue engines:
+
+### Revenue Stream 1 — B2C SaaS Subscriptions
+Recurring monthly revenue from individual developers, researchers, and teams on Starter, Pro, and Unlimited tiers.
+
+### Revenue Stream 2 — B2B Benchmarking-as-a-Service *(high margin, investable)*
+Enterprise AI teams, LLM startups, research labs, and government procurement teams pay to benchmark their models — or evaluate third-party models — against the SupremeAI evaluation suite.
+
+Target B2B customers:
+- **LLM developers** — "Prove your model beats GPT-4o on our enterprise task suite"
+- **Enterprise AI teams** — "Which model should power our customer support chatbot?"
+- **Government / regulators** — "Independent AI safety and capability audit"
+- **Research institutions** — "Reproducible benchmark dataset access"
+
+Example B2B pricing: £5 K–£50 K/year per enterprise evaluation contract.
+
+### Revenue Stream 3 — Supreme LLM Inference API *(Year 2+)*
+Once trained, the Supreme LLM is offered as a premium routing and reasoning API — for orchestration logic, DevOps automation reasoning, and multi-step agentic tasks.
+
+### Revenue Summary
+
+| Stream | Type | Target Year-2 ARR Share |
+|--------|------|-------------------------|
+| SaaS Subscriptions | B2C recurring | 60 % |
+| Benchmarking-as-a-Service | B2B contracts | 30 % |
+| Supreme LLM Inference API | B2B usage | 10 % |
+
+### Unit Economics (blended, target Year 2)
+
+| Metric | Value |
+|--------|-------|
+| Blended ARPU (B2C) | £22 / mo |
+| B2B contract ACV | £15 K / yr |
+| Estimated Cost to Serve (cloud + inference) | £7 / mo |
+| Gross Margin (B2C) | ~68 % |
+| Gross Margin (B2B benchmarking) | ~80 % |
+| CAC (developer / PLG) | ~£40 |
+| LTV (18-mo avg. retention) | ~£396 |
+| LTV : CAC | **9.9×** |
+
+---
+
+## Slide 9 — Market Opportunity
 
 | Segment | Size (2025) | CAGR |
 |---------|-------------|------|
 | Global AI/ML Platform Market | $50 B | 38 % |
 | LLM API & Inference Market | $12 B | 62 % |
 | AI Benchmarking & Evaluation Tools | $2.5 B | 55 % |
-| **SupremeAI SAM (developer + SME)** | **$8 B** | **45 %** |
-| **SupremeAI SOM (Year 3 target)** | **$400 M** | — |
+| Enterprise AI Safety & Compliance | $4 B | 48 % |
+| **SupremeAI SAM (orchestration + benchmarking)** | **$10 B** | **50 %** |
+| **SupremeAI SOM (Year 3 target)** | **$500 M** | — |
 
-> The AI services market is projected to exceed **$1 trillion by 2030** (McKinsey, 2025).  
-> A platform that unifies access *and* provides independent evaluation is positioned to capture a disproportionate share.
+> The AI services market is projected to exceed **$1 trillion by 2030**.  
+> A platform that unifies access *and* provides independent evaluation captures value from two fast-growing segments simultaneously.
 
----
+### UK / European Opportunity
 
-## Slide 6 — Business Model
+UK government and EU AI Act compliance requirements are creating urgent demand for:
+- **Independent model evaluation infrastructure** (SupremeAI's benchmarking layer)
+- **Sovereign AI capability** (SupremeAI's trained reasoning model)
+- **Enterprise AI safety tooling** (SupremeAI's hallucination and safety scoring)
 
-### Revenue Streams
-
-1. **Subscription Revenue** (primary) — recurring monthly/annual SaaS fees across all tiers.
-2. **Enterprise Contracts** — multi-seat agreements with custom SLAs and on-premises deployment.
-3. **API Metered Usage** — pay-as-you-go overage charges above tier limits.
-4. **Data & Insights Licensing** — benchmark datasets and model evaluation reports licensed to researchers, enterprises, and regulators.
-5. **Marketplace Commission** — revenue share from third-party fine-tuned model providers listed on the platform.
-
-### Unit Economics (Pro Tier, target Year 2)
-
-| Metric | Value |
-|--------|-------|
-| Average Revenue Per User (ARPU) | $22 / mo |
-| Estimated Cost to Serve (cloud + inference) | $7 / mo |
-| Gross Margin | ~68 % |
-| Customer Acquisition Cost (CAC) | ~$45 |
-| Lifetime Value (LTV, 18-mo avg. retention) | ~$396 |
-| LTV : CAC | **8.8×** |
+SupremeAI is positioned as a **UK-based sovereign AI intelligence platform** at exactly the right moment.
 
 ---
 
-## Slide 7 — Traction & Milestones
+## Slide 10 — Competitive Landscape
+
+| Platform | Multi-model orchestration | Flat subscription | Parallel model responses | Multimodal (video etc.) | Independent benchmarking | Proprietary meta-model |
+|----------|:-------------------------:|:-----------------:|:------------------------:|:-----------------------:|:------------------------:|:----------------------:|
+| **SupremeAI** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Poe (Quora) | ✅ | ✅ | ❌ | ⚠️ (limited) | ❌ | ❌ |
+| OpenRouter | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Together AI / Fireworks | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Scale AI / HELM | ❌ | N/A | N/A | ❌ | ✅ | ❌ |
+| Weights & Biases | ❌ | ❌ | N/A | ❌ | ⚠️ (MLOps only) | ❌ |
+| Azure OpenAI direct | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+**Our moat — the flywheel:**
+More subscribers → more evaluation pipeline runs → richer training signal → better Supreme LLM → stronger benchmarking product → more B2B enterprise trust → more subscribers.
+
+No competitor has all six capabilities in one platform. We are building the moat before the category consolidates.
+
+---
+
+## Slide 11 — Technology Stack
+
+- **Model Catalogue:** Azure AI Foundry (50+ models: GPT-4o, Llama 3.3, Mistral Large, Phi-4, Sora, Whisper, DALL·E 3, and more)
+- **Orchestration Engine:** Intelligent router with latency-aware load balancing, cost optimisation, and parallel dispatch
+- **Multimodal Pipeline:** Unified interface for text, image, vision, video, and audio models
+- **Benchmarking Engine:** Automated scoring across accuracy, latency, cost, hallucination rate, and safety — task-suite extensible
+- **Supreme LLM Training:** Azure ML GPU compute clusters; RLHF + Constitutional AI fine-tuning pipeline; evaluation-driven distillation
+- **Backend:** .NET 9 / ASP.NET Core (`SupremeAI.Api`); Blazor WebAssembly front-end
+- **Observability:** OpenTelemetry → Azure Monitor; per-request tracing including model, latency, cost, and quality score
+- **Security & Compliance:** RBAC, end-to-end encryption, SOC 2 Type II roadmap, EU AI Act audit trail
+- **Failover:** AWS Bedrock + Google Vertex AI for multi-cloud resilience
+
+---
+
+## Slide 12 — Go-to-Market Strategy
+
+### Phase 1 — Developer & Community-Led Growth (Months 1–6)
+- Free/Starter tier with generous limits drives organic adoption
+- Open benchmark leaderboard and model cards published on GitHub and Hugging Face
+- Developer community on Discord, Reddit (r/LocalLLaMA, r/MachineLearning), and X/Twitter
+- Content strategy: "Which LLM actually wins on your task?" comparison posts
+
+### Phase 2 — Paid Conversion & B2B Pilots (Months 6–18)
+- In-product upgrade prompts at Starter tier limits
+- Outbound to enterprise AI teams for benchmarking pilot contracts
+- Partnerships with AI-adjacent tooling (LangChain, LlamaIndex, Weights & Biases)
+- UK innovation grant applications (Innovate UK, DSIT AI Safety programmes)
+
+### Phase 3 — Enterprise Scale & Sovereign AI (Year 2+)
+- Dedicated enterprise sales team; SOC 2 Type II certification
+- Government AI procurement contracts (UK, EU, US NIST frameworks)
+- Supreme LLM Inference API for enterprise orchestration and DevOps automation
+- White-label benchmarking platform for cloud providers and AI regulators
+
+---
+
+## Slide 13 — Traction & Milestones
 
 | Date | Milestone |
 |------|-----------|
 | Q1 2026 | Platform architecture live on Azure AI Foundry; multi-model routing implemented |
-| Q2 2026 | Public beta launched; first 500 sign-ups; benchmark v0.1 published |
-| Q3 2026 | Paid tier launch; $5–$39 subscription model active |
-| Q4 2026 | Supreme LLM v0.1 evaluation reports published to community |
-| Q1 2027 | 10 K paying subscribers; enterprise pilots underway |
-| Q3 2027 | Supreme LLM v1.0 — first self-improving evaluation cycle complete |
+| Q2 2026 | Public beta; parallel model response UI launched; benchmark v0.1 published |
+| Q3 2026 | Paid tiers active (£5–£39); multimodal (vision, audio) available on Pro+ |
+| Q4 2026 | Video model access (Sora) live on Unlimited; B2B benchmarking pilots begin |
+| Q1 2027 | 10 K paying subscribers; first enterprise benchmarking contracts signed |
+| Q3 2027 | Supreme LLM v1.0 — first evaluation-driven training cycle complete |
+| Q4 2027 | 50 K subscribers; B2B benchmarking ARR > £1 M; Series A close |
+| 2028 | Supreme LLM v2.0; multi-cloud; £20 M ARR target |
 
 ---
 
-## Slide 8 — Competitive Landscape
-
-| Platform | Multi-model | Flat pricing | Independent benchmarks | Meta-LLM |
-|----------|:-----------:|:------------:|:----------------------:|:---------:|
-| **SupremeAI** | ✅ | ✅ | ✅ | ✅ |
-| OpenAI API | ❌ | ❌ | ❌ | ❌ |
-| Azure OpenAI | ❌ | ❌ | ❌ | ❌ |
-| Hugging Face Inference | ✅ | ❌ | ⚠️ (limited) | ❌ |
-| Together AI | ✅ | ❌ | ❌ | ❌ |
-| Scale AI / HELM | ❌ | N/A | ✅ | ❌ |
-
-**Our moat:** The Supreme LLM flywheel — the more models use the platform, the richer our training signal, the better our meta-model, the stronger our community trust and data licensing value.
-
----
-
-## Slide 9 — Technology Stack & Architecture
-
-- **Cloud:** Azure AI Foundry (primary), AWS Bedrock & Google Vertex AI (multi-cloud failover)
-- **Backend:** .NET 9 / ASP.NET Core API (`SupremeAI.Api`), Blazor WebAssembly front-end
-- **Model Orchestration:** custom intelligent router with latency-aware load balancing and cost optimisation
-- **Supreme LLM Training:** Azure ML compute clusters; RLHF + Constitutional AI fine-tuning pipeline
-- **Observability:** OpenTelemetry → Azure Monitor; full per-request tracing
-- **Security:** RBAC, encrypted-at-rest/in-transit, SOC 2 Type II roadmap
-
----
-
-## Slide 10 — Go-to-Market Strategy
-
-### Phase 1 — Community-Led Growth (Months 1–6)
-- Free tier with generous limits to drive developer adoption
-- Open leaderboard and model cards published on GitHub and Hugging Face
-- Developer community on Discord and Reddit (r/LocalLLaMA, r/MachineLearning)
-
-### Phase 2 — Paid Conversion (Months 6–12)
-- In-app upgrade prompts when free limits are reached
-- Targeted content marketing: "Which LLM is best for your use case?"
-- Partnerships with developer tool aggregators (Poe, Lmsys, etc.)
-
-### Phase 3 — Enterprise & Data (Year 2+)
-- Direct enterprise sales team; SOC 2 certification
-- Benchmark data licensing to enterprise AI teams and regulators
-- White-label deployments for cloud providers
-
----
-
-## Slide 11 — Roadmap
-
-```
-2026 Q1  ████ Platform live on Azure (done)
-2026 Q2  ████ Public beta · Benchmark v0.1
-2026 Q3  ████ Paid tiers launch · Marketing push
-2026 Q4  ████ Supreme LLM evaluation reports v0.1
-2027 Q1  ████ 10 K subscribers · Enterprise pilots
-2027 Q2  ████ Multi-cloud (AWS + Google)
-2027 Q3  ████ Supreme LLM v1.0 self-improving cycle
-2027 Q4  ████ 50 K subscribers · Series A close
-2028     ████ Supreme LLM v2.0 · $1 B ARR target
-```
-
----
-
-## Slide 12 — Team
+## Slide 14 — Team
 
 | Name | Role | Background |
 |------|------|------------|
-| **[Founder]** | CEO & CTO | AI/ML engineer; built and shipped production LLM systems |
-| **[Co-founder / hire]** | Head of Product | Enterprise SaaS product management |
-| **[Co-founder / hire]** | Head of ML Research | LLM fine-tuning, RLHF, benchmark design |
+| **[Founder]** | CEO & CTO | AI/ML engineer; production LLM systems; Azure AI Foundry experience |
+| **[Co-founder / hire]** | Head of Product | Enterprise SaaS product management; developer tooling |
+| **[Co-founder / hire]** | Head of ML Research | LLM fine-tuning, RLHF, benchmark design, evaluation science |
+| **[Hire]** | Head of Enterprise Sales | B2B SaaS sales; government and financial services accounts |
 | **[Advisor]** | Cloud Infrastructure | Former Azure AI engineering leader |
-| **[Advisor]** | Go-to-Market | Scaled B2B SaaS from $0 to $50 M ARR |
+| **[Advisor]** | Go-to-Market | Scaled B2B SaaS from £0 to £50 M ARR |
 
-> *We are actively hiring senior ML engineers, a DevRel lead, and an enterprise sales lead.*
-
----
-
-## Slide 13 — Financial Projections
-
-| Year | Subscribers | ARR | Gross Margin | EBITDA |
-|------|-------------|-----|--------------|--------|
-| 2026 | 2 K | $480 K | 65 % | -$1.2 M |
-| 2027 | 15 K | $3.6 M | 68 % | -$0.8 M |
-| 2028 | 80 K | $19 M | 70 % | $2.5 M |
-| 2029 | 300 K | $72 M | 72 % | $18 M |
-| 2030 | 900 K | $216 M | 74 % | $65 M |
-
-*Assumptions: ARPU $20/mo blended; 35 % annual subscriber growth after Year 2; cloud cost per user declining 10 % YoY as volume scales.*
+> *Actively hiring: senior ML engineers (×2), DevRel lead, enterprise sales lead.*
 
 ---
 
-## Slide 14 — The Ask
+## Slide 15 — Financial Projections
 
-### Seed Round: $3 M
+| Year | B2C Subscribers | B2B Contracts | ARR | Gross Margin | EBITDA |
+|------|:--------------:|:-------------:|-----|:------------:|:------:|
+| 2026 | 2 K | 5 | £520 K | 65 % | -£1.4 M |
+| 2027 | 15 K | 25 | £4.1 M | 69 % | -£0.6 M |
+| 2028 | 80 K | 80 | £21 M | 71 % | £3 M |
+| 2029 | 280 K | 200 | £74 M | 73 % | £19 M |
+| 2030 | 850 K | 450 | £210 M | 75 % | £62 M |
+
+*Assumptions: B2C ARPU £20/mo blended; B2B ACV £15 K/yr; cloud inference cost declining 10 % YoY; 35 % annual B2C growth after Year 2.*
+
+---
+
+## Slide 16 — The Ask
+
+### Seed Round: £3 M
+
+This is an **infrastructure and engineering raise** — not a SaaS marketing budget. The capital funds the GPU compute and talent required to build the Supreme LLM training pipeline and benchmarking platform that generate SupremeAI's compounding data moat.
 
 | Use of Funds | Allocation | Amount |
-|--------------|-----------|--------|
-| GPU / compute credits (Supreme LLM training) | 35 % | $1.05 M |
-| Engineering hiring (4 senior engineers) | 30 % | $0.90 M |
-| Go-to-market & growth | 20 % | $0.60 M |
-| Operations, legal, compliance (SOC 2) | 10 % | $0.30 M |
-| Reserve | 5 % | $0.15 M |
+|--------------|:----------:|:------:|
+| GPU / Azure ML compute credits (Supreme LLM training pipeline) | 35 % | £1.05 M |
+| Engineering hiring — ML engineers, backend, ML research (×4) | 30 % | £0.90 M |
+| Go-to-market, B2B sales, and developer growth | 20 % | £0.60 M |
+| Operations, legal, SOC 2 compliance, EU AI Act readiness | 10 % | £0.30 M |
+| Reserve | 5 % | £0.15 M |
 
-**Runway:** 18–24 months to Series A milestone (10 K subscribers, Supreme LLM v1.0)
+**Runway:** 18–24 months to Series A milestone:
+- 10 K paying subscribers
+- Supreme LLM v1.0 evaluation-driven training cycle complete
+- 10+ B2B benchmarking contracts signed
 
 ### Strategic Partners We Seek
 
-- **Cloud GPU providers** — Azure for Startups credits, AWS Activate, Google Cloud for Startups, CoreWeave, Lambda Labs
-- **AI-focused VCs** — Andreessen Horowitz (a16z AI), Sequoia, Coatue, Index Ventures
+- **Cloud GPU / infrastructure** — Microsoft Azure for Startups, CoreWeave, Lambda Labs, Oracle Cloud
+- **AI-focused VCs** — a16z AI, Sequoia UK, Balderton Capital, Index Ventures, Hoxton Ventures
 - **Corporate innovation arms** — Microsoft M12, Google Gradient Ventures, NVIDIA Inception Program
-- **Startup accelerators** — Y Combinator, Techstars, Entrepreneur First
+- **UK funding & grants** — Innovate UK Smart Grants, DSIT Frontier AI Safety programmes, British Business Bank Future Fund
+- **Accelerators** — Y Combinator, Entrepreneur First, Zinc VC
 
 ---
 
-## Slide 15 — Why Now?
+## Slide 17 — Why Now?
 
-1. **Model proliferation is accelerating.** 2026 will see 100+ capable frontier models. Developers need a unified access point.
-2. **Trust in vendor benchmarks is eroding.** Independent, reproducible evaluation is a billion-dollar gap.
-3. **Subscription AI is proven.** ChatGPT Plus, Claude Pro, and Copilot demonstrate mass willingness to pay $20–$39/month.
-4. **Azure Foundry opens the catalogue.** Microsoft's unified model hub gives us a production-ready multi-model backend today.
-5. **The window for a neutral meta-intelligence layer is open — but not indefinitely.**
+1. **Azure AI Foundry provides the catalogue today.** We have production-ready access to 50+ models without building infrastructure from scratch — our moat is the layer above it.
+2. **Model proliferation is overwhelming teams.** 2026 will see 200+ capable models. The evaluation and routing layer is the critical bottleneck.
+3. **Subscription AI is proven at scale.** ChatGPT Plus, Claude Pro, and Copilot prove mass willingness to pay £20–£39/month for AI access.
+4. **The EU AI Act and UK AI governance create institutional demand for independent benchmarking** — a new billion-pound regulatory compliance market.
+5. **Evaluation-driven distillation is an emerging architecture.** The window to become the trusted independent evaluation layer is open now — not in two years.
+6. **UK has a sovereign AI gap.** There is no UK-headquartered neutral AI evaluation and orchestration platform at scale. SupremeAI fills it.
 
 ---
 
-## Slide 16 — Vision
+## Slide 18 — Vision
 
-> **"SupremeAI will become the world's independent intelligence layer for AI — the platform that every developer, researcher, and enterprise trusts to access, evaluate, and improve the models that power the future."**
+> **"SupremeAI will become the world's independent intelligence layer for AI — the platform that every developer, researcher, enterprise, and regulator trusts to access, evaluate, and continuously improve the foundation models that power the future."**
 
-We are not just building a router. We are building the institution that keeps AI accountable, accessible, and always improving — for everyone.
+We are not building a chatbot wrapper. We are building the institution that makes AI trustworthy, accessible, and self-improving — for everyone.
 
-*The AI market will exceed $5 trillion. SupremeAI is positioned to be its foundational platform.*
+*The AI market will exceed $5 trillion. SupremeAI is building its foundational evaluation and orchestration infrastructure — the layer that every model, team, and regulator will depend on.*
 
 ---
 
 ## Appendix A — Sample Investor Outreach Email
 
 ```
-Subject: Investment Opportunity — SupremeAI: Universal LLM Platform & Independent AI Benchmarker
+Subject: Seed Investment Opportunity — SupremeAI:
+         Multi-Model Orchestration + Benchmarking-as-a-Service Platform
 
 Dear [Investor / Partner Name],
 
-I'm the founder of SupremeAI (https://github.com/orkinosai25-org/supremeai),
-a next-generation LLM-as-a-Service platform that gives users full or limited
-access (from $5 to $39/month) to every major LLM on Azure AI Foundry and
-beyond — through a single, unified API and UI.
+I am the founder of SupremeAI (https://github.com/orkinosai25-org/supremeai),
+a benchmarking-driven multi-model orchestration platform built on Azure AI
+Foundry that automatically evaluates, routes, and improves responses across
+foundation models while generating datasets to train its own enterprise
+reasoning layer.
 
-What sets us apart: we are building the Supreme LLM — a meta-model that
-continuously interviews, benchmarks, and learns from every model on the
-platform, publishing transparent evaluation reports to the global AI community.
+The platform has three revenue engines:
 
-The LLM access market is growing at 62 % CAGR. Subscription AI is proven at
-scale. We are raising a $3 M seed round to fund GPU compute for Supreme LLM
-training, four engineering hires, and our go-to-market push.
+1. B2C SaaS subscriptions (£5–£39/mo) — users select any model from the
+   Azure AI Foundry catalogue; higher tiers run multiple models simultaneously
+   and access video, audio, and agentic models in one unified UI.
 
-I'd welcome a 30-minute call to walk you through our architecture, demo, and
-financial model.
+2. B2B Benchmarking-as-a-Service — enterprise AI teams, LLM developers,
+   research labs, and government procurement teams pay to independently
+   evaluate model performance across accuracy, latency, cost, and safety.
+
+3. Supreme LLM Inference API — our proprietary reasoning model, trained
+   using structured multi-model evaluation pipelines, available as a
+   premium enterprise API from Year 2.
+
+We are raising a £3 M seed round to fund GPU compute for the Supreme LLM
+training pipeline, four engineering hires, and our B2B go-to-market. That
+gives us 18–24 months runway to 10 K subscribers, our first B2B benchmarking
+contracts, and Supreme LLM v1.0.
+
+I would welcome a 30-minute call to walk you through our architecture, demo,
+and financial model.
 
 Best regards,
 [Your Name]
@@ -288,18 +409,32 @@ SupremeAI | founder@supremeai.io
 
 ---
 
-## Appendix B — Key Metrics Glossary
+## Appendix B — B2B Benchmarking Service — Example Offerings
+
+| Service | Target Customer | Price Range |
+|---------|----------------|-------------|
+| Model comparison report (50 tasks, 4 models) | LLM startup pre-launch | £5 K–£10 K |
+| Domain accuracy benchmark (custom task suite) | Enterprise AI team | £15 K–£30 K |
+| Annual evaluation subscription (quarterly reports) | Research institution | £20 K–£50 K/yr |
+| Regulatory compliance audit (EU AI Act / NIST) | Government, regulated industries | £30 K–£100 K |
+| White-label benchmarking platform | Cloud providers, AI consultancies | Custom |
+
+---
+
+## Appendix C — Key Metrics Glossary
 
 | Term | Definition |
 |------|-----------|
+| ACV | Annual Contract Value (B2B) |
 | ARR | Annual Recurring Revenue |
 | ARPU | Average Revenue Per User |
 | CAC | Customer Acquisition Cost |
-| LTV | Lifetime Value of a customer |
 | RLHF | Reinforcement Learning from Human Feedback |
 | SAM | Serviceable Addressable Market |
 | SOM | Serviceable Obtainable Market |
 | TAM | Total Addressable Market |
+| LTV | Lifetime Value of a customer |
+| PLG | Product-Led Growth |
 
 ---
 
