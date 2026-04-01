@@ -600,11 +600,31 @@ body {
   flex-direction: column;
   overflow: hidden;
   transition: border-color 0.16s, box-shadow 0.16s;
+  cursor: pointer;
 }
 
 .sai-card:hover {
   border-color: rgba(80, 200, 120, 0.3);
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.sai-card:focus-visible {
+  outline: 2px solid var(--sai-emerald);
+  outline-offset: 2px;
+}
+
+/* Expand hint icon shown on card hover */
+.sai-card-expand-hint {
+  opacity: 0;
+  transition: opacity 0.16s;
+  color: var(--sai-text-muted);
+  flex-shrink: 0;
+  line-height: 0;
+  margin-left: auto;
+}
+
+.sai-card:hover .sai-card-expand-hint {
+  opacity: 0.6;
 }
 
 .sai-card-header {
@@ -694,6 +714,110 @@ body {
 .sai-skeleton-sm { width: 55%; }
 .sai-skeleton-md { width: 82%; }
 .sai-skeleton-lg { width: 94%; }
+
+/* ═══ RESPONSE DETAIL PANEL (Azure/M365 bottom pane) ══════════════════════════ */
+/* Backdrop */
+.sai-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(7, 13, 20, 0.55);
+  backdrop-filter: blur(2px);
+  animation: sai-fade-in 0.2s ease;
+}
+
+@keyframes sai-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Panel container — slides up from bottom */
+.sai-detail-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  height: 56vh;
+  min-height: 340px;
+  max-height: 82vh;
+  background: var(--sai-bg-surface);
+  border-top: 1.5px solid var(--sai-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--sai-border-sub);
+  animation: sai-panel-slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes sai-panel-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Drag handle indicator */
+.sai-detail-panel-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--sai-border);
+  border-radius: 2px;
+  margin: 0.65rem auto 0;
+  flex-shrink: 0;
+}
+
+/* Header */
+.sai-detail-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--sai-border-sub);
+  flex-shrink: 0;
+}
+
+.sai-detail-panel-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sai-detail-panel-close {
+  background: transparent;
+  border: none;
+  color: var(--sai-text-muted);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: var(--radius-sm);
+  line-height: 0;
+  transition: color 0.15s, background 0.15s;
+  margin-left: 0.25rem;
+  flex-shrink: 0;
+}
+.sai-detail-panel-close:hover { color: var(--sai-text); background: var(--sai-bg-hover); }
+
+/* Scrollable body */
+.sai-detail-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.75rem;
+  font-size: 0.925rem;
+  line-height: 1.78;
+  color: var(--sai-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Footer */
+.sai-detail-panel-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--sai-border-sub);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--sai-text-muted);
+  flex-shrink: 0;
+}
 
 /* ═══ PROMPT BAR ══════════════════════════════════════════════════════════════ */
 .sai-prompt-wrap {
