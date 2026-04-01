@@ -239,6 +239,7 @@
                                 <div class="sai-card-footer">
                                     <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
                                     <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-{resp.ModelId}.txt")'>Download</button>
                                 </div>
                             </div>
                         }
@@ -312,6 +313,10 @@
                                 <div class="sai-card-status @ImageGenStatus"></div>
                             </div>
                             <div class="sai-card-body">@((MarkupString)ImageResult)</div>
+                            <div class="sai-card-footer">
+                                <span></span>
+                                <button class="sai-card-action-btn" disabled="@string.IsNullOrEmpty(ImageDownloadUrl)" @onclick="DownloadImage">Download</button>
+                            </div>
                         </div>
                     }
                 </div>
@@ -377,6 +382,10 @@
                                 <div class="sai-card-status @VideoGenStatus"></div>
                             </div>
                             <div class="sai-card-body">@((MarkupString)VideoResult)</div>
+                            <div class="sai-card-footer">
+                                <span></span>
+                                <button class="sai-card-action-btn" disabled="@string.IsNullOrEmpty(VideoDownloadUrl)" @onclick="DownloadVideo">Download</button>
+                            </div>
                         </div>
                     }
                 </div>
@@ -437,6 +446,7 @@
                                 <div class="sai-card-footer">
                                     <span style="font-size:0.7rem;color:var(--sai-text-muted)">✍️ @CreativeStyle</span>
                                     <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick='() => DownloadText(text, $"{CreativeStyle}-{modelId}.txt")'>Download</button>
                                 </div>
                             </div>
                         }
@@ -502,6 +512,7 @@
                                 <div class="sai-card-footer">
                                     <span style="font-size:0.7rem;color:var(--sai-text-muted)">💻 @CodeLang · @CodeTask</span>
                                     <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick="() => DownloadCode(text, modelId)">Download</button>
                                 </div>
                             </div>
                         }
@@ -546,6 +557,7 @@
                 <div class="sai-detail-panel-footer">
                     <span>@(DetailPanelResponse.Status == "done" ? $"~{DetailPanelResponse.Tokens} tokens · {DetailPanelResponse.Ms / 1000.0:F1}s" : "—")</span>
                     <button class="sai-card-action-btn" @onclick="() => CopyText(DetailPanelResponse.Text)">Copy</button>
+                    <button class="sai-card-action-btn" @onclick='() => DownloadText(DetailPanelResponse.Text, $"response-{DetailPanelResponse.ModelId}.txt")'>Download</button>
                 </div>
             </aside>
         }
@@ -564,6 +576,7 @@
     private string ImagePrompt = "";
     private string ImageStyle = "vivid";
     private string ImageResult = "";
+    private string ImageDownloadUrl = "";
     private string ImageGenStatus = "loading";
     private string SelectedVideoModelId = ModelCatalogue.VideoModels[1].Id;
     private string VideoPrompt = "";
@@ -572,6 +585,7 @@
     private string UpgradePromptTitle = "";
     private string UpgradePromptDesc = "";
     private string VideoResult = "";
+    private string VideoDownloadUrl = "";
     private string VideoGenStatus = "loading";
     private string CreativeStyle = "story";
     private string CreativePrompt = "";
@@ -847,6 +861,7 @@
         var prompt = ImagePrompt.Trim();
         var model = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
         ImageGenStatus = "loading";
+        ImageDownloadUrl = "";
         ImageResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:180px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating image…</p></div>";
         ImagePrompt = "";
         StateHasChanged();
@@ -856,12 +871,14 @@
         ImageGenStatus = "done";
         if (apiResult is not null && apiResult.Status == "done" && !string.IsNullOrWhiteSpace(apiResult.ImageUrl))
         {
+            ImageDownloadUrl = apiResult.ImageUrl;
             var revised = string.IsNullOrWhiteSpace(apiResult.RevisedPrompt) ? "" :
                 $"<p style='margin-top:0.5rem;font-size:0.75rem;color:var(--sai-text-muted)'>Revised: {EscHtml(apiResult.RevisedPrompt)}</p>";
             ImageResult = $"<div style='text-align:center;padding:1rem'><img src='{apiResult.ImageUrl}' alt='Generated image' style='max-width:100%;border-radius:10px' />{revised}</div>";
         }
         else
         {
+            ImageDownloadUrl = "";
             // Fallback placeholder
             var errorMsg = apiResult?.ErrorMessage;
             var note = string.IsNullOrWhiteSpace(errorMsg)
@@ -878,6 +895,7 @@
         if (string.IsNullOrWhiteSpace(VideoPrompt)) return;
         var prompt = VideoPrompt.Trim();
         VideoGenStatus = "loading";
+        VideoDownloadUrl = "";
         VideoResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:160px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating video…</p></div>";
         VideoPrompt = "";
         StateHasChanged();
@@ -947,6 +965,43 @@
     {
         if (!string.IsNullOrEmpty(text))
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    private async Task DownloadText(string text, string filename)
+    {
+        if (!string.IsNullOrEmpty(text))
+            await JS.InvokeVoidAsync("saiDownloadText", filename, text);
+    }
+
+    private async Task DownloadCode(string code, string modelId)
+    {
+        if (string.IsNullOrEmpty(code)) return;
+        var ext = CodeLang switch
+        {
+            "python"     => "py",
+            "typescript" => "ts",
+            "javascript" => "js",
+            "rust"       => "rs",
+            "go"         => "go",
+            "java"       => "java",
+            "csharp"     => "cs",
+            "sql"        => "sql",
+            _            => "txt",
+        };
+        var safeName = System.Text.RegularExpressions.Regex.Replace(modelId, @"[^a-z0-9\-]", "-");
+        await JS.InvokeVoidAsync("saiDownloadText", $"code-{safeName}.{ext}", code);
+    }
+
+    private async Task DownloadImage()
+    {
+        if (!string.IsNullOrEmpty(ImageDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", ImageDownloadUrl, "generated-image.png");
+    }
+
+    private async Task DownloadVideo()
+    {
+        if (!string.IsNullOrEmpty(VideoDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", VideoDownloadUrl, "generated-video.mp4");
     }
 
     private static string EscHtml(string s) =>
