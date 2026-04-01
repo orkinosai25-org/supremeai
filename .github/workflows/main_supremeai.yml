@@ -62,4 +62,5 @@ jobs:
           app-name: 'supremeai'
           slot-name: 'Production'
           package: .
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
           

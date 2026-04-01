@@ -1,0 +1,148 @@
+# Provisions Azure AI infrastructure for SupremeAI using Bicep templates.
+# Triggered manually or on changes to the Azure setup scripts/templates.
+
+name: Azure Infrastructure Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: 'Azure resource group name'
+        required: false
+        default: 'supremeai-rg'
+      location:
+        description: 'Azure region'
+        required: false
+        default: 'eastus'
+      base_name:
+        description: 'Base name for all resources'
+        required: false
+        default: 'supremeai'
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/azure/**'
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Register required Azure resource providers
+        run: |
+          for provider in \
+            Microsoft.CognitiveServices \
+            Microsoft.MachineLearningServices \
+            Microsoft.KeyVault \
+            Microsoft.Storage; do
+            state=$(az provider show --namespace "$provider" --query "registrationState" -o tsv 2>/dev/null || echo "NotRegistered")
+            if [ "$state" != "Registered" ]; then
+              echo "Registering $provider..."
+              az provider register --namespace "$provider" --wait
+            else
+              echo "$provider - already registered"
+            fi
+          done
+
+      - name: Create resource group
+        run: |
+          az group create \
+            --name "${{ github.event.inputs.resource_group || 'supremeai-rg' }}" \
+            --location "${{ github.event.inputs.location || 'eastus' }}" \
+            --tags project=SupremeAI \
+            --output none
+
+      - name: Deploy Azure infrastructure (Bicep)
+        id: bicep
+        run: |
+          RESOURCE_GROUP="${{ github.event.inputs.resource_group || 'supremeai-rg' }}"
+          BASE_NAME="${{ github.event.inputs.base_name || 'supremeai' }}"
+          LOCATION="${{ github.event.inputs.location || 'eastus' }}"
+
+          OUTPUTS=$(az deployment group create \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file scripts/azure/main.bicep \
+            --parameters \
+              baseName="$BASE_NAME" \
+              location="$LOCATION" \
+            --name "supremeai-deploy-${{ github.run_number }}" \
+            --query "properties.outputs" \
+            --output json)
+
+          echo "outputs=$OUTPUTS" >> "$GITHUB_OUTPUT"
+
+          KV_URI=$(echo "$OUTPUTS"    | jq -r '.keyVaultUri.value')
+          OPENAI_EP=$(echo "$OUTPUTS" | jq -r '.openAiEndpoint.value')
+
+          echo "kv_uri=$KV_URI"       >> "$GITHUB_OUTPUT"
+          echo "openai_ep=$OPENAI_EP" >> "$GITHUB_OUTPUT"
+
+      - name: Grant App Service identity access to Key Vault
+        run: |
+          APP_NAME="${{ github.event.inputs.base_name || 'supremeai' }}"
+          RESOURCE_GROUP="${{ github.event.inputs.resource_group || 'supremeai-rg' }}"
+          KV_URI="${{ steps.bicep.outputs.kv_uri }}"
+
+          # Derive key vault name from URI (https://<name>.vault.azure.net/)
+          KV_NAME=$(echo "$KV_URI" | sed 's|https://||; s|\.vault\.azure\.net.*||')
+          if [ -z "$KV_NAME" ]; then
+            echo "ERROR: Could not parse Key Vault name from URI: $KV_URI" >&2
+            exit 1
+          fi
+
+          # Get the system-assigned managed identity principal ID of the App Service
+          PRINCIPAL_ID=$(az webapp identity show \
+            --name "$APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query principalId -o tsv 2>&1) || PRINCIPAL_ID=""
+
+          # Assign identity if not yet enabled
+          if [ -z "$PRINCIPAL_ID" ]; then
+            echo "Enabling system-assigned managed identity on App Service '$APP_NAME'..."
+            PRINCIPAL_ID=$(az webapp identity assign \
+              --name "$APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query principalId -o tsv)
+          fi
+
+          KV_ID=$(az keyvault show --name "$KV_NAME" --query id -o tsv)
+
+          # Key Vault Secrets User role (4633458b-17de-408a-b874-0445c86b69e6)
+          # Role assignment create is idempotent – if it already exists the command
+          # exits with a "RoleAssignmentExists" conflict (exit code 1) which is safe to ignore.
+          az role assignment create \
+            --assignee-object-id "$PRINCIPAL_ID" \
+            --assignee-principal-type ServicePrincipal \
+            --role "4633458b-17de-408a-b874-0445c86b69e6" \
+            --scope "$KV_ID" \
+            --output none 2>&1 | grep -v "RoleAssignmentExists" || true
+
+      - name: Configure Azure App Service environment variables
+        run: |
+          APP_NAME="${{ github.event.inputs.base_name || 'supremeai' }}"
+          RESOURCE_GROUP="${{ github.event.inputs.resource_group || 'supremeai-rg' }}"
+
+          az webapp config appsettings set \
+            --name "$APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --settings \
+              AZURE_KEYVAULT_URI="${{ steps.bicep.outputs.kv_uri }}" \
+              AZURE_OPENAI_ENDPOINT="${{ steps.bicep.outputs.openai_ep }}" \
+            --output none
+
+          echo "App Service settings updated:"
+          echo "  AZURE_KEYVAULT_URI    = ${{ steps.bicep.outputs.kv_uri }}"
+          echo "  AZURE_OPENAI_ENDPOINT = ${{ steps.bicep.outputs.openai_ep }}"
