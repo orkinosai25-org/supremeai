@@ -212,7 +212,9 @@
                         @foreach (var resp in conv.Responses)
                         {
                             var model = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
-                            <div class="sai-card">
+                            <div class="sai-card" @onclick="() => OpenDetailPanel(resp, model)" role="button" tabindex="0"
+                                 @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, model); })"
+                                 aria-label="@($"View full response from {model?.Name ?? resp.ModelId}")">
                                 <div class="sai-card-header">
                                     <div class="sai-card-logo" style="background:@(model?.Color ?? "#888")20;color:@(model?.Color ?? "#888")">@(model?.Initial ?? "?")</div>
                                     <span class="sai-card-model-name">@(model?.Name ?? resp.ModelId)</span>
@@ -221,6 +223,9 @@
                                         <span class="sai-gem-badge @model.TierCssClass" style="margin-right:0.2rem">@model.TierLabel</span>
                                     }
                                     <div class="sai-card-status @resp.Status"></div>
+                                    <span class="sai-card-expand-hint" aria-hidden="true">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                    </span>
                                 </div>
                                 <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
                                     @if (resp.Status == "loading")
@@ -233,7 +238,7 @@
                                 </div>
                                 <div class="sai-card-footer">
                                     <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
-                                    <button class="sai-card-action-btn" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
                                 </div>
                             </div>
                         }
@@ -514,6 +519,37 @@
             </div>
         </section>
 
+        <!-- ─── Response Detail Panel (Azure/M365 slide-up bottom pane) ─── -->
+        @if (DetailPanelOpen && DetailPanelResponse is not null)
+        {
+            <div class="sai-detail-backdrop" @onclick="CloseDetailPanel" role="presentation"></div>
+            <aside class="sai-detail-panel" @ref="DetailPanelRef" tabindex="-1"
+                   role="dialog" aria-modal="true" aria-label="Full response"
+                   @onkeydown="HandleDetailPanelKey">
+                <div class="sai-detail-panel-handle" aria-hidden="true"></div>
+                <div class="sai-detail-panel-header">
+                    @if (DetailPanelModel is not null)
+                    {
+                        <div class="sai-card-logo" style="background:@(DetailPanelModel.Color)20;color:@DetailPanelModel.Color">@DetailPanelModel.Initial</div>
+                    }
+                    <span class="sai-detail-panel-title">@(DetailPanelModel?.Name ?? DetailPanelResponse.ModelId)</span>
+                    @if (DetailPanelModel is not null)
+                    {
+                        <span class="sai-gem-badge @DetailPanelModel.TierCssClass">@DetailPanelModel.TierLabel</span>
+                    }
+                    <div class="sai-card-status @DetailPanelResponse.Status"></div>
+                    <button class="sai-detail-panel-close" @onclick="CloseDetailPanel" aria-label="Close">
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                    </button>
+                </div>
+                <div class="sai-detail-panel-body">@DetailPanelResponse.Text</div>
+                <div class="sai-detail-panel-footer">
+                    <span>@(DetailPanelResponse.Status == "done" ? $"~{DetailPanelResponse.Tokens} tokens · {DetailPanelResponse.Ms / 1000.0:F1}s" : "—")</span>
+                    <button class="sai-card-action-btn" @onclick="() => CopyText(DetailPanelResponse.Text)">Copy</button>
+                </div>
+            </aside>
+        }
+
     </div>
 </div>
 
@@ -544,6 +580,12 @@
     private string CodeTask = "write";
     private string CodePrompt = "";
     private List<(string ModelId, string Text, bool Done)> CodeResponses = [];
+
+    // ─── Response detail panel (Azure/M365 bottom pane) ───
+    private ModelResponse? DetailPanelResponse = null;
+    private AiModel? DetailPanelModel = null;
+    private bool DetailPanelOpen = false;
+    private ElementReference DetailPanelRef;
 
     private static readonly (string id, string label, string icon)[] PaneDefs =
     [
@@ -599,6 +641,33 @@
     private void ToggleTheme() => IsDark = !IsDark;
     private void SwitchPane(string pane) => ActivePane = pane;
     private void GoToPricing() { ShowUpgradePrompt = false; Nav.NavigateTo("/pricing"); }
+
+    private void OpenDetailPanel(ModelResponse resp, AiModel? model)
+    {
+        DetailPanelResponse = resp;
+        DetailPanelModel = model;
+        DetailPanelOpen = true;
+    }
+
+    private void CloseDetailPanel()
+    {
+        DetailPanelOpen = false;
+        DetailPanelResponse = null;
+        DetailPanelModel = null;
+    }
+
+    private void HandleDetailPanelKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") CloseDetailPanel();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (DetailPanelOpen)
+        {
+            try { await DetailPanelRef.FocusAsync(); } catch { /* element may not be in DOM yet */ }
+        }
+    }
 
     protected override void OnInitialized()
     {
