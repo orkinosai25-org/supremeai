@@ -56,7 +56,7 @@ SupremeAI is **not a chatbot wrapper**. It is a five-layer AI infrastructure pla
 |------|:------------:|----------------|
 | Starter | £5 | Choose any model from the Azure AI Foundry catalogue; 100K tokens |
 | Pro | £19 | All 50+ models; run up to 3 simultaneously; vision, audio, agents |
-| Unlimited | £39 | Unlimited tokens; up to 10 parallel models; video (Sora); Supreme LLM reports |
+| Unlimited | £39 | High-volume token access (fair-use policy applies); up to 10 parallel models; video (Sora); Supreme LLM reports |
 | Enterprise | Custom | B2B Benchmarking API; private deployment; SSO; EU AI Act audit trail |
 
 ### What SupremeAI earns
@@ -92,6 +92,8 @@ The **Benchmark Flywheel**: every user query generates evaluation data → data 
 ## Slide 4 — The Solution
 
 **SupremeAI is three complementary engines on a single platform.**
+
+> SupremeAI is building the evaluation and routing intelligence layer between foundation models and enterprise deployment environments.
 
 ### Engine 1 — Multi-Model Orchestration Control Layer
 A single subscription unlocks every model on Azure AI Foundry. Users choose their model per request, run multiple models in parallel to compare responses, and access multimodal capabilities (text, vision, video, agents) — all through one unified API and UI.
@@ -138,7 +140,7 @@ Every tier draws from the same Azure AI Foundry catalogue. Higher tiers unlock p
 | Feature | Starter £5/mo | Pro £19/mo | Unlimited £39/mo | Enterprise (Custom) |
 |---------|:-------------:|:----------:|:----------------:|:-------------------:|
 | Model selection from Azure AI Foundry catalogue | ✅ (top 10) | ✅ (all 50+) | ✅ (all 50+) | ✅ + private models |
-| Monthly token allowance | 100 K | 1 M | Unlimited | Unlimited |
+| Monthly token allowance | 100 K | 1 M | High-volume (fair-use) | Unlimited |
 | Simultaneous multi-model responses | ❌ | ✅ (up to 3) | ✅ (up to 10) | ✅ Unlimited |
 | Side-by-side model comparison UI | ❌ | ✅ | ✅ | ✅ |
 | Multimodal — vision & image generation | ❌ | ✅ | ✅ | ✅ |
@@ -202,6 +204,8 @@ Multi-model evaluation pipeline
 
 **Investor framing:** This is an evaluation-driven distillation architecture — a recursive model improvement loop where each benchmarking cycle generates proprietary training signal, compounding SupremeAI's advantage over time.
 
+> Aligned with emerging evaluation-first training strategies used across modern LLM routing research and ensemble reasoning systems.
+
 ---
 
 ## Slide 9 — Supreme LLM: Model Strategy & Roadmap
@@ -230,7 +234,38 @@ This is GPU spend that directly generates revenue — not infrastructure cost.
 
 ---
 
-## Slide 10 — The SupremeAI Benchmark Flywheel
+## Slide 10 — GPU Strategy & Training Plan
+
+The £3 M seed round converts GPU budget into an engineering roadmap with clear Phase 1 deliverables and a compounding training data advantage.
+
+### Training Approach
+
+| Phase | Model Target | Approach |
+|-------|-------------|----------|
+| **Phase 1** | Routing intelligence model | Fine-tuning open-weight base models on benchmark pipeline outputs |
+| **Phase 2** | Meta-reasoning orchestration layer | Multi-model response synthesis trained on curated evaluation datasets |
+| **Phase 3** | Domain-specific DevOps reasoning LLM | Enterprise workflow fine-tuning; code review and audit reasoning |
+
+### Compute Strategy
+
+- **Azure ML GPU clusters** — spot training and batch fine-tuning for cost efficiency
+- **Evaluation dataset pipeline automation** — continuous curation from live platform evaluation runs
+- **Multi-cloud resilience** — AWS Bedrock and Google Vertex AI as fallback inference layers
+
+### Estimated Compute Allocation (Phase 1)
+
+| Workload | GPU Budget Share |
+|---------|:---------------:|
+| Routing intelligence training | 40 % |
+| Meta-reasoning synthesis model | 35 % |
+| Evaluation dataset generation | 15 % |
+| Experimentation & benchmarking | 10 % |
+
+This breakdown gives investors a clear, auditable map from capital to model capability — not a generic "AI training" line item.
+
+---
+
+## Slide 11 — The SupremeAI Benchmark Flywheel
 
 **Investors fund flywheels. This is ours.**
 
@@ -267,6 +302,8 @@ This is GPU spend that directly generates revenue — not infrastructure cost.
 
 Each cycle deepens SupremeAI's proprietary data moat and widens the gap with competitors who lack the same evaluation loop.
 
+As enterprises integrate SupremeAI routing APIs into production workflows, switching costs increase due to embedded benchmark datasets, routing policies, and evaluation histories.
+
 **Comparable strategies** (but applied to multi-model orchestration — a newer, larger opportunity):
 - Scale AI — built a data flywheel for model training; reached $13 B valuation
 - Weights & Biases — built an evaluation flywheel for MLOps; reached $1 B valuation
@@ -275,7 +312,7 @@ SupremeAI's flywheel combines both — plus a consumer subscription front-end th
 
 ---
 
-## Slide 11 — Five-Layer Revenue Architecture
+## Slide 12 — Five-Layer Revenue Architecture
 
 SupremeAI is a **platform economy** — recurring + data + marketplace revenue stacked across five complementary streams.
 
@@ -318,7 +355,7 @@ Revenue share from third-party fine-tuned and domain-specific model providers wh
 
 ---
 
-## Slide 12 — Market Opportunity
+## Slide 13 — Market Opportunity
 
 **SupremeAI's category: AI model access + evaluation + routing infrastructure market**
 
@@ -345,11 +382,11 @@ UK government and EU AI Act compliance requirements are generating urgent, funde
 - **Sovereign AI capability** — SupremeAI's trained reasoning model is this
 - **Enterprise AI safety tooling** — SupremeAI's hallucination and safety scoring is this
 
-SupremeAI is positioned as the **UK-based sovereign AI infrastructure platform** at precisely the moment government procurement budgets are moving into this space.
+SupremeAI fills the critical gap: UK currently has no neutral, independent evaluation-layer platform sitting between foundation-model providers and enterprise deployment environments. SupremeAI is that platform — positioned at precisely the moment government procurement budgets are moving into this space.
 
 ---
 
-## Slide 13 — Competitive Landscape
+## Slide 14 — Competitive Landscape
 
 | Platform | Multi-model orchestration | Flat subscription | Parallel model responses | Multimodal (video etc.) | Independent benchmarking | Proprietary meta-model |
 |----------|:-------------------------:|:-----------------:|:------------------------:|:-----------------------:|:------------------------:|:----------------------:|
@@ -368,7 +405,7 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ---
 
-## Slide 14 — Technology Stack
+## Slide 15 — Technology Stack
 
 - **Model Catalogue:** Azure AI Foundry (50+ models: GPT-4o, Llama 3.3, Mistral Large, Phi-4, Sora, Whisper, DALL·E 3, and more)
 - **Orchestration Engine:** Intelligent router with latency-aware load balancing, cost optimisation, and parallel dispatch
@@ -382,7 +419,32 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ---
 
-## Slide 15 — Go-to-Market Strategy
+## Slide 16 — Deployment Strategy
+
+SupremeAI is designed from the ground up to meet enterprise and government deployment requirements — not retrofitted for compliance after growth.
+
+### Deployment Modes
+
+| Mode | Description | Target Segment |
+|------|-------------|----------------|
+| **SaaS platform** | Fully managed, multi-tenant cloud service on Azure | Developers, SMEs, researchers |
+| **Enterprise VNet deployment** | Private virtual network deployment within customer Azure tenancy | Enterprise AI teams, financial services |
+| **Sovereign on-prem option** *(future)* | Air-gapped or government-managed infrastructure | Defence, intelligence, regulated industries |
+
+### Why This Matters
+
+This deployment flexibility enables:
+
+- **Regulated industries adoption** — financial services, healthcare, legal sectors with strict data residency requirements
+- **Government benchmarking usage** — UK DSIT, GCHQ/NCSC, and EU AI Act compliance environments
+- **Defence and financial services integration** — environments where data cannot leave organisational boundaries
+- **EU AI Act compliance** — SupremeAI's audit trail and evaluation infrastructure maps directly to Article 9 (risk management) and Article 10 (data governance) requirements
+
+SupremeAI is not just a SaaS product — it is procurement-grade AI evaluation infrastructure suitable for the most regulated deployment environments.
+
+---
+
+## Slide 17 — Go-to-Market Strategy
 
 ### Phase 1 — Developer & Community-Led Growth (Months 1–6)
 - Free/Starter tier with generous limits drives organic adoption
@@ -404,11 +466,23 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ---
 
-## Slide 16 — Traction & Milestones
+## Slide 18 — Traction & Milestones
+
+### Traction (March 2026)
+
+- Multi-model orchestration engine operational on Azure AI Foundry
+- Parallel-response routing implemented across GPT-4o, Llama, Mistral, Phi
+- Benchmark pipeline v0.1 running internally
+- Subscription tier architecture complete
+- SupremeAI.Api production backend live (.NET 9)
+- First developer waitlist forming
+- Enterprise benchmarking pilot discussions initiated
+
+### Milestone Roadmap
 
 | Date | Milestone |
 |------|-----------|
-| Q1 2026 | Platform architecture live on Azure AI Foundry; multi-model routing implemented |
+| Q1 2026 ✅ | Platform architecture live on Azure AI Foundry; multi-model routing implemented |
 | Q2 2026 | Public beta; parallel model response UI launched; benchmark v0.1 published |
 | Q3 2026 | Paid tiers active (£5–£39); multimodal (vision, audio) available on Pro+ |
 | Q4 2026 | Video model access (Sora) live on Unlimited; B2B benchmarking pilots begin |
@@ -419,7 +493,7 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ---
 
-## Slide 17 — Team
+## Slide 19 — Team
 
 | Name | Role | Background |
 |------|------|------------|
@@ -434,7 +508,7 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ---
 
-## Slide 18 — Financial Projections
+## Slide 20 — Financial Projections
 
 | Year | B2C Subscribers | B2B Contracts | ARR | Gross Margin | EBITDA |
 |------|:--------------:|:-------------:|-----|:------------:|:------:|
@@ -455,10 +529,11 @@ No competitor has all six capabilities in one platform. We are building the moat
 | Cloud inference cost per user | £7 / mo, declining 10 % YoY | Azure volume discounts + Foundry pricing trends |
 | Enterprise licensing growth | 3× B2C growth rate | Dedicated sales team from Year 2 |
 | Benchmark dataset licensing ARR | Grows to £5 M by Year 3 | Government + research demand driven by EU AI Act |
+| Benchmark dataset licensing revenue start | Year 2 | Begins following enterprise pilot conversions from Year 1 B2B outreach |
 
 ---
 
-## Slide 19 — £3 M Seed Round to Train the SupremeAI Meta-Reasoning Layer and Launch the Benchmark Infrastructure Platform
+## Slide 21 — £3 M Seed Round to Train the SupremeAI Meta-Reasoning Layer and Launch the Benchmark Infrastructure Platform
 
 ### Raising: £3 M Seed Round
 
@@ -487,18 +562,18 @@ This is an **infrastructure and engineering raise** — not a SaaS marketing bud
 
 ---
 
-## Slide 20 — Why Now?
+## Slide 22 — Why Now?
 
 1. **Azure AI Foundry provides the catalogue today.** We have production-ready access to 50+ models without building infrastructure from scratch — our moat is the layer above it.
 2. **Model proliferation is overwhelming teams.** 2026 will see 200+ capable models. The evaluation and routing layer is the critical bottleneck.
 3. **Subscription AI is proven at scale.** ChatGPT Plus, Claude Pro, and Copilot prove mass willingness to pay £20–£39/month for AI access.
 4. **The EU AI Act and UK AI governance create institutional demand for independent benchmarking** — a new billion-pound regulatory compliance market.
 5. **Evaluation-driven distillation is an emerging architecture.** The window to become the trusted independent evaluation layer is open now — not in two years.
-6. **UK has a sovereign AI gap.** There is no UK-headquartered neutral AI evaluation and orchestration platform at scale. SupremeAI fills it.
+6. **UK has a sovereign AI gap.** No UK-headquartered platform independently evaluates, routes, and benchmarks foundation models at scale. SupremeAI is being built to fill that institutional role before the category consolidates.
 
 ---
 
-## Slide 21 — Vision
+## Slide 23 — Vision
 
 > **"SupremeAI will become the world's independent intelligence layer for AI — the platform that every developer, researcher, enterprise, and regulator trusts to access, evaluate, and continuously improve the foundation models that power the future."**
 
