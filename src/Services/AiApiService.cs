@@ -70,6 +70,33 @@ public sealed class AiApiService
             return null;
         }
     }
+
+    /// <summary>
+    /// Calls the SupremeAI Brain endpoint: fans the query to multiple models,
+    /// scores each response, and returns the ranked results + winning answer.
+    /// Returns null on network error so the caller can fall back to demo mode.
+    /// </summary>
+    public async Task<ApiSupremeResponse?> SupremeAsync(
+        string query,
+        IEnumerable<string>? modelIds = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var request = new
+            {
+                query,
+                modelIds = modelIds?.ToList() ?? [],
+            };
+            var response = await _http.PostAsJsonAsync($"{ApiBase}/supreme", request, ct);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<ApiSupremeResponse>(cancellationToken: ct);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 // ── Lightweight DTOs matching the backend API contract ────────────────────────
@@ -97,4 +124,26 @@ public sealed class ApiImageResponse
     public string  ImageUrl     { get; init; } = "";
     public string? RevisedPrompt{ get; init; }
     public string? ErrorMessage { get; init; }
+}
+
+// ── SupremeAI Brain DTOs ──────────────────────────────────────────────────────
+
+public sealed class ApiModelEvalResult
+{
+    public string  ModelId      { get; init; } = "";
+    public string  Text         { get; init; } = "";
+    public string  Status       { get; init; } = "done";
+    public int     Tokens       { get; init; }
+    public int     Ms           { get; init; }
+    public double  Score        { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+
+public sealed class ApiSupremeResponse
+{
+    public string                   Query         { get; init; } = "";
+    public List<ApiModelEvalResult> Results       { get; init; } = [];
+    public string                   WinnerId      { get; init; } = "";
+    public string                   SupremeAnswer { get; init; } = "";
+    public int                      TotalMs       { get; init; }
 }

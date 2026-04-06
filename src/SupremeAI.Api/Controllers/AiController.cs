@@ -13,11 +13,13 @@ namespace SupremeAI.Api.Controllers;
 public sealed class AiController : ControllerBase
 {
     private readonly ModelProviderFactory _factory;
+    private readonly BrainService _brain;
     private readonly ILogger<AiController> _logger;
 
-    public AiController(ModelProviderFactory factory, ILogger<AiController> logger)
+    public AiController(ModelProviderFactory factory, BrainService brain, ILogger<AiController> logger)
     {
         _factory = factory;
+        _brain   = brain;
         _logger  = logger;
     }
 
@@ -87,6 +89,27 @@ public sealed class AiController : ControllerBase
         _logger.LogInformation("Image request: model={ModelId}", request.ModelId);
 
         var response = await _factory.ImageAsync(request, ct);
+        return Ok(response);
+    }
+
+    // ── POST /api/ai/supreme ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// SupremeAI Brain endpoint.
+    /// Fans the prompt out to all specified models (or the default panel) in parallel,
+    /// scores each response, and returns the ranked results plus the winning answer.
+    /// </summary>
+    [HttpPost("supreme")]
+    public async Task<IActionResult> Supreme([FromBody] SupremeRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Query))
+            return BadRequest(new ErrorResponse { Error = "Query is required." });
+
+        _logger.LogInformation("Supreme request: models={Models}, query length={Len}",
+            request.ModelIds.Count > 0 ? string.Join(',', request.ModelIds) : "(default)",
+            request.Query.Length);
+
+        var response = await _brain.EvaluateAsync(request, ct);
         return Ok(response);
     }
 }
