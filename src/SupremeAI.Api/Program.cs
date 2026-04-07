@@ -79,6 +79,7 @@ builder.Services.AddScoped<IModelProvider, GoogleProvider>();
 builder.Services.AddScoped<IModelProvider, XaiProvider>();
 
 builder.Services.AddScoped<ModelProviderFactory>();
+builder.Services.AddScoped<BrainService>();
 
 // ── CORS – allow the Blazor WASM frontend ─────────────────────────────────────
 var frontendOrigins = builder.Configuration
