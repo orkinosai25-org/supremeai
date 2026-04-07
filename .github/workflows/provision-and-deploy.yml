@@ -1,0 +1,472 @@
+# SupremeAI – Provision and Deploy
+#
+# Triggered on every push/merge to main (or manually).
+# Fully provisions Azure infrastructure and deploys the backend API
+# so that no manual commands are ever needed after a PR is merged.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC)
+#   AZURE_TENANT_ID       – Azure Active Directory tenant ID
+#   AZURE_SUBSCRIPTION_ID – Azure subscription ID
+#
+# Optional secrets (app runs in demo mode when absent):
+#   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
+#   AZURE_OPENAI_API_KEY  – Pre-existing Azure OpenAI API key
+#   ANTHROPIC_API_KEY     – Anthropic Claude API key
+#   GOOGLE_GEMINI_API_KEY – Google Gemini API key
+#   XAI_GROK_API_KEY      – xAI Grok API key
+#
+# Optional repository variables (Settings → Secrets and variables → Variables):
+#   AZURE_RESOURCE_GROUP  – Resource group name          (default: supremeai-rg)
+#   AZURE_LOCATION        – Azure region                 (default: eastus)
+#   AZURE_BASE_NAME       – Base name for all resources  (default: supremeai)
+#   AZURE_WEBAPP_NAME     – Azure Web App name           (default: supremeai-api)
+
+name: Provision and Deploy SupremeAI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_provisioning:
+        description: 'Skip Azure infrastructure provisioning (useful for code-only changes)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+permissions:
+  id-token: write   # Required for OIDC token exchange with Azure
+  contents: read
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  DOTNET_NOLOGO: 'true'
+  RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_RESOURCE_GROUP || 'supremeai-rg' }}
+  LOCATION:       ${{ vars.AZURE_LOCATION      != '' && vars.AZURE_LOCATION      || 'eastus' }}
+  BASE_NAME:      ${{ vars.AZURE_BASE_NAME     != '' && vars.AZURE_BASE_NAME     || 'supremeai' }}
+  WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai-api' }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+jobs:
+
+  # ── 1. Validate required secrets before spending any cloud minutes ───────────
+  validate-secrets:
+    name: Validate Required Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required Azure secrets
+        shell: bash
+        run: |
+          MISSING=()
+
+          [[ -z "${{ secrets.AZURE_CLIENT_ID }}"       ]] && MISSING+=("AZURE_CLIENT_ID")
+          [[ -z "${{ secrets.AZURE_TENANT_ID }}"       ]] && MISSING+=("AZURE_TENANT_ID")
+          [[ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
+
+          if [[ ${#MISSING[@]} -gt 0 ]]; then
+            echo "::error title=Missing Required Secrets::One or more required secrets are not configured."
+            echo ""
+            echo "Add them at: Repository → Settings → Secrets and variables → Actions → Secrets"
+            echo ""
+            for secret in "${MISSING[@]}"; do
+              echo "::error::  ✗ $secret is not set"
+            done
+            echo ""
+            echo "For OIDC setup guide, see:"
+            echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
+            exit 1
+          fi
+
+          echo "✅ All required secrets are present."
+
+          # Warn (non-fatal) about optional secrets
+          OPTIONAL_MISSING=()
+          [[ -z "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
+          [[ -z "${{ secrets.AZURE_OPENAI_API_KEY }}"  ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
+          [[ -z "${{ secrets.ANTHROPIC_API_KEY }}"     ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
+          [[ -z "${{ secrets.GOOGLE_GEMINI_API_KEY }}" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
+          [[ -z "${{ secrets.XAI_GROK_API_KEY }}"      ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
+
+          if [[ ${#OPTIONAL_MISSING[@]} -gt 0 ]]; then
+            echo ""
+            echo "⚠️  Optional API-key secrets are not set – those providers will run in demo mode:"
+            for secret in "${OPTIONAL_MISSING[@]}"; do
+              echo "  ⚠  $secret"
+            done
+          fi
+
+  # ── 2. Provision Azure infrastructure ────────────────────────────────────────
+  provision:
+    name: Provision Azure Infrastructure
+    runs-on: ubuntu-latest
+    needs: validate-secrets
+    if: github.event.inputs.skip_provisioning != 'true'
+    outputs:
+      key_vault_name: ${{ steps.deploy.outputs.keyVaultName }}
+      key_vault_uri:  ${{ steps.deploy.outputs.keyVaultUri }}
+      openai_endpoint: ${{ steps.deploy.outputs.openAiEndpoint }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Register required Azure resource providers
+        shell: bash
+        run: |
+          PROVIDERS=(
+            Microsoft.CognitiveServices
+            Microsoft.MachineLearningServices
+            Microsoft.KeyVault
+            Microsoft.Storage
+            Microsoft.Web
+          )
+          for provider in "${PROVIDERS[@]}"; do
+            STATE=$(az provider show --namespace "$provider" \
+              --query registrationState -o tsv 2>/dev/null || echo "NotRegistered")
+            if [[ "$STATE" != "Registered" ]]; then
+              echo "  Registering $provider ..."
+              az provider register --namespace "$provider" --wait
+            else
+              echo "  $provider – already registered"
+            fi
+          done
+
+      - name: Create resource group
+        shell: bash
+        run: |
+          az group create \
+            --name     "$RESOURCE_GROUP" \
+            --location "$LOCATION" \
+            --tags     project=SupremeAI environment=production \
+            --output   none
+          echo "Resource group '$RESOURCE_GROUP' is ready in '$LOCATION'."
+
+      - name: Deploy Bicep infrastructure
+        id: deploy
+        uses: azure/arm-deploy@v2
+        with:
+          scope:             resourcegroup
+          resourceGroupName: ${{ env.RESOURCE_GROUP }}
+          template:          scripts/azure/main.bicep
+          parameters: >
+            baseName=${{ env.BASE_NAME }}
+            location=${{ env.LOCATION }}
+          deploymentName: supremeai-${{ github.run_number }}
+          failOnStdErr: false
+
+      - name: Store external AI provider keys in Key Vault
+        shell: bash
+        run: |
+          KV_NAME="${{ steps.deploy.outputs.keyVaultName }}"
+          if [[ -z "$KV_NAME" ]]; then
+            echo "⚠ Key Vault name not returned from deployment – skipping secret storage."
+            exit 0
+          fi
+          echo "Storing API keys in Key Vault '$KV_NAME' ..."
+
+          # The CI service principal needs Key Vault Secrets Officer role to write secrets.
+          # Attempt to self-assign the role (requires Owner or User Access Administrator on
+          # the resource group). If that fails, the admin must pre-grant the role.
+          KV_ID=$(az keyvault show --name "$KV_NAME" --query id --output tsv)
+          SP_OBJECT_ID=$(az ad sp show --id "${{ secrets.AZURE_CLIENT_ID }}" \
+            --query id --output tsv 2>/dev/null || echo "")
+
+          if [[ -n "$SP_OBJECT_ID" ]]; then
+            az role assignment create \
+              --role               "Key Vault Secrets Officer" \
+              --assignee-object-id "$SP_OBJECT_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --scope              "$KV_ID" \
+              --output             none 2>/dev/null \
+            && echo "  ✓ Key Vault Secrets Officer role granted to CI service principal." \
+            || echo "  – Role already exists or insufficient permissions to self-assign (non-fatal)."
+          fi
+
+          store_secret() {
+            local name="$1" value="$2"
+            if [[ -n "$value" ]]; then
+              if az keyvault secret set \
+                   --vault-name "$KV_NAME" \
+                   --name       "$name" \
+                   --value      "$value" \
+                   --output     none 2>/dev/null; then
+                echo "  ✓ $name stored"
+              else
+                echo "  ⚠ Could not store $name – ensure the CI service principal has"
+                echo "    'Key Vault Secrets Officer' role on vault '$KV_NAME'."
+              fi
+            else
+              echo "  – $name not provided (demo mode for that provider)"
+            fi
+          }
+
+          store_secret "azure-openai-endpoint"  "${{ secrets.AZURE_OPENAI_ENDPOINT }}"
+          store_secret "azure-openai-api-key"   "${{ secrets.AZURE_OPENAI_API_KEY }}"
+          store_secret "anthropic-api-key"       "${{ secrets.ANTHROPIC_API_KEY }}"
+          store_secret "google-gemini-api-key"   "${{ secrets.GOOGLE_GEMINI_API_KEY }}"
+          store_secret "xai-grok-api-key"        "${{ secrets.XAI_GROK_API_KEY }}"
+
+      - name: Create or update App Service plan and Web App
+        shell: bash
+        run: |
+          PLAN_NAME="${BASE_NAME}-plan"
+
+          # App Service plan (Linux B1)
+          if ! az appservice plan show \
+               --name "$PLAN_NAME" \
+               --resource-group "$RESOURCE_GROUP" \
+               --output none 2>/dev/null; then
+            echo "Creating App Service plan '$PLAN_NAME' ..."
+            az appservice plan create \
+              --name           "$PLAN_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --sku            B1 \
+              --is-linux \
+              --tags           project=SupremeAI \
+              --output         none
+          else
+            echo "App Service plan '$PLAN_NAME' already exists."
+          fi
+
+          # Web App
+          if ! az webapp show \
+               --name "$WEBAPP_NAME" \
+               --resource-group "$RESOURCE_GROUP" \
+               --output none 2>/dev/null; then
+            echo "Creating Web App '$WEBAPP_NAME' ..."
+            az webapp create \
+              --name           "$WEBAPP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --plan           "$PLAN_NAME" \
+              --runtime        "DOTNETCORE:9.0" \
+              --tags           project=SupremeAI \
+              --output         none
+          else
+            echo "Web App '$WEBAPP_NAME' already exists."
+          fi
+
+      - name: Enable managed identity and grant Key Vault access
+        shell: bash
+        run: |
+          KV_NAME="${{ steps.deploy.outputs.keyVaultName }}"
+          if [[ -z "$KV_NAME" ]]; then
+            echo "⚠ Key Vault name not available – skipping managed identity setup."
+            exit 0
+          fi
+
+          echo "Enabling system-assigned managed identity on '$WEBAPP_NAME' ..."
+          az webapp identity assign \
+            --name           "$WEBAPP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --output         none
+
+          # Get the principal ID of the Web App's managed identity
+          MI_PRINCIPAL_ID=$(az webapp identity show \
+            --name           "$WEBAPP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query          principalId \
+            --output         tsv)
+
+          echo "  Managed identity principal ID: $MI_PRINCIPAL_ID"
+
+          # Grant Key Vault Secrets User role (4633458b-17de-408a-b874-0445c86b69e6)
+          KV_ID=$(az keyvault show --name "$KV_NAME" --query id --output tsv)
+          az role assignment create \
+            --role           "Key Vault Secrets User" \
+            --assignee-object-id "$MI_PRINCIPAL_ID" \
+            --assignee-principal-type ServicePrincipal \
+            --scope          "$KV_ID" \
+            --output         none 2>/dev/null \
+          && echo "  ✓ Key Vault Secrets User role granted to managed identity." \
+          || echo "  – Role assignment already exists or could not be created (non-fatal)."
+
+  # ── 3. Build the backend API ──────────────────────────────────────────────────
+  build:
+    name: Build SupremeAI Backend API
+    runs-on: ubuntu-latest
+    needs: validate-secrets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore src/SupremeAI.Api/SupremeAI.Api.csproj
+
+      - name: Build
+        run: |
+          dotnet build src/SupremeAI.Api/SupremeAI.Api.csproj \
+            --configuration Release \
+            --no-restore \
+            --nologo
+
+      - name: Publish (framework-dependent deployment package)
+        run: |
+          dotnet publish src/SupremeAI.Api/SupremeAI.Api.csproj \
+            --configuration Release \
+            --no-build \
+            --output       ./publish \
+            --nologo
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name:            supremeai-api
+          path:            ./publish
+          retention-days:  1
+
+  # ── 4. Deploy API to Azure Web App ────────────────────────────────────────────
+  deploy:
+    name: Deploy API to Azure Web App
+    runs-on: ubuntu-latest
+    needs: [provision, build]
+    # Run if build succeeded and provision either succeeded or was intentionally skipped
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      (needs.provision.result == 'success' || needs.provision.result == 'skipped')
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: supremeai-api
+          path: ./publish
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Web App application settings
+        shell: bash
+        run: |
+          KV_URI="${{ needs.provision.outputs.key_vault_uri }}"
+
+          echo "Configuring application settings on '$WEBAPP_NAME' ..."
+
+          # Base settings always applied
+          SETTINGS=(
+            "ASPNETCORE_ENVIRONMENT=Production"
+            "WEBSITES_PORT=8080"
+          )
+
+          # When provisioning ran, configure the Key Vault URI so the API reads
+          # secrets via managed identity (DefaultAzureCredential). Individual
+          # API keys are intentionally NOT set as plaintext app settings;
+          # they live exclusively in Key Vault to avoid credential exposure.
+          if [[ -n "$KV_URI" ]]; then
+            SETTINGS+=("AZURE_KEYVAULT_URI=$KV_URI")
+            echo "  Key Vault URI: $KV_URI (secrets read via managed identity)"
+          else
+            echo "  ⚠ No Key Vault URI available – AI providers will run in demo mode."
+            echo "    To enable real AI responses, re-run with provisioning enabled."
+          fi
+
+          az webapp config appsettings set \
+            --name           "$WEBAPP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --settings       "${SETTINGS[@]}" \
+            --output         none
+
+          echo "✅ Application settings applied."
+
+      - name: Deploy package to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
+          package:  ./publish
+
+      - name: Health check – wait for API to respond
+        shell: bash
+        run: |
+          API_URL="https://${{ env.WEBAPP_NAME }}.azurewebsites.net/api/ai/models"
+          echo "Polling API health endpoint: $API_URL"
+
+          for i in $(seq 1 20); do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL" || echo "000")
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+              echo "✅ API is live and responding (attempt $i, HTTP $HTTP_STATUS)."
+              exit 0
+            fi
+            echo "  Attempt $i/20: HTTP $HTTP_STATUS – waiting 15 s ..."
+            sleep 15
+          done
+
+          echo "::warning::API health check timed out after 20 attempts (~5 minutes). The app may still be starting up."
+
+  # ── 5. Deployment summary ─────────────────────────────────────────────────────
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [validate-secrets, provision, build, deploy]
+    if: always()
+
+    steps:
+      - name: Print deployment summary
+        shell: bash
+        run: |
+          PROV_STATUS="${{ needs.provision.result }}"
+          BUILD_STATUS="${{ needs.build.result }}"
+          DEPLOY_STATUS="${{ needs.deploy.result }}"
+
+          icon() {
+            case "$1" in
+              success) echo "✅" ;;
+              skipped) echo "⏭ " ;;
+              failure) echo "❌" ;;
+              *)       echo "❓" ;;
+            esac
+          }
+
+          echo ""
+          echo "╔══════════════════════════════════════════════════════╗"
+          echo "║         SupremeAI – Deployment Summary               ║"
+          echo "╚══════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  Commit  : ${{ github.sha }}"
+          echo "  Branch  : ${{ github.ref_name }}"
+          echo "  Run     : #${{ github.run_number }}"
+          echo ""
+          echo "  $(icon "$PROV_STATUS")  Provision : $PROV_STATUS"
+          echo "  $(icon "$BUILD_STATUS") Build     : $BUILD_STATUS"
+          echo "  $(icon "$DEPLOY_STATUS") Deploy    : $DEPLOY_STATUS"
+          echo ""
+
+          KV_URI="${{ needs.provision.outputs.key_vault_uri }}"
+          OAI_ENDPOINT="${{ needs.provision.outputs.openai_endpoint }}"
+          WEBAPP_URL="https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+
+          [[ -n "$KV_URI"       ]] && echo "  Key Vault URI  : $KV_URI"
+          [[ -n "$OAI_ENDPOINT" ]] && echo "  OpenAI Endpoint: $OAI_ENDPOINT"
+
+          echo "  API URL        : $WEBAPP_URL"
+          echo "  Swagger UI     : $WEBAPP_URL/swagger"
+          echo ""
+
+          if [[ "$DEPLOY_STATUS" == "success" ]]; then
+            echo "  ✅ SupremeAI backend is live!"
+          elif [[ "$DEPLOY_STATUS" == "skipped" ]]; then
+            echo "  ⏭  Deployment was skipped (build or provision step did not complete)."
+          else
+            echo "  ❌ Deployment failed – review the job logs above for details."
+            exit 1
+          fi
+          echo ""
