@@ -1,9 +1,6 @@
 name: Create Release Tag
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       tag:
@@ -25,11 +22,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tag = context.eventName === 'workflow_dispatch'
-              ? '${{ github.event.inputs.tag }}'
-              : 'v0.1.0-judgment-engine';
-            const sha = (context.eventName === 'workflow_dispatch' && '${{ github.event.inputs.sha }}')
-              ? '${{ github.event.inputs.sha }}'
+            const tag = context.payload.inputs.tag || 'v0.1.0-judgment-engine';
+            const inputSha = context.payload.inputs.sha;
+            const sha = inputSha
+              ? inputSha
               : (await github.rest.repos.getBranch({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
