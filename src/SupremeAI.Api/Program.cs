@@ -81,6 +81,10 @@ builder.Services.AddScoped<IModelProvider, XaiProvider>();
 builder.Services.AddScoped<ModelProviderFactory>();
 builder.Services.AddScoped<BrainService>();
 
+// ── Judgment Engine ──────────────────────────────────────────────────────────
+builder.Services.AddSingleton<JudgmentStore>();
+builder.Services.AddScoped<JudgmentEngine>();
+
 // ── CORS – allow the Blazor WASM frontend ─────────────────────────────────────
 var frontendOrigins = builder.Configuration
     .GetSection("AllowedOrigins")
