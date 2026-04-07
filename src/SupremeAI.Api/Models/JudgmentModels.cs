@@ -136,3 +136,173 @@ public sealed class JudgmentHistoryResponse
     /// <summary>Total number of judgments stored.</summary>
     public int Total { get; set; }
 }
+
+// ── Intelligence Layer – Analytics Models ─────────────────────────────────────
+
+/// <summary>
+/// Rolling statistics for a single model derived from all historical judgments.
+/// All values are deterministic aggregates — no ML involved.
+/// </summary>
+public sealed class ModelStats
+{
+    /// <summary>Model this statistics record belongs to.</summary>
+    public string ModelId { get; set; } = "";
+
+    /// <summary>Number of judgments this model participated in.</summary>
+    public int TotalJudgments { get; set; }
+
+    /// <summary>Number of judgments this model won.</summary>
+    public int Wins { get; set; }
+
+    /// <summary>Fraction of participated judgments that this model won (0–1).</summary>
+    public double WinRate { get; set; }
+
+    /// <summary>Mean overall score across all participated judgments.</summary>
+    public double AvgScore { get; set; }
+
+    /// <summary>Mean Clarity sub-score across all participated judgments.</summary>
+    public double AvgClarity { get; set; }
+
+    /// <summary>Mean Reasoning sub-score across all participated judgments.</summary>
+    public double AvgReasoning { get; set; }
+
+    /// <summary>Mean Completeness sub-score across all participated judgments.</summary>
+    public double AvgCompleteness { get; set; }
+
+    /// <summary>Mean Latency bonus across all participated judgments.</summary>
+    public double AvgLatency { get; set; }
+
+    /// <summary>Mean Reasoning-Quality sub-score across all participated judgments.</summary>
+    public double AvgReasoningQuality { get; set; }
+
+    /// <summary>
+    /// Standard deviation of the overall score (measure of score volatility).
+    /// A higher value indicates inconsistent performance.
+    /// </summary>
+    public double ScoreVolatility { get; set; }
+
+    /// <summary>
+    /// Fraction of judgments where this model was NOT ranked first
+    /// despite having the highest historical average score
+    /// (proxy for panel disagreement involving this model).
+    /// </summary>
+    public double DisagreementRate { get; set; }
+
+    /// <summary>Number of judgments where the model returned an error status.</summary>
+    public int ErrorCount { get; set; }
+}
+
+/// <summary>
+/// Derived intelligence profile for a model — strengths, weaknesses and
+/// typical failure modes inferred from historical judgment data.
+/// </summary>
+public sealed class ModelProfile
+{
+    /// <summary>Model identifier.</summary>
+    public string ModelId { get; set; } = "";
+
+    /// <summary>Rolling statistics that underpin this profile.</summary>
+    public ModelStats Stats { get; set; } = new();
+
+    /// <summary>
+    /// Criteria where this model scores above the panel average
+    /// (deterministically computed from historical averages).
+    /// </summary>
+    public List<string> Strengths { get; set; } = [];
+
+    /// <summary>
+    /// Criteria where this model scores below the panel average.
+    /// </summary>
+    public List<string> Weaknesses { get; set; } = [];
+
+    /// <summary>
+    /// Human-readable descriptions of observed failure patterns,
+    /// derived from scoring thresholds and error rates.
+    /// </summary>
+    public List<string> TypicalFailureModes { get; set; } = [];
+
+    /// <summary>
+    /// Estimated confidence in this model's future judgments based on
+    /// historical consistency and score gap analysis.
+    /// </summary>
+    public ConfidenceInfo Confidence { get; set; } = new();
+}
+
+/// <summary>
+/// Deterministic confidence estimate for a model's judgment quality.
+/// No ML fitting — all values derive from historical statistics.
+/// </summary>
+public sealed class ConfidenceInfo
+{
+    /// <summary>Composite confidence score (0–1).</summary>
+    public double Score { get; set; }
+
+    /// <summary>
+    /// Average gap between this model's score and the runner-up across
+    /// won judgments.  Larger gap → higher confidence.
+    /// </summary>
+    public double AvgWinMargin { get; set; }
+
+    /// <summary>
+    /// Measure of how consistently this model ranks similarly across
+    /// judgments (1 − normalised score volatility).
+    /// </summary>
+    public double HistoricalConsistency { get; set; }
+
+    /// <summary>
+    /// Fraction of judgments where this model agreed with the majority
+    /// panel ranking (used as a proxy for inter-model agreement).
+    /// </summary>
+    public double PanelAgreementRate { get; set; }
+
+    /// <summary>Plain-English explanation of how the confidence was derived.</summary>
+    public string Explanation { get; set; } = "";
+}
+
+/// <summary>
+/// Overall system-level metrics aggregated across all historical judgments
+/// and all models.
+/// </summary>
+public sealed class JudgmentMetrics
+{
+    /// <summary>Total judgments stored.</summary>
+    public int TotalJudgments { get; set; }
+
+    /// <summary>Number of distinct models that have participated in at least one judgment.</summary>
+    public int TotalModels { get; set; }
+
+    /// <summary>
+    /// Overall disagreement rate: fraction of judgments where the winner
+    /// did not have the highest average historical score at the time.
+    /// </summary>
+    public double OverallDisagreementRate { get; set; }
+
+    /// <summary>Average composite confidence across all models.</summary>
+    public double AvgConfidence { get; set; }
+
+    /// <summary>Per-model rolling statistics.</summary>
+    public List<ModelStats> ModelStats { get; set; } = [];
+
+    /// <summary>ID of the model with the highest historical win-rate.</summary>
+    public string TopModel { get; set; } = "";
+
+    /// <summary>Average overall score across all judgments and all models.</summary>
+    public double GlobalAvgScore { get; set; }
+}
+
+/// <summary>Response body for GET /supreme/models.</summary>
+public sealed class ModelsResponse
+{
+    /// <summary>Profiles for every model that has participated in at least one judgment.</summary>
+    public List<ModelProfile> Models { get; set; } = [];
+
+    /// <summary>Total number of distinct models.</summary>
+    public int Total { get; set; }
+}
+
+/// <summary>Response body for GET /supreme/metrics.</summary>
+public sealed class MetricsResponse
+{
+    /// <summary>Aggregated system metrics.</summary>
+    public JudgmentMetrics Metrics { get; set; } = new();
+}
