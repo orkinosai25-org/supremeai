@@ -59,40 +59,56 @@ public sealed class JudgmentStore
     /// </summary>
     public async Task<List<JudgmentRecord>> GetRecentAsync(int n, CancellationToken ct = default)
     {
-        if (!File.Exists(_filePath))
-            return [];
-
-        var lines = await File.ReadAllLinesAsync(_filePath, ct);
-
-        var records = new List<JudgmentRecord>(lines.Length);
-        foreach (var line in lines)
+        await _writeLock.WaitAsync(ct);
+        try
         {
-            var trimmed = line.Trim();
-            if (string.IsNullOrEmpty(trimmed)) continue;
-            try
-            {
-                var record = JsonSerializer.Deserialize<JudgmentRecord>(trimmed, JsonOptions);
-                if (record is not null) records.Add(record);
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogWarning(ex, "JudgmentStore: could not parse line; skipping.");
-            }
-        }
+            if (!File.Exists(_filePath))
+                return [];
 
-        return records
-            .OrderByDescending(r => r.Timestamp)
-            .Take(n)
-            .ToList();
+            var lines = await File.ReadAllLinesAsync(_filePath, ct);
+
+            var records = new List<JudgmentRecord>(lines.Length);
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+                try
+                {
+                    var record = JsonSerializer.Deserialize<JudgmentRecord>(trimmed, JsonOptions);
+                    if (record is not null) records.Add(record);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "JudgmentStore: could not parse line; skipping.");
+                }
+            }
+
+            return records
+                .OrderByDescending(r => r.Timestamp)
+                .Take(n)
+                .ToList();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     /// <summary>Returns the total number of stored judgments.</summary>
     public async Task<int> CountAsync(CancellationToken ct = default)
     {
-        if (!File.Exists(_filePath))
-            return 0;
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            if (!File.Exists(_filePath))
+                return 0;
 
-        var lines = await File.ReadAllLinesAsync(_filePath, ct);
-        return lines.Count(l => !string.IsNullOrWhiteSpace(l));
+            var lines = await File.ReadAllLinesAsync(_filePath, ct);
+            return lines.Count(l => !string.IsNullOrWhiteSpace(l));
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 }

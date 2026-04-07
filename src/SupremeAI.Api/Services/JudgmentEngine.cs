@@ -312,18 +312,18 @@ public sealed class JudgmentEngine
         IReadOnlyList<ModelJudgmentResult> ranked)
     {
         if (winner.Status != "done")
-            return $"All models failed to produce a valid answer. The highest-ranked result was '{winner.ModelId}' but it ended in an error.";
+            return $"All models failed to produce a valid answer. The highest-ranked result was '{Sanitize(winner.ModelId)}' but it ended in an error.";
 
         var sb = new StringBuilder();
 
-        sb.Append($"**{winner.ModelId}** was selected as the Supreme Answer");
+        sb.Append($"**{Sanitize(winner.ModelId)}** was selected as the Supreme Answer");
 
         // Mention runner-up comparison if there is one
         var runnerUp = ranked.FirstOrDefault(r => r.ModelId != winner.ModelId && r.Status == "done");
         if (runnerUp is not null)
         {
             var delta = winner.Score - runnerUp.Score;
-            sb.Append($" over **{runnerUp.ModelId}** (margin: +{delta:F2} pts)");
+            sb.Append($" over **{Sanitize(runnerUp.ModelId)}** (margin: +{delta:F2} pts)");
         }
 
         sb.AppendLine(".");
@@ -360,7 +360,7 @@ public sealed class JudgmentEngine
             foreach (var r in done)
             {
                 var tag = r.ModelId == winner.ModelId ? " 🏆" : "";
-                sb.AppendLine($"- {r.ModelId}{tag}: {r.Score:F2} pts " +
+                sb.AppendLine($"- {Sanitize(r.ModelId)}{tag}: {r.Score:F2} pts " +
                               $"(clarity={r.ScoreBreakdown.Clarity:F2}, " +
                               $"reasoning={r.ScoreBreakdown.Reasoning:F2}, " +
                               $"completeness={r.ScoreBreakdown.Completeness:F2})");
@@ -371,9 +371,9 @@ public sealed class JudgmentEngine
     }
 
     /// <summary>
-    /// Strips newline characters from a user-supplied value before it is written
-    /// to application logs, preventing log-injection attacks.
+    /// Strips newline and carriage-return characters from a user-supplied value,
+    /// preventing log-injection and markdown-injection attacks.
     /// </summary>
-    private static string Sanitize(string value) =>
+    internal static string Sanitize(string value) =>
         value.Replace('\r', ' ').Replace('\n', ' ');
 }
