@@ -13,6 +13,8 @@ all Azure resources required to run SupremeAI's AI model integrations.
 | **Azure AI Foundry Project** | Serverless model endpoints |
 | **Serverless endpoints** | Phi-3.5 Mini, Phi-3 Medium 128k, Llama 3.1 70B, Mistral Large, Command R+, Jais 30B |
 | **Storage Account** | Required by AI Foundry Hub |
+| **App Service Plan** | Linux B1 hosting plan for the backend API |
+| **Azure Web App** | ASP.NET Core 9 app with managed identity and Key Vault integration |
 
 ## Prerequisites
 
@@ -143,6 +145,7 @@ scripts/azure/
 ├── setup.sh            # Bash setup script
 ├── setup.ps1           # PowerShell setup script
 └── modules/
+    ├── app-service.bicep   # App Service Plan + Web App with managed identity
     ├── key-vault.bicep     # Key Vault with RBAC
     ├── openai.bicep        # Azure OpenAI + model deployments
     └── ai-foundry.bicep    # AI Foundry Hub/Project + serverless endpoints

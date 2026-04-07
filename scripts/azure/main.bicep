@@ -7,6 +7,9 @@ param location string = resourceGroup().location
 @description('Object ID of the managed identity or user that needs Key Vault secrets access')
 param secretsAccessPrincipalId string = ''
 
+@description('Name of the Azure Web App (defaults to <baseName>-api)')
+param webAppName string = '${baseName}-api'
+
 var tags = {
   project: 'SupremeAI'
   environment: 'production'
@@ -17,6 +20,7 @@ var openAiAccountName = '${baseName}-oai'
 var aiHubName = '${baseName}-hub'
 var aiProjectName = '${baseName}-project'
 var storageAccountName = '${take(replace(baseName, '-', ''), 18)}sa'
+var appServicePlanName = '${baseName}-plan'
 
 // ── Key Vault ────────────────────────────────────────────────────────────────
 
@@ -58,9 +62,27 @@ module aiFoundryModule 'modules/ai-foundry.bicep' = {
   dependsOn: [keyVaultModule]
 }
 
+// ── Azure App Service (Plan + Web App) ───────────────────────────────────────
+
+module appServiceModule 'modules/app-service.bicep' = {
+  name: 'appServiceDeploy'
+  params: {
+    appServicePlanName: appServicePlanName
+    webAppName: webAppName
+    location: location
+    tags: tags
+    keyVaultUri: keyVaultModule.outputs.keyVaultUri
+    openAiEndpoint: openAiModule.outputs.openAiEndpoint
+    keyVaultName: keyVaultName
+  }
+  dependsOn: [keyVaultModule, openAiModule]
+}
+
 // ── Outputs ──────────────────────────────────────────────────────────────────
 
 output keyVaultName string = keyVaultModule.outputs.keyVaultName
 output keyVaultUri string = keyVaultModule.outputs.keyVaultUri
 output openAiEndpoint string = openAiModule.outputs.openAiEndpoint
 output aiProjectName string = aiFoundryModule.outputs.aiProjectName
+output webAppName string = appServiceModule.outputs.webAppName
+output webAppUrl string = appServiceModule.outputs.webAppUrl
