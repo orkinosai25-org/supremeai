@@ -5,9 +5,10 @@
 # so that no manual commands are ever needed after a PR is merged.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC)
-#   AZURE_TENANT_ID       – Azure Active Directory tenant ID
-#   AZURE_SUBSCRIPTION_ID – Azure subscription ID
+#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC, needed for provisioning)
+#   AZURE_TENANT_ID       – Azure Active Directory tenant ID (needed for provisioning)
+#   AZURE_SUBSCRIPTION_ID – Azure subscription ID (needed for provisioning)
+#   PUBLISH_PROFILE       – Azure Web App publish profile XML (needed for deployment)
 #
 # Optional secrets (app runs in demo mode when absent):
 #   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
@@ -65,6 +66,7 @@ jobs:
           [[ -z "${{ secrets.AZURE_CLIENT_ID }}"       ]] && MISSING+=("AZURE_CLIENT_ID")
           [[ -z "${{ secrets.AZURE_TENANT_ID }}"       ]] && MISSING+=("AZURE_TENANT_ID")
           [[ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
+          [[ -z "${{ secrets.PUBLISH_PROFILE }}"       ]] && MISSING+=("PUBLISH_PROFILE")
 
           if [[ ${#MISSING[@]} -gt 0 ]]; then
             echo "::error title=Missing Required Secrets::One or more required secrets are not configured."
@@ -77,6 +79,8 @@ jobs:
             echo ""
             echo "For OIDC setup guide, see:"
             echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
+            echo ""
+            echo "For PUBLISH_PROFILE, download it from: Azure Portal → App Service → Get publish profile"
             exit 1
           fi
 
@@ -290,6 +294,38 @@ jobs:
           && echo "  ✓ Key Vault Secrets User role granted to managed identity." \
           || echo "  – Role assignment already exists or could not be created (non-fatal)."
 
+      - name: Configure Web App application settings
+        shell: bash
+        run: |
+          KV_URI="${{ steps.deploy.outputs.keyVaultUri }}"
+
+          echo "Configuring application settings on '$WEBAPP_NAME' ..."
+
+          # Base settings always applied
+          SETTINGS=(
+            "ASPNETCORE_ENVIRONMENT=Production"
+            "WEBSITES_PORT=8080"
+          )
+
+          # Configure the Key Vault URI so the API reads secrets via managed identity
+          # (DefaultAzureCredential). Individual API keys are intentionally NOT set as
+          # plaintext app settings; they live exclusively in Key Vault.
+          if [[ -n "$KV_URI" ]]; then
+            SETTINGS+=("AZURE_KEYVAULT_URI=$KV_URI")
+            echo "  Key Vault URI: $KV_URI (secrets read via managed identity)"
+          else
+            echo "  ⚠ No Key Vault URI available – AI providers will run in demo mode."
+            echo "    To enable real AI responses, re-run with provisioning enabled."
+          fi
+
+          az webapp config appsettings set \
+            --name           "$WEBAPP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --settings       "${SETTINGS[@]}" \
+            --output         none
+
+          echo "✅ Application settings applied."
+
   # ── 3. Build the backend API ──────────────────────────────────────────────────
   build:
     name: Build SupremeAI Backend API
@@ -348,51 +384,12 @@ jobs:
           name: supremeai-api
           path: ./publish
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Configure Web App application settings
-        shell: bash
-        run: |
-          KV_URI="${{ needs.provision.outputs.key_vault_uri }}"
-
-          echo "Configuring application settings on '$WEBAPP_NAME' ..."
-
-          # Base settings always applied
-          SETTINGS=(
-            "ASPNETCORE_ENVIRONMENT=Production"
-            "WEBSITES_PORT=8080"
-          )
-
-          # When provisioning ran, configure the Key Vault URI so the API reads
-          # secrets via managed identity (DefaultAzureCredential). Individual
-          # API keys are intentionally NOT set as plaintext app settings;
-          # they live exclusively in Key Vault to avoid credential exposure.
-          if [[ -n "$KV_URI" ]]; then
-            SETTINGS+=("AZURE_KEYVAULT_URI=$KV_URI")
-            echo "  Key Vault URI: $KV_URI (secrets read via managed identity)"
-          else
-            echo "  ⚠ No Key Vault URI available – AI providers will run in demo mode."
-            echo "    To enable real AI responses, re-run with provisioning enabled."
-          fi
-
-          az webapp config appsettings set \
-            --name           "$WEBAPP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --settings       "${SETTINGS[@]}" \
-            --output         none
-
-          echo "✅ Application settings applied."
-
       - name: Deploy package to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.WEBAPP_NAME }}
-          package:  ./publish
+          app-name:        ${{ env.WEBAPP_NAME }}
+          package:         ./publish
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
 
       - name: Health check – wait for API to respond
         shell: bash
