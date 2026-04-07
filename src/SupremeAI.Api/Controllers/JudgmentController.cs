@@ -45,7 +45,9 @@ public sealed class JudgmentController : ControllerBase
 
         _logger.LogInformation(
             "JudgmentController: judge request — models={Models}, prompt length={Len}",
-            request.ModelIds.Count > 0 ? string.Join(',', request.ModelIds) : "(default)",
+            request.ModelIds.Count > 0
+                ? string.Join(',', request.ModelIds).Replace('\r', ' ').Replace('\n', ' ')
+                : "(default)",
             request.Prompt.Length);
 
         var record = await _engine.JudgeAsync(request, ct);
@@ -63,8 +65,8 @@ public sealed class JudgmentController : ControllerBase
         [FromQuery] int n = 20,
         CancellationToken ct = default)
     {
-        if (n < 1 || n > 1000)
-            return BadRequest(new ErrorResponse { Error = "n must be between 1 and 1000." });
+        if (n < 1 || n > JudgmentEngine.MaxHistoryLimit)
+            return BadRequest(new ErrorResponse { Error = $"n must be between 1 and {JudgmentEngine.MaxHistoryLimit}." });
 
         var judgments = await _store.GetRecentAsync(n, ct);
         var total     = await _store.CountAsync(ct);

@@ -35,6 +35,35 @@ public sealed class JudgmentEngine
     private const double MaxReasoningQuality      = 1.0;
     private const int    MinimumLengthThreshold   = 80;
 
+    // ── Clarity sub-weights (sum to MaxClarityScore = 3.0) ───────────────────
+    /// <summary>Bonus for multi-line responses (presence of newlines).</summary>
+    private const double ClarityNewlineBonus    = 0.5;
+    /// <summary>Bonus for list formatting (numbered, bullet, or dash lists).</summary>
+    private const double ClarityListBonus       = 0.75;
+    /// <summary>Bonus for markdown emphasis/headers.</summary>
+    private const double ClarityMarkdownBonus   = 0.75;
+    /// <summary>Bonus for colon usage (definitions, enumerations).</summary>
+    private const double ClarityColonBonus      = 0.5;
+    /// <summary>Bonus for fenced code blocks.</summary>
+    private const double ClarityCodeBlockBonus  = 0.5;
+
+    // ── Completeness sub-weights ─────────────────────────────────────────────
+    /// <summary>Characters-per-completeness-point: 300 chars → 1 completeness point.</summary>
+    private const double LengthScalingFactor       = 300.0;
+    /// <summary>Sentence-ends-per-completeness-point: 5 sentences → 1 completeness point.</summary>
+    private const double SentenceCoverageScale     = 0.2;
+
+    // ── Reasoning-interview quality thresholds ────────────────────────────────
+    /// <summary>Minimum character length for a reasoning response to receive a length bonus.</summary>
+    private const int    MinReasoningLength    = 50;
+    /// <summary>Score awarded when the reasoning response meets the minimum length.</summary>
+    private const double ReasoningLengthScore  = 0.5;
+    /// <summary>Score awarded when reasoning contains logical connective keywords.</summary>
+    private const double ReasoningKeywordScore = 0.5;
+
+    /// <summary>Maximum number of recent judgments that can be requested via the history endpoint.</summary>
+    internal const int MaxHistoryLimit = 1000;
+
     private static readonly string[] ReasoningKeywords =
     [
         "because", "therefore", "however", "although", "thus", "hence",
@@ -114,7 +143,7 @@ public sealed class JudgmentEngine
 
         _logger.LogInformation(
             "JudgmentEngine: winner='{WinnerId}' score={Score}",
-            winner.ModelId, winner.Score);
+            Sanitize(winner.ModelId), winner.Score);
 
         // ── 6. Assemble and persist record ─────────────────────────────────────
         var record = new JudgmentRecord
@@ -166,7 +195,7 @@ public sealed class JudgmentEngine
         catch (Exception ex)
         {
             sw.Stop();
-            _logger.LogError(ex, "JudgmentEngine: error calling model '{ModelId}'", modelId);
+            _logger.LogError(ex, "JudgmentEngine: error calling model '{ModelId}'", Sanitize(modelId));
             return new ModelJudgmentResult
             {
                 ModelId      = modelId,
@@ -213,7 +242,7 @@ public sealed class JudgmentEngine
         catch (Exception ex)
         {
             _logger.LogWarning(ex,
-                "JudgmentEngine: reasoning interview failed for model '{ModelId}'", result.ModelId);
+                "JudgmentEngine: reasoning interview failed for model '{ModelId}'", Sanitize(result.ModelId));
             // Non-fatal — we carry on without the reasoning text.
         }
 
@@ -234,11 +263,11 @@ public sealed class JudgmentEngine
 
         // ── Clarity (0–MaxClarityScore): structural formatting signals ────────
         double clarity = 0;
-        if (text.Contains('\n'))                                                  clarity += 0.5;
-        if (text.Contains("1.") || text.Contains("•") || text.Contains("- "))    clarity += 0.75;
-        if (text.Contains("**") || text.Contains("###") || text.Contains("##"))  clarity += 0.75;
-        if (text.Contains(':'))                                                   clarity += 0.5;
-        if (text.Contains("```"))                                                 clarity += 0.5;
+        if (text.Contains('\n'))                                                  clarity += ClarityNewlineBonus;
+        if (text.Contains("1.") || text.Contains("•") || text.Contains("- "))    clarity += ClarityListBonus;
+        if (text.Contains("**") || text.Contains("###") || text.Contains("##"))  clarity += ClarityMarkdownBonus;
+        if (text.Contains(':'))                                                   clarity += ClarityColonBonus;
+        if (text.Contains("```"))                                                 clarity += ClarityCodeBlockBonus;
         breakdown.Clarity = Math.Round(Math.Min(MaxClarityScore, clarity), 2);
 
         // ── Reasoning (0–MaxReasoningScore): logical connectives ─────────────
@@ -248,9 +277,9 @@ public sealed class JudgmentEngine
             Math.Min(MaxReasoningScore, keywordHits * ReasoningScorePerKeyword), 2);
 
         // ── Completeness (0–MaxCompletenessScore): length + sentence coverage ─
-        double completeness = Math.Min(MaxCompletenessScore / 2, text.Length / 300.0);
+        double completeness = Math.Min(MaxCompletenessScore / 2, text.Length / LengthScalingFactor);
         var sentenceEnds    = text.Count(c => c == '.' || c == '!' || c == '?');
-        completeness       += Math.Min(MaxCompletenessScore / 2, sentenceEnds * 0.2);
+        completeness       += Math.Min(MaxCompletenessScore / 2, sentenceEnds * SentenceCoverageScale);
         if (text.Length < MinimumLengthThreshold) completeness *= 0.5;
         breakdown.Completeness = Math.Round(completeness, 2);
 
@@ -264,10 +293,10 @@ public sealed class JudgmentEngine
         {
             var rq = 0.0;
             var reasoningText = result.Reasoning;
-            if (reasoningText.Length >= 50)  rq += 0.5;
+            if (reasoningText.Length >= MinReasoningLength)  rq += ReasoningLengthScore;
             if (ReasoningKeywords.Any(w =>
                     reasoningText.Contains(w, StringComparison.OrdinalIgnoreCase)))
-                rq += 0.5;
+                rq += ReasoningKeywordScore;
             breakdown.ReasoningQuality = Math.Round(Math.Min(MaxReasoningQuality, rq), 2);
         }
 
@@ -340,4 +369,11 @@ public sealed class JudgmentEngine
 
         return sb.ToString().TrimEnd();
     }
+
+    /// <summary>
+    /// Strips newline characters from a user-supplied value before it is written
+    /// to application logs, preventing log-injection attacks.
+    /// </summary>
+    private static string Sanitize(string value) =>
+        value.Replace('\r', ' ').Replace('\n', ' ');
 }
