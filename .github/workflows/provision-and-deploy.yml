@@ -68,12 +68,25 @@ jobs:
       - name: Check required Azure secrets
         id: check
         shell: bash
+        # Pass secret presence as plain booleans via env vars.
+        # NEVER inline ${{ secrets.X }} directly into a bash [[ ]] expression –
+        # secrets with XML/special chars (like PUBLISH_PROFILE) cause syntax errors.
+        env:
+          AZURE_CLIENT_ID_SET:       ${{ secrets.AZURE_CLIENT_ID != '' }}
+          AZURE_TENANT_ID_SET:       ${{ secrets.AZURE_TENANT_ID != '' }}
+          AZURE_SUBSCRIPTION_ID_SET: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}
+          PUBLISH_PROFILE_SET:       ${{ secrets.PUBLISH_PROFILE != '' }}
+          AZURE_OPENAI_ENDPOINT_SET: ${{ secrets.AZURE_OPENAI_ENDPOINT != '' }}
+          AZURE_OPENAI_API_KEY_SET:  ${{ secrets.AZURE_OPENAI_API_KEY != '' }}
+          ANTHROPIC_API_KEY_SET:     ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          GOOGLE_GEMINI_API_KEY_SET: ${{ secrets.GOOGLE_GEMINI_API_KEY != '' }}
+          XAI_GROK_API_KEY_SET:      ${{ secrets.XAI_GROK_API_KEY != '' }}
         run: |
           MISSING=()
 
-          [[ -z "${{ secrets.AZURE_CLIENT_ID }}"       ]] && MISSING+=("AZURE_CLIENT_ID")
-          [[ -z "${{ secrets.AZURE_TENANT_ID }}"       ]] && MISSING+=("AZURE_TENANT_ID")
-          [[ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
+          [[ "$AZURE_CLIENT_ID_SET"       != "true" ]] && MISSING+=("AZURE_CLIENT_ID")
+          [[ "$AZURE_TENANT_ID_SET"       != "true" ]] && MISSING+=("AZURE_TENANT_ID")
+          [[ "$AZURE_SUBSCRIPTION_ID_SET" != "true" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
 
           if [[ ${#MISSING[@]} -gt 0 ]]; then
             echo "::error title=Missing Required Secrets::One or more required secrets are not configured."
@@ -96,7 +109,7 @@ jobs:
           # On first run the Web App is created by Bicep; download the publish profile from
           # Azure Portal → App Service → Get publish profile, add it as a GitHub Secret,
           # then re-run to enable deployment.
-          if [[ -n "${{ secrets.PUBLISH_PROFILE }}" ]]; then
+          if [[ "$PUBLISH_PROFILE_SET" == "true" ]]; then
             echo "has_publish_profile=true"  >> "$GITHUB_OUTPUT"
             echo "  ✓ PUBLISH_PROFILE is set – deployment will run."
           else
@@ -109,11 +122,11 @@ jobs:
 
           # Warn (non-fatal) about optional secrets
           OPTIONAL_MISSING=()
-          [[ -z "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
-          [[ -z "${{ secrets.AZURE_OPENAI_API_KEY }}"  ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
-          [[ -z "${{ secrets.ANTHROPIC_API_KEY }}"     ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
-          [[ -z "${{ secrets.GOOGLE_GEMINI_API_KEY }}" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
-          [[ -z "${{ secrets.XAI_GROK_API_KEY }}"      ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
+          [[ "$AZURE_OPENAI_ENDPOINT_SET" != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
+          [[ "$AZURE_OPENAI_API_KEY_SET"  != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
+          [[ "$ANTHROPIC_API_KEY_SET"     != "true" ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
+          [[ "$GOOGLE_GEMINI_API_KEY_SET" != "true" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
+          [[ "$XAI_GROK_API_KEY_SET"      != "true" ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
 
           if [[ ${#OPTIONAL_MISSING[@]} -gt 0 ]]; then
             echo ""
