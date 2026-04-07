@@ -140,7 +140,7 @@ public sealed class BenchmarkStore
         await _writeLock.WaitAsync(ct);
         try
         {
-            return ReadAllInner(ct);
+            return ReadAllInner();
         }
         finally
         {
@@ -151,7 +151,7 @@ public sealed class BenchmarkStore
     // ── Private helpers ────────────────────────────────────────────────────────
 
     /// <remarks>Must be called while holding <c>_writeLock</c>.</remarks>
-    private List<BenchmarkRunRecord> ReadAllInner(CancellationToken ct)
+    private List<BenchmarkRunRecord> ReadAllInner()
     {
         if (!File.Exists(_filePath))
             return [];

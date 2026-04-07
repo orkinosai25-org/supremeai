@@ -82,7 +82,7 @@ public sealed class BenchmarkService
 
         _logger.LogInformation(
             "BenchmarkService: starting run for '{BenchmarkId}' with {Q} questions, {M} model(s)",
-            benchmarkId, pack.Questions.Count, modelIds.Count > 0 ? modelIds.Count : -1);
+            Sanitize(benchmarkId), pack.Questions.Count, modelIds.Count > 0 ? modelIds.Count : -1);
 
         var run = new BenchmarkRunRecord
         {
