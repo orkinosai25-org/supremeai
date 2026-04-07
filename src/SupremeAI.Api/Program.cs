@@ -86,6 +86,10 @@ builder.Services.AddSingleton<JudgmentStore>();
 builder.Services.AddScoped<JudgmentEngine>();
 builder.Services.AddScoped<JudgmentAnalyticsService>();
 
+// ── Benchmark & Publishing Layer ──────────────────────────────────────────────
+builder.Services.AddSingleton<BenchmarkStore>();
+builder.Services.AddScoped<BenchmarkService>();
+
 // ── CORS – allow the Blazor WASM frontend ─────────────────────────────────────
 var frontendOrigins = builder.Configuration
     .GetSection("AllowedOrigins")
