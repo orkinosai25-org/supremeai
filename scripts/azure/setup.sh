@@ -76,6 +76,7 @@ register_providers() {
     "Microsoft.MachineLearningServices"
     "Microsoft.KeyVault"
     "Microsoft.Storage"
+    "Microsoft.Web"
   )
   for provider in "${providers[@]}"; do
     local state

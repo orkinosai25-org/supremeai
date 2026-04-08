@@ -82,7 +82,8 @@ function Register-Providers {
         "Microsoft.CognitiveServices",
         "Microsoft.MachineLearningServices",
         "Microsoft.KeyVault",
-        "Microsoft.Storage"
+        "Microsoft.Storage",
+        "Microsoft.Web"
     )
     foreach ($p in $providers) {
         $state = az provider show --namespace $p --query "registrationState" -o tsv 2>$null

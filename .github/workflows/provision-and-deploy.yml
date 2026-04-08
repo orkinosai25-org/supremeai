@@ -8,7 +8,12 @@
 #   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC, needed for provisioning)
 #   AZURE_TENANT_ID       – Azure Active Directory tenant ID (needed for provisioning)
 #   AZURE_SUBSCRIPTION_ID – Azure subscription ID (needed for provisioning)
-#   PUBLISH_PROFILE       – Azure Web App publish profile XML (needed for deployment)
+#
+# Deployment secret (required only for the deploy job):
+#   PUBLISH_PROFILE       – Azure Web App publish profile XML.
+#                           On first run the Web App is created by Bicep; download the publish
+#                           profile from Azure Portal → App Service → Get publish profile and
+#                           add it as a GitHub Secret, then re-run the workflow to deploy.
 #
 # Optional secrets (app runs in demo mode when absent):
 #   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
@@ -57,16 +62,31 @@ jobs:
   validate-secrets:
     name: Validate Required Secrets
     runs-on: ubuntu-latest
+    outputs:
+      has_publish_profile: ${{ steps.check.outputs.has_publish_profile }}
     steps:
       - name: Check required Azure secrets
+        id: check
         shell: bash
+        # Pass secret presence as plain booleans via env vars.
+        # NEVER inline ${{ secrets.X }} directly into a bash [[ ]] expression –
+        # secrets with XML/special chars (like PUBLISH_PROFILE) cause syntax errors.
+        env:
+          AZURE_CLIENT_ID_SET:       ${{ secrets.AZURE_CLIENT_ID != '' }}
+          AZURE_TENANT_ID_SET:       ${{ secrets.AZURE_TENANT_ID != '' }}
+          AZURE_SUBSCRIPTION_ID_SET: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}
+          PUBLISH_PROFILE_SET:       ${{ secrets.PUBLISH_PROFILE != '' }}
+          AZURE_OPENAI_ENDPOINT_SET: ${{ secrets.AZURE_OPENAI_ENDPOINT != '' }}
+          AZURE_OPENAI_API_KEY_SET:  ${{ secrets.AZURE_OPENAI_API_KEY != '' }}
+          ANTHROPIC_API_KEY_SET:     ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          GOOGLE_GEMINI_API_KEY_SET: ${{ secrets.GOOGLE_GEMINI_API_KEY != '' }}
+          XAI_GROK_API_KEY_SET:      ${{ secrets.XAI_GROK_API_KEY != '' }}
         run: |
           MISSING=()
 
-          [[ -z "${{ secrets.AZURE_CLIENT_ID }}"       ]] && MISSING+=("AZURE_CLIENT_ID")
-          [[ -z "${{ secrets.AZURE_TENANT_ID }}"       ]] && MISSING+=("AZURE_TENANT_ID")
-          [[ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
-          [[ -z "${{ secrets.PUBLISH_PROFILE }}"       ]] && MISSING+=("PUBLISH_PROFILE")
+          [[ "$AZURE_CLIENT_ID_SET"       != "true" ]] && MISSING+=("AZURE_CLIENT_ID")
+          [[ "$AZURE_TENANT_ID_SET"       != "true" ]] && MISSING+=("AZURE_TENANT_ID")
+          [[ "$AZURE_SUBSCRIPTION_ID_SET" != "true" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
 
           if [[ ${#MISSING[@]} -gt 0 ]]; then
             echo "::error title=Missing Required Secrets::One or more required secrets are not configured."
@@ -80,19 +100,33 @@ jobs:
             echo "For OIDC setup guide, see:"
             echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
             echo ""
-            echo "For PUBLISH_PROFILE, download it from: Azure Portal → App Service → Get publish profile"
             exit 1
           fi
 
-          echo "✅ All required secrets are present."
+          echo "✅ All required provisioning secrets are present."
+
+          # Check deployment secret (PUBLISH_PROFILE) – warn if absent but do not fail.
+          # On first run the Web App is created by Bicep; download the publish profile from
+          # Azure Portal → App Service → Get publish profile, add it as a GitHub Secret,
+          # then re-run to enable deployment.
+          if [[ "$PUBLISH_PROFILE_SET" == "true" ]]; then
+            echo "has_publish_profile=true"  >> "$GITHUB_OUTPUT"
+            echo "  ✓ PUBLISH_PROFILE is set – deployment will run."
+          else
+            echo "has_publish_profile=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PUBLISH_PROFILE is not set. Provisioning will run but deployment will be skipped."
+            echo "  After provisioning, download the publish profile from:"
+            echo "  Azure Portal → App Service → ${{ env.WEBAPP_NAME }} → Get publish profile"
+            echo "  Then add it as a GitHub Secret named PUBLISH_PROFILE and re-run the workflow."
+          fi
 
           # Warn (non-fatal) about optional secrets
           OPTIONAL_MISSING=()
-          [[ -z "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
-          [[ -z "${{ secrets.AZURE_OPENAI_API_KEY }}"  ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
-          [[ -z "${{ secrets.ANTHROPIC_API_KEY }}"     ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
-          [[ -z "${{ secrets.GOOGLE_GEMINI_API_KEY }}" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
-          [[ -z "${{ secrets.XAI_GROK_API_KEY }}"      ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
+          [[ "$AZURE_OPENAI_ENDPOINT_SET" != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
+          [[ "$AZURE_OPENAI_API_KEY_SET"  != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
+          [[ "$ANTHROPIC_API_KEY_SET"     != "true" ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
+          [[ "$GOOGLE_GEMINI_API_KEY_SET" != "true" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
+          [[ "$XAI_GROK_API_KEY_SET"      != "true" ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
 
           if [[ ${#OPTIONAL_MISSING[@]} -gt 0 ]]; then
             echo ""
@@ -112,6 +146,7 @@ jobs:
       key_vault_name: ${{ steps.deploy.outputs.keyVaultName }}
       key_vault_uri:  ${{ steps.deploy.outputs.keyVaultUri }}
       openai_endpoint: ${{ steps.deploy.outputs.openAiEndpoint }}
+      web_app_url:     ${{ steps.deploy.outputs.webAppUrl }}
 
     steps:
       - name: Checkout repository
@@ -165,6 +200,7 @@ jobs:
           parameters: >
             baseName=${{ env.BASE_NAME }}
             location=${{ env.LOCATION }}
+            webAppName=${{ env.WEBAPP_NAME }}
           deploymentName: supremeai-${{ github.run_number }}
           failOnStdErr: false
 
@@ -220,112 +256,6 @@ jobs:
           store_secret "google-gemini-api-key"   "${{ secrets.GOOGLE_GEMINI_API_KEY }}"
           store_secret "xai-grok-api-key"        "${{ secrets.XAI_GROK_API_KEY }}"
 
-      - name: Create or update App Service plan and Web App
-        shell: bash
-        run: |
-          PLAN_NAME="${BASE_NAME}-plan"
-
-          # App Service plan (Linux B1)
-          if ! az appservice plan show \
-               --name "$PLAN_NAME" \
-               --resource-group "$RESOURCE_GROUP" \
-               --output none 2>/dev/null; then
-            echo "Creating App Service plan '$PLAN_NAME' ..."
-            az appservice plan create \
-              --name           "$PLAN_NAME" \
-              --resource-group "$RESOURCE_GROUP" \
-              --sku            B1 \
-              --is-linux \
-              --tags           project=SupremeAI \
-              --output         none
-          else
-            echo "App Service plan '$PLAN_NAME' already exists."
-          fi
-
-          # Web App
-          if ! az webapp show \
-               --name "$WEBAPP_NAME" \
-               --resource-group "$RESOURCE_GROUP" \
-               --output none 2>/dev/null; then
-            echo "Creating Web App '$WEBAPP_NAME' ..."
-            az webapp create \
-              --name           "$WEBAPP_NAME" \
-              --resource-group "$RESOURCE_GROUP" \
-              --plan           "$PLAN_NAME" \
-              --runtime        "DOTNETCORE:9.0" \
-              --tags           project=SupremeAI \
-              --output         none
-          else
-            echo "Web App '$WEBAPP_NAME' already exists."
-          fi
-
-      - name: Enable managed identity and grant Key Vault access
-        shell: bash
-        run: |
-          KV_NAME="${{ steps.deploy.outputs.keyVaultName }}"
-          if [[ -z "$KV_NAME" ]]; then
-            echo "⚠ Key Vault name not available – skipping managed identity setup."
-            exit 0
-          fi
-
-          echo "Enabling system-assigned managed identity on '$WEBAPP_NAME' ..."
-          az webapp identity assign \
-            --name           "$WEBAPP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --output         none
-
-          # Get the principal ID of the Web App's managed identity
-          MI_PRINCIPAL_ID=$(az webapp identity show \
-            --name           "$WEBAPP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --query          principalId \
-            --output         tsv)
-
-          echo "  Managed identity principal ID: $MI_PRINCIPAL_ID"
-
-          # Grant Key Vault Secrets User role (4633458b-17de-408a-b874-0445c86b69e6)
-          KV_ID=$(az keyvault show --name "$KV_NAME" --query id --output tsv)
-          az role assignment create \
-            --role           "Key Vault Secrets User" \
-            --assignee-object-id "$MI_PRINCIPAL_ID" \
-            --assignee-principal-type ServicePrincipal \
-            --scope          "$KV_ID" \
-            --output         none 2>/dev/null \
-          && echo "  ✓ Key Vault Secrets User role granted to managed identity." \
-          || echo "  – Role assignment already exists or could not be created (non-fatal)."
-
-      - name: Configure Web App application settings
-        shell: bash
-        run: |
-          KV_URI="${{ steps.deploy.outputs.keyVaultUri }}"
-
-          echo "Configuring application settings on '$WEBAPP_NAME' ..."
-
-          # Base settings always applied
-          SETTINGS=(
-            "ASPNETCORE_ENVIRONMENT=Production"
-            "WEBSITES_PORT=8080"
-          )
-
-          # Configure the Key Vault URI so the API reads secrets via managed identity
-          # (DefaultAzureCredential). Individual API keys are intentionally NOT set as
-          # plaintext app settings; they live exclusively in Key Vault.
-          if [[ -n "$KV_URI" ]]; then
-            SETTINGS+=("AZURE_KEYVAULT_URI=$KV_URI")
-            echo "  Key Vault URI: $KV_URI (secrets read via managed identity)"
-          else
-            echo "  ⚠ No Key Vault URI available – AI providers will run in demo mode."
-            echo "    To enable real AI responses, re-run with provisioning enabled."
-          fi
-
-          az webapp config appsettings set \
-            --name           "$WEBAPP_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --settings       "${SETTINGS[@]}" \
-            --output         none
-
-          echo "✅ Application settings applied."
-
   # ── 3. Build the backend API ──────────────────────────────────────────────────
   build:
     name: Build SupremeAI Backend API
@@ -370,12 +300,14 @@ jobs:
   deploy:
     name: Deploy API to Azure Web App
     runs-on: ubuntu-latest
-    needs: [provision, build]
-    # Run if build succeeded and provision either succeeded or was intentionally skipped
+    needs: [validate-secrets, provision, build]
+    # Run only when build succeeded, provision succeeded or was skipped, AND
+    # the PUBLISH_PROFILE secret is available.
     if: |
       always() &&
       needs.build.result == 'success' &&
-      (needs.provision.result == 'success' || needs.provision.result == 'skipped')
+      (needs.provision.result == 'success' || needs.provision.result == 'skipped') &&
+      needs.validate-secrets.outputs.has_publish_profile == 'true'
 
     steps:
       - name: Download build artifact
@@ -449,19 +381,25 @@ jobs:
 
           KV_URI="${{ needs.provision.outputs.key_vault_uri }}"
           OAI_ENDPOINT="${{ needs.provision.outputs.openai_endpoint }}"
-          WEBAPP_URL="https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+          WEB_APP_URL="${{ needs.provision.outputs.web_app_url }}"
+          WEBAPP_URL="${WEB_APP_URL:-https://${{ env.WEBAPP_NAME }}.azurewebsites.net}"
 
           [[ -n "$KV_URI"       ]] && echo "  Key Vault URI  : $KV_URI"
           [[ -n "$OAI_ENDPOINT" ]] && echo "  OpenAI Endpoint: $OAI_ENDPOINT"
 
           echo "  API URL        : $WEBAPP_URL"
-          echo "  Swagger UI     : $WEBAPP_URL/swagger"
           echo ""
 
           if [[ "$DEPLOY_STATUS" == "success" ]]; then
             echo "  ✅ SupremeAI backend is live!"
           elif [[ "$DEPLOY_STATUS" == "skipped" ]]; then
-            echo "  ⏭  Deployment was skipped (build or provision step did not complete)."
+            if [[ "${{ needs.validate-secrets.outputs.has_publish_profile }}" != "true" ]]; then
+              echo "  ⏭  Deployment skipped – PUBLISH_PROFILE secret is not yet configured."
+              echo "     Download the publish profile from Azure Portal → App Service → Get publish profile"
+              echo "     and add it as a GitHub Secret named PUBLISH_PROFILE, then re-run this workflow."
+            else
+              echo "  ⏭  Deployment was skipped (build or provision step did not complete)."
+            fi
           else
             echo "  ❌ Deployment failed – review the job logs above for details."
             exit 1
