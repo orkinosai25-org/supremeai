@@ -318,12 +318,13 @@ jobs:
     name: Deploy API to Azure Web App
     runs-on: ubuntu-latest
     needs: [validate-secrets, provision, build]
-    # Run only when build succeeded, provision succeeded or was skipped, AND
-    # the PUBLISH_PROFILE secret is available.
+    # Run only when build succeeded, provision succeeded/skipped/failed (so that
+    # a PUBLISH_PROFILE-based deployment can proceed even when OIDC provisioning
+    # is not yet configured), AND the PUBLISH_PROFILE secret is available.
     if: |
       always() &&
       needs.build.result == 'success' &&
-      (needs.provision.result == 'success' || needs.provision.result == 'skipped') &&
+      (needs.provision.result == 'success' || needs.provision.result == 'skipped' || needs.provision.result == 'failure') &&
       needs.validate-secrets.outputs.has_publish_profile == 'true'
 
     steps:
@@ -408,7 +409,13 @@ jobs:
           echo ""
 
           if [[ "$DEPLOY_STATUS" == "success" ]]; then
-            echo "  ✅ SupremeAI backend is live!"
+            if [[ "$PROV_STATUS" == "failure" ]]; then
+              echo "  ✅ SupremeAI backend is live (deployed via PUBLISH_PROFILE)."
+              echo "  ⚠️  Provisioning failed – infrastructure may be out of date."
+              echo "     Fix the OIDC/Azure credentials to enable full infrastructure provisioning."
+            else
+              echo "  ✅ SupremeAI backend is live!"
+            fi
           elif [[ "$DEPLOY_STATUS" == "skipped" ]]; then
             if [[ "${{ needs.validate-secrets.outputs.has_publish_profile }}" != "true" ]]; then
               echo "  ⏭  Deployment skipped – PUBLISH_PROFILE secret is not yet configured."
