@@ -66,6 +66,8 @@ builder.Services.AddSwaggerGen(c =>
             "**SupremeAI** is a judgment and assurance layer that evaluates multiple AI models, " +
             "estimates confidence, and provides explainable decisions. " +
             "It does not claim objective truth or replace human judgment.\n\n" +
+            "> **Disclaimer:** SupremeAI provides judgment, confidence, and comparative evaluation; " +
+            "it does not assert objective truth or replace human decision‑making.\n\n" +
             "## API Groups\n\n" +
             "| Group | Purpose |\n" +
             "|---|---|\n" +
