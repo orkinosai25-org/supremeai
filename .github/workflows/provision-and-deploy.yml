@@ -5,15 +5,16 @@
 # so that no manual commands are ever needed after a PR is merged.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC, needed for provisioning)
-#   AZURE_TENANT_ID       – Azure Active Directory tenant ID (needed for provisioning)
-#   AZURE_SUBSCRIPTION_ID – Azure subscription ID (needed for provisioning)
+#   PUBLISH_PROFILE       – Azure Web App publish profile XML (required for deployment).
+#                           Download from Azure Portal → App Service → Get publish profile
+#                           and add as a GitHub Secret named PUBLISH_PROFILE.
 #
-# Deployment secret (required only for the deploy job):
-#   PUBLISH_PROFILE       – Azure Web App publish profile XML.
-#                           On first run the Web App is created by Bicep; download the publish
-#                           profile from Azure Portal → App Service → Get publish profile and
-#                           add it as a GitHub Secret, then re-run the workflow to deploy.
+# Optional provisioning secrets (required only for Azure infrastructure provisioning):
+#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC)
+#   AZURE_TENANT_ID       – Azure Active Directory tenant ID
+#   AZURE_SUBSCRIPTION_ID – Azure subscription ID
+#                           When these are absent, provisioning is skipped and only
+#                           deployment (using PUBLISH_PROFILE) will run.
 #
 # Optional secrets (app runs in demo mode when absent):
 #   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
@@ -64,6 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_publish_profile: ${{ steps.check.outputs.has_publish_profile }}
+      has_oidc_creds:      ${{ steps.check.outputs.has_oidc_creds }}
     steps:
       - name: Check required Azure secrets
         id: check
@@ -82,28 +84,41 @@ jobs:
           GOOGLE_GEMINI_API_KEY_SET: ${{ secrets.GOOGLE_GEMINI_API_KEY != '' }}
           XAI_GROK_API_KEY_SET:      ${{ secrets.XAI_GROK_API_KEY != '' }}
         run: |
-          MISSING=()
+          OIDC_MISSING=()
 
-          [[ "$AZURE_CLIENT_ID_SET"       != "true" ]] && MISSING+=("AZURE_CLIENT_ID")
-          [[ "$AZURE_TENANT_ID_SET"       != "true" ]] && MISSING+=("AZURE_TENANT_ID")
-          [[ "$AZURE_SUBSCRIPTION_ID_SET" != "true" ]] && MISSING+=("AZURE_SUBSCRIPTION_ID")
+          [[ "$AZURE_CLIENT_ID_SET"       != "true" ]] && OIDC_MISSING+=("AZURE_CLIENT_ID")
+          [[ "$AZURE_TENANT_ID_SET"       != "true" ]] && OIDC_MISSING+=("AZURE_TENANT_ID")
+          [[ "$AZURE_SUBSCRIPTION_ID_SET" != "true" ]] && OIDC_MISSING+=("AZURE_SUBSCRIPTION_ID")
 
-          if [[ ${#MISSING[@]} -gt 0 ]]; then
-            echo "::error title=Missing Required Secrets::One or more required secrets are not configured."
-            echo ""
-            echo "Add them at: Repository → Settings → Secrets and variables → Actions → Secrets"
-            echo ""
-            for secret in "${MISSING[@]}"; do
-              echo "::error::  ✗ $secret is not set"
-            done
-            echo ""
-            echo "For OIDC setup guide, see:"
-            echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
-            echo ""
-            exit 1
+          if [[ ${#OIDC_MISSING[@]} -eq 0 ]]; then
+            echo "has_oidc_creds=true" >> "$GITHUB_OUTPUT"
+            echo "✅ All OIDC provisioning secrets are present – infrastructure provisioning will run."
+          else
+            echo "has_oidc_creds=false" >> "$GITHUB_OUTPUT"
+            if [[ "$PUBLISH_PROFILE_SET" == "true" ]]; then
+              echo "::warning::OIDC secrets are not configured – infrastructure provisioning will be skipped."
+              echo "  Missing OIDC secrets:"
+              for secret in "${OIDC_MISSING[@]}"; do
+                echo "  ⚠  $secret is not set"
+              done
+              echo ""
+              echo "  PUBLISH_PROFILE is set, so deployment will proceed using the publish profile."
+              echo "  To enable provisioning, configure OIDC credentials:"
+              echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
+            else
+              echo "::error title=Missing Required Secrets::Neither OIDC secrets nor PUBLISH_PROFILE are configured."
+              echo ""
+              echo "  To provision and deploy, add OIDC secrets at:"
+              echo "  Repository → Settings → Secrets and variables → Actions → Secrets"
+              echo ""
+              for secret in "${OIDC_MISSING[@]}"; do
+                echo "::error::  ✗ $secret is not set"
+              done
+              echo ""
+              echo "  Alternatively, add PUBLISH_PROFILE to deploy to an already-provisioned Web App."
+              exit 1
+            fi
           fi
-
-          echo "✅ All required provisioning secrets are present."
 
           # Check deployment secret (PUBLISH_PROFILE) – warn if absent but do not fail.
           # On first run the Web App is created by Bicep; download the publish profile from
@@ -141,7 +156,9 @@ jobs:
     name: Provision Azure Infrastructure
     runs-on: ubuntu-latest
     needs: validate-secrets
-    if: github.event.inputs.skip_provisioning != 'true'
+    if: |
+      github.event.inputs.skip_provisioning != 'true' &&
+      needs.validate-secrets.outputs.has_oidc_creds == 'true'
     outputs:
       key_vault_name: ${{ steps.deploy.outputs.keyVaultName }}
       key_vault_uri:  ${{ steps.deploy.outputs.keyVaultUri }}
