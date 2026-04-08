@@ -88,7 +88,7 @@
             <div class="sai-decision-opts" role="radiogroup" aria-label="Select decision mode">
                 <label class="sai-decision-opt @(SupremeMode ? "active" : "")"
                        title="SupremeAI evaluates multiple AI models to provide the safest and most reliable answer.">
-                    <input type="radio" name="saiDecisionMode" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
+                    <input type="radio" name="saiDecisionMode" aria-label="SupremeAI — Default / Recommended" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
                     <span class="sai-decision-opt-inner">
                         <svg width="11" height="11" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="sai-decision-crown" aria-hidden="true">
                             <polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/>
@@ -99,7 +99,7 @@
                 </label>
                 <label class="sai-decision-opt @(!SupremeMode ? "active" : "")"
                        title="Manual mode bypasses SupremeAI governance and uses a single model only.">
-                    <input type="radio" name="saiDecisionMode" @onchange="@(() => SupremeMode = false)" checked="@(!SupremeMode)" />
+                    <input type="radio" name="saiDecisionMode" aria-label="Manual Model Selection" @onchange="@(() => SupremeMode = false)" checked="@(!SupremeMode)" />
                     <span class="sai-decision-opt-inner">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="sai-decision-manual-icon" aria-hidden="true">
                             <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
