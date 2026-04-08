@@ -27,7 +27,7 @@
 #   AZURE_RESOURCE_GROUP  – Resource group name          (default: supremeai-rg)
 #   AZURE_LOCATION        – Azure region                 (default: eastus)
 #   AZURE_BASE_NAME       – Base name for all resources  (default: supremeai)
-#   AZURE_WEBAPP_NAME     – Azure Web App name           (default: supremeai-api)
+#   AZURE_WEBAPP_NAME     – Azure Web App name           (default: supremeai)
 
 name: Provision and Deploy SupremeAI
 
@@ -53,7 +53,7 @@ env:
   RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_RESOURCE_GROUP || 'supremeai-rg' }}
   LOCATION:       ${{ vars.AZURE_LOCATION      != '' && vars.AZURE_LOCATION      || 'eastus' }}
   BASE_NAME:      ${{ vars.AZURE_BASE_NAME     != '' && vars.AZURE_BASE_NAME     || 'supremeai' }}
-  WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai-api' }}
+  WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai' }}
 
 # ─────────────────────────────────────────────────────────────────────────────
 

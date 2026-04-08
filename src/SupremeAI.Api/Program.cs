@@ -111,15 +111,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors("BlazorFrontend");
 app.UseAuthorization();
 app.MapControllers();
+
+// Redirect root to the Swagger UI so that visiting the site URL shows something useful
+app.MapGet("/", () => Results.Redirect("/swagger/index.html"))
+   .ExcludeFromDescription();
 
 app.Run();
