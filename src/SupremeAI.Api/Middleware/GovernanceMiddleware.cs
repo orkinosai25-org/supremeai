@@ -26,7 +26,8 @@ public sealed class GovernanceMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var requestId = Guid.NewGuid().ToString("N")[..16];
+        // Use the full GUID (32 hex chars) to guarantee uniqueness in audit logs.
+        var requestId = Guid.NewGuid().ToString("N");
         var sw        = System.Diagnostics.Stopwatch.StartNew();
 
         // Attach governance headers before the downstream handler runs so that
@@ -39,10 +40,15 @@ public sealed class GovernanceMiddleware
             return Task.CompletedTask;
         });
 
+        // Sanitise user-supplied values before writing them to the log to
+        // prevent log-forging attacks (CWE-117 / CodeQL cs/log-forging).
+        var method = Sanitize(context.Request.Method);
+        var path   = Sanitize(context.Request.Path.Value ?? "");
+
         _logger.LogInformation(
             "→ {Method} {Path} [{RequestId}]",
-            context.Request.Method,
-            context.Request.Path,
+            method,
+            path,
             requestId);
 
         await _next(context);
@@ -51,9 +57,16 @@ public sealed class GovernanceMiddleware
         _logger.LogInformation(
             "← {StatusCode} {Method} {Path} [{RequestId}] {ElapsedMs}ms",
             context.Response.StatusCode,
-            context.Request.Method,
-            context.Request.Path,
+            method,
+            path,
             requestId,
             sw.ElapsedMilliseconds);
     }
+
+    /// <summary>
+    /// Removes all ASCII control characters (0x00–0x1F and 0x7F) from a string
+    /// that originates from the HTTP request to prevent log-forging (CWE-117).
+    /// </summary>
+    private static string Sanitize(string value) =>
+        new string(value.Select(c => char.IsControl(c) ? ' ' : c).ToArray());
 }

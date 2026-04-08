@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SupremeAI.Api.Models;
 using SupremeAI.Api.Services;
 
@@ -72,6 +73,7 @@ public sealed class AiController : ControllerBase
     /// For governed responses, use <c>POST /api/ai/supreme</c> or <c>POST /supreme/judge</c>.
     /// </summary>
     [HttpPost("chat")]
+    [EnableRateLimiting("ai-strict")]
     public async Task<IActionResult> Chat([FromBody] ChatRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.ModelId))
@@ -95,6 +97,7 @@ public sealed class AiController : ControllerBase
     /// scored, ranked, or audited. Not recommended for production or public-sector use.
     /// </summary>
     [HttpPost("image")]
+    [EnableRateLimiting("ai-strict")]
     public async Task<IActionResult> Image([FromBody] ImageRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.ModelId))
@@ -120,6 +123,7 @@ public sealed class AiController : ControllerBase
     /// production, public-sector, or governed AI use case.
     /// </summary>
     [HttpPost("supreme")]
+    [EnableRateLimiting("ai-strict")]
     public async Task<IActionResult> Supreme([FromBody] SupremeRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Query))

@@ -199,13 +199,6 @@ app.UseMiddleware<GovernanceMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 
-// Apply the stricter rate-limit policy to AI-generation endpoints.
-app.MapControllerRoute(
-        name: "ai-strict",
-        pattern: "api/ai/{action}",
-        defaults: new { controller = "Ai" })
-   .RequireRateLimiting("ai-strict");
-
 // Redirect root to the Swagger UI so that visiting the site URL shows something useful
 app.MapGet("/", () => Results.Redirect("/swagger/index.html"))
    .ExcludeFromDescription();
