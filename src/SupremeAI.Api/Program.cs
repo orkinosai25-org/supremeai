@@ -190,17 +190,25 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseBlazorFrameworkFiles();
+
 app.UseCors("BlazorFrontend");
 app.UseRateLimiter();
 app.UseMiddleware<GovernanceMiddleware>();
 app.UseAuthorization();
+
+app.MapRazorPages();
 app.MapControllers();
 
-// Redirect root to the Swagger UI so that visiting the site URL shows something useful
-app.MapGet("/", () => Results.Redirect("/swagger/index.html"))
-   .ExcludeFromDescription();
+// Blazor UI is the default for "/"
+app.MapFallbackToFile("index.html");
 
 app.Run();
