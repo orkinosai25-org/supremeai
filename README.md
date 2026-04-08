@@ -6,6 +6,8 @@
 
 | Document | Description |
 |----------|-------------|
+| [API Governance](docs/api-governance.md) | Governance middleware, health/version endpoints, rate limiting, and audit headers (`v0.3.2`) |
+| [Demo Walkthrough](docs/demo-walkthrough.md) | Step-by-step demo script — from liveness probe to multi-model judgment |
 | [Epics](docs/epics.md) | High-level epic descriptions with goals, key outcomes, and story counts |
 | [User Stories](docs/user-stories.md) | Full backlog of user stories with acceptance criteria, priorities, and story points |
 | [Investor Pitch Deck](docs/pitch-deck.md) | Full investor pitch deck — problem, solution, market, business model, roadmap, and ask |

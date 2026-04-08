@@ -128,6 +128,8 @@ cd src/SupremeAI.Api && dotnet run
 | http://localhost:5095 | SupremeAI web app (Blazor frontend) |
 | http://localhost:5100 | Backend API |
 | http://localhost:5100/swagger | API documentation / test interface |
+| http://localhost:5100/health | Liveness probe — returns status, version, and uptime |
+| http://localhost:5100/version | Release metadata — confirms the deployed API version |
 | http://localhost:5100/api/ai/models | JSON list of all supported models |
 
 ---
