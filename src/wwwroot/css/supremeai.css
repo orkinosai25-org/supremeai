@@ -1539,7 +1539,115 @@ body.sai-light .sai-style-chip.active { background: rgba(80,200,120,0.14); borde
   .sai-response-grid.cols-4 { grid-template-columns: 1fr; }
 }
 
-/* ═══ SUPREME MODE ─ Decision Mode Selector ═══════════════════════════════════ */
+/* ═══ SUPREME MODE ─ Top-Level Decision Mode Banner ═══════════════════════════ */
+.sai-decision-banner {
+  border-bottom: 1px solid var(--sai-border);
+  background: var(--sai-bg-surface);
+  flex-shrink: 0;
+}
+
+.sai-decision-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.sai-decision-banner-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sai-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sai-decision-opts {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.sai-decision-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.sai-decision-opt:hover { background: var(--sai-bg-hover); }
+
+.sai-decision-opt.active {
+  background: rgba(80, 200, 120, 0.08);
+  border-color: rgba(80, 200, 120, 0.3);
+}
+
+.sai-decision-opt input[type="radio"] {
+  accent-color: var(--sai-emerald);
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.sai-decision-opt-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sai-decision-crown { color: gold; flex-shrink: 0; }
+.sai-decision-manual-icon { color: var(--sai-text-muted); flex-shrink: 0; }
+
+.sai-decision-opt-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sai-text);
+  white-space: nowrap;
+}
+
+.sai-decision-recommended {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: var(--sai-grad-emerald);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sai-decision-desc {
+  font-size: 0.7rem;
+  color: var(--sai-text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+.sai-decision-manual-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: #c9a000;
+  background: rgba(255, 200, 0, 0.07);
+  border: 1px solid rgba(255, 200, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ═══ SUPREME MODE ─ Decision Mode Selector (sidebar - legacy) ════════════════ */
 .sai-decision-mode-wrap {
   padding: 0.6rem 0.75rem 0.5rem;
   border-bottom: 1px solid var(--sai-border);
