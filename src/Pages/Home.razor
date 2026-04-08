@@ -102,61 +102,116 @@
 
         <!-- ─── Model Sidebar ─── -->
         <aside class="sai-model-sidebar" aria-label="Model selection">
+
+            <!-- ─── Decision Mode Selector ─── -->
+            <div class="sai-decision-mode-wrap">
+                <span class="sai-sidebar-section-label">Decision Mode</span>
+                <label class="sai-mode-opt @(SupremeMode ? "active" : "")" title="SupremeAI evaluates multiple AI models, compares their reasoning, and selects the best answer with explanation and confidence.">
+                    <input type="radio" name="saiDecisionMode" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
+                    <div class="sai-mode-opt-body">
+                        <svg width="11" height="11" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="sai-mode-crown" aria-hidden="true"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
+                        <span class="sai-mode-opt-name">SupremeAI — Best Answer</span>
+                        <span class="sai-mode-recommended">Recommended</span>
+                    </div>
+                </label>
+                <label class="sai-mode-opt @(!SupremeMode ? "active" : "")" title="Direct Model uses only the model(s) you select manually.">
+                    <input type="radio" name="saiDecisionMode" @onchange="@(() => SupremeMode = false)" checked="@(!SupremeMode)" />
+                    <div class="sai-mode-opt-body">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="sai-mode-direct-icon" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                        <span class="sai-mode-opt-name">Direct Model</span>
+                        <span class="sai-mode-opt-sub">Manual selection</span>
+                    </div>
+                </label>
+            </div>
+
             <div class="sai-sidebar-header">
                 <h2 class="sai-sidebar-title">Models</h2>
-                <span class="sai-count-badge">@CountBadgeText</span>
-            </div>
-            <div class="sai-select-row">
-                <button class="sai-select-btn" @onclick="SelectAll">
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2" /></svg>
-                    Select All
-                </button>
-                <button class="sai-select-btn secondary" @onclick="ClearAll">
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
-                    Clear All
-                </button>
-            </div>
-            <div class="sai-preset-row" role="group">
-                @foreach (var mode in new[] { "all", "default", "custom" })
+                @if (!SupremeMode)
                 {
-                    <button class="sai-preset-btn @(SelectionMode == mode ? "active" : "")"
-                            @onclick="() => ApplyMode(mode)">
-                        @(char.ToUpper(mode[0]) + mode[1..])
+                    <span class="sai-count-badge">@CountBadgeText</span>
+                }
+            </div>
+
+            @if (SupremeMode)
+            {
+                <div class="sai-supreme-model-note">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Model selection is handled by SupremeAI in this mode.
+                </div>
+                <div class="sai-model-list-overlay">
+                    <ul class="sai-model-list sai-model-list--dimmed" role="listbox" aria-label="Models auto-selected by SupremeAI" aria-disabled="true">
+                        @foreach (var model in ModelCatalogue.ChatModels.Where(m => !m.ComingSoon).Take(5))
+                        {
+                            <li class="sai-model-item sai-model-item--auto" role="option" aria-selected="false" tabindex="-1">
+                                <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                                <div class="sai-model-info">
+                                    <div class="sai-model-name">@model.Name</div>
+                                    <div class="sai-model-provider">@model.Provider</div>
+                                </div>
+                                <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="sai-model-list-lock-banner" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="gold"/></svg>
+                        Auto-selected by SupremeAI
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="sai-select-row">
+                    <button class="sai-select-btn" @onclick="SelectAll">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2" /></svg>
+                        Select All
                     </button>
-                }
-            </div>
-            <ul class="sai-model-list" role="listbox" aria-multiselectable="true">
-                @foreach (var model in ModelCatalogue.ChatModels)
-                {
-                    var isSelected = SelectedIds.Contains(model.Id);
-                    var isLocked = !Subscription.IsModelAllowed(model.Id);
-                    <li class="sai-model-item @(isSelected ? "selected" : "") @(isLocked ? "locked" : "")"
-                        role="option" aria-selected="@isSelected" tabindex="0"
-                        @onclick="() => ToggleModel(model.Id)"
-                        @onkeydown="(e) => HandleModelKey(e, model.Id)">
-                        <div class="sai-checkbox">
-                            @if (isLocked)
-                            {
-                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                            }
-                            else
-                            {
-                                <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="1 6 5 10 11 2" />
-                                </svg>
-                            }
-                        </div>
-                        <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
-                        <div class="sai-model-info">
-                            <div class="sai-model-name">
-                                @model.Name@if (model.ComingSoon) {<span style="font-size:0.62em;opacity:0.5"> (soon)</span>}
+                    <button class="sai-select-btn secondary" @onclick="ClearAll">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                        Clear All
+                    </button>
+                </div>
+                <div class="sai-preset-row" role="group">
+                    @foreach (var mode in new[] { "all", "default", "custom" })
+                    {
+                        <button class="sai-preset-btn @(SelectionMode == mode ? "active" : "")"
+                                @onclick="() => ApplyMode(mode)">
+                            @(char.ToUpper(mode[0]) + mode[1..])
+                        </button>
+                    }
+                </div>
+                <ul class="sai-model-list" role="listbox" aria-multiselectable="true">
+                    @foreach (var model in ModelCatalogue.ChatModels)
+                    {
+                        var isSelected = SelectedIds.Contains(model.Id);
+                        var isLocked = !Subscription.IsModelAllowed(model.Id);
+                        <li class="sai-model-item @(isSelected ? "selected" : "") @(isLocked ? "locked" : "")"
+                            role="option" aria-selected="@isSelected" tabindex="0"
+                            @onclick="() => ToggleModel(model.Id)"
+                            @onkeydown="(e) => HandleModelKey(e, model.Id)">
+                            <div class="sai-checkbox">
+                                @if (isLocked)
+                                {
+                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                                }
+                                else
+                                {
+                                    <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="1 6 5 10 11 2" />
+                                    </svg>
+                                }
                             </div>
-                            <div class="sai-model-provider">@model.Provider</div>
-                        </div>
-                        <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
-                    </li>
-                }
-            </ul>
+                            <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-info">
+                                <div class="sai-model-name">
+                                    @model.Name@if (model.ComingSoon) {<span style="font-size:0.62em;opacity:0.5"> (soon)</span>}
+                                </div>
+                                <div class="sai-model-provider">@model.Provider</div>
+                            </div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </li>
+                    }
+                </ul>
+            }
         </aside>
 
         <!-- CHAT PANE -->
@@ -196,7 +251,7 @@
                             </g>
                         </svg>
                         <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">SupremeAI</span></p>
-                        <p class="sai-empty-sub">Select models on the left, then type your prompt. Compare AI responses side by side.</p>
+                        <p class="sai-empty-sub">@(SupremeMode ? "SupremeAI evaluates multiple models, compares their reasoning, and selects the best answer." : "Select models on the left, then type your prompt. Compare AI responses side by side.")</p>
                         <div class="sai-chips">
                             @foreach (var (text, lbl) in SuggestionChips)
                             {
@@ -207,41 +262,140 @@
                 }
                 else
                 {
-                    @foreach (var conv in Conversations)
+                    @foreach (var (conv, convIdx) in Conversations.Select((c, i) => (c, i)))
                     {
-                        @foreach (var resp in conv.Responses)
+                        var supremeResult = convIdx < ConvSupremeResults.Count ? ConvSupremeResults[convIdx] : null;
+
+                        @if (supremeResult is not null)
                         {
-                            var model = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
-                            <div class="sai-card" @onclick="() => OpenDetailPanel(resp, model)" role="button" tabindex="0"
-                                 @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, model); })"
-                                 aria-label="@($"View full response from {model?.Name ?? resp.ModelId}")">
-                                <div class="sai-card-header">
-                                    <div class="sai-card-logo" style="background:@(model?.Color ?? "#888")20;color:@(model?.Color ?? "#888")">@(model?.Initial ?? "?")</div>
-                                    <span class="sai-card-model-name">@(model?.Name ?? resp.ModelId)</span>
-                                    @if (model is not null)
+                            var winnerModel    = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
+                            var topScore       = supremeResult.Results.Count > 0 ? supremeResult.Results.Max(r => r.Score) : 0.0;
+                            var confidence     = topScore / 10.0;
+                            var confidenceLbl  = confidence >= 0.85 ? "High" : confidence >= 0.65 ? "Medium" : "Low";
+                            var isExpanded     = _whyExpandedConvs.Contains(convIdx);
+                            var resp           = conv.Responses[0];
+                            <div class="sai-supreme-card-wrap">
+                                <!-- Authority badge -->
+                                <div class="sai-supreme-decided @(resp.Status == "loading" ? "loading" : "")"
+                                     role="button" tabindex="0" title="Click to see why SupremeAI chose this answer"
+                                     @onclick="() => ToggleWhyExpanded(convIdx)"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") ToggleWhyExpanded(convIdx); })"
+                                     aria-expanded="@isExpanded.ToString().ToLowerInvariant()">
+                                    <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
+                                    <span>Decided by SupremeAI</span>
+                                    @if (resp.Status == "done")
                                     {
-                                        <span class="sai-gem-badge @model.TierCssClass" style="margin-right:0.2rem">@model.TierLabel</span>
+                                        <span class="sai-confidence-pill">Confidence: @confidenceLbl (@confidence.ToString("F2"))</span>
+                                        @if (winnerModel is not null)
+                                        {
+                                            <span class="sai-decided-winner">· @winnerModel.Name</span>
+                                        }
                                     }
-                                    <div class="sai-card-status @resp.Status"></div>
-                                    <span class="sai-card-expand-hint" aria-hidden="true">
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                                    </span>
+                                    <span class="sai-why-toggle" aria-hidden="true">@(isExpanded ? "▾" : "▸") Why this answer?</span>
                                 </div>
-                                <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
-                                    @if (resp.Status == "loading")
-                                    {
-                                        <span class="sai-skeleton sai-skeleton-md"></span>
-                                        <span class="sai-skeleton sai-skeleton-lg"></span>
-                                        <span class="sai-skeleton sai-skeleton-sm"></span>
-                                    }
-                                    else { @resp.Text }
+
+                                <!-- Answer card -->
+                                <div class="sai-card sai-card--supreme" @onclick="() => OpenDetailPanel(resp, winnerModel)" role="button" tabindex="0"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, winnerModel); })"
+                                     aria-label="@($"View full SupremeAI answer from {winnerModel?.Name ?? resp.ModelId}")">
+                                    <div class="sai-card-header">
+                                        <div class="sai-card-logo" style="background:@(winnerModel?.Color ?? "#888")20;color:@(winnerModel?.Color ?? "#888")">@(winnerModel?.Initial ?? "?")</div>
+                                        <span class="sai-card-model-name">@(winnerModel?.Name ?? resp.ModelId)</span>
+                                        @if (winnerModel is not null)
+                                        {
+                                            <span class="sai-gem-badge @winnerModel.TierCssClass" style="margin-right:0.2rem">@winnerModel.TierLabel</span>
+                                        }
+                                        <div class="sai-card-status @resp.Status"></div>
+                                        <span class="sai-card-expand-hint" aria-hidden="true">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                        </span>
+                                    </div>
+                                    <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
+                                        @if (resp.Status == "loading")
+                                        {
+                                            <span class="sai-skeleton sai-skeleton-md"></span>
+                                            <span class="sai-skeleton sai-skeleton-lg"></span>
+                                            <span class="sai-skeleton sai-skeleton-sm"></span>
+                                        }
+                                        else { @resp.Text }
+                                    </div>
+                                    <div class="sai-card-footer">
+                                        <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-supreme.txt")'>Download</button>
+                                    </div>
                                 </div>
-                                <div class="sai-card-footer">
-                                    <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
-                                    <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
-                                    <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-{resp.ModelId}.txt")'>Download</button>
-                                </div>
+
+                                <!-- Why this answer? expandable panel -->
+                                @if (isExpanded && resp.Status == "done")
+                                {
+                                    <div class="sai-why-panel" role="region" aria-label="SupremeAI decision explanation">
+                                        <div class="sai-why-header">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            Why this answer?
+                                        </div>
+                                        <p class="sai-why-desc">SupremeAI evaluated @supremeResult.Results.Count model@(supremeResult.Results.Count == 1 ? "" : "s") and selected the highest-scoring answer.</p>
+                                        <div class="sai-why-models">
+                                            @foreach (var r in supremeResult.Results.OrderByDescending(x => x.Score))
+                                            {
+                                                var m         = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == r.ModelId);
+                                                var mColor    = m?.Color ?? "#888";
+                                                var isWinner  = r.ModelId == supremeResult.WinnerId;
+                                                <div class="sai-why-model-row @(isWinner ? "winner" : "")">
+                                                    <div class="sai-why-model-logo" style="background:@(mColor)20;color:@mColor">@ModelInitial(r.ModelId, m)</div>
+                                                    <span class="sai-why-model-name">@(m?.Name ?? r.ModelId)</span>
+                                                    @if (isWinner) { <span class="sai-why-winner-star" title="Winner">★</span> }
+                                                    <div class="sai-why-score-bar-wrap">
+                                                        <div class="sai-why-score-bar" style="width:@(r.Score * 10)%;background:@mColor"></div>
+                                                    </div>
+                                                    <span class="sai-why-score-val">@r.Score.ToString("F1")</span>
+                                                    <span class="sai-why-ms">@r.Ms ms</span>
+                                                </div>
+                                            }
+                                        </div>
+                                        <p class="sai-why-rationale">
+                                            <strong>@(winnerModel?.Name ?? supremeResult.WinnerId)</strong> scored <strong>@topScore.ToString("F1")/10</strong> — the highest among all evaluated models — giving a confidence of <strong>@confidenceLbl (@confidence.ToString("P0"))</strong>.
+                                        </p>
+                                    </div>
+                                }
                             </div>
+                        }
+                        else
+                        {
+                            @foreach (var resp in conv.Responses)
+                            {
+                                var model = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
+                                <div class="sai-card" @onclick="() => OpenDetailPanel(resp, model)" role="button" tabindex="0"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, model); })"
+                                     aria-label="@($"View full response from {model?.Name ?? resp.ModelId}")">
+                                    <div class="sai-card-header">
+                                        <div class="sai-card-logo" style="background:@(model?.Color ?? "#888")20;color:@(model?.Color ?? "#888")">@(model?.Initial ?? "?")</div>
+                                        <span class="sai-card-model-name">@(model?.Name ?? resp.ModelId)</span>
+                                        @if (model is not null)
+                                        {
+                                            <span class="sai-gem-badge @model.TierCssClass" style="margin-right:0.2rem">@model.TierLabel</span>
+                                        }
+                                        <div class="sai-card-status @resp.Status"></div>
+                                        <span class="sai-card-expand-hint" aria-hidden="true">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                        </span>
+                                    </div>
+                                    <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
+                                        @if (resp.Status == "loading")
+                                        {
+                                            <span class="sai-skeleton sai-skeleton-md"></span>
+                                            <span class="sai-skeleton sai-skeleton-lg"></span>
+                                            <span class="sai-skeleton sai-skeleton-sm"></span>
+                                        }
+                                        else { @resp.Text }
+                                    </div>
+                                    <div class="sai-card-footer">
+                                        <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-{resp.ModelId}.txt")'>Download</button>
+                                    </div>
+                                </div>
+                            }
                         }
                     }
                 }
@@ -253,10 +407,28 @@
                         Chat
                     </span>
                     <span class="sai-context-div">·</span>
-                    <span class="sai-context-models">@ModelContextText</span>
+                    @if (SupremeMode)
+                    {
+                        <span class="sai-context-supreme">
+                            <svg width="10" height="10" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:middle"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
+                            SupremeAI Mode
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="sai-context-models">@ModelContextText</span>
+                    }
                 </div>
+                @if (!SupremeMode)
+                {
+                    <div class="sai-manual-mode-hint">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Manual mode uses a single model set and may produce lower confidence answers.
+                    </div>
+                }
                 <div class="sai-prompt-form">
-                    <textarea class="sai-prompt-input" rows="1" placeholder="Ask all selected models…"
+                    <textarea class="sai-prompt-input" rows="1"
+                              placeholder="@(SupremeMode ? "Ask SupremeAI — evaluates all models and selects the best answer…" : "Ask all selected models…")"
                               maxlength="8000" @bind="ChatPrompt" @bind:event="oninput"
                               @onkeydown="HandlePromptKey"></textarea>
                     <span class="sai-char-count">@ChatPrompt.Length.ToString("N0") / 8,000</span>
@@ -571,6 +743,9 @@
     private string SelectionMode = "all";
     private HashSet<string> SelectedIds = new(ModelCatalogue.ChatModels.Select(m => m.Id));
     private List<Conversation> Conversations = [];
+    private List<ApiSupremeResponse?> ConvSupremeResults = [];
+    private HashSet<int> _whyExpandedConvs = [];
+    private bool SupremeMode = true;
     private string ChatPrompt = "";
     private string SelectedImageModelId = ModelCatalogue.ImageModels[0].Id;
     private string ImagePrompt = "";
@@ -641,12 +816,15 @@
     private string ModelContextText =>
         SelectionMode == "all" ? "All models selected" :
         SelectedIds.Count == 1 ? "1 model selected" : $"{SelectedIds.Count} models selected";
-    private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && SelectedIds.Count > 0;
+    private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && (SupremeMode || SelectedIds.Count > 0);
     private string GridColClass
     {
         get
         {
             if (!Conversations.Any()) return "cols-1";
+            // SupremeAI mode always renders single-column cards
+            var lastSupreme = ConvSupremeResults.Count > 0 ? ConvSupremeResults[^1] : null;
+            if (lastSupreme is not null) return "cols-1";
             var n = Conversations.Last().Responses.Count;
             return $"cols-{Math.Min(n, 3)}";
         }
@@ -788,30 +966,100 @@
     private void HandlePromptKey(KeyboardEventArgs e) { if (e.Key == "Enter" && !e.ShiftKey && CanSend) SubmitChatPrompt(); }
     private void SetSuggestion(string text) => ChatPrompt = text;
 
+    private void ToggleWhyExpanded(int convIdx)
+    {
+        if (!_whyExpandedConvs.Remove(convIdx))
+            _whyExpandedConvs.Add(convIdx);
+    }
+
+    private static string ModelInitial(string modelId, AiModel? model) =>
+        model?.Initial ?? modelId[..Math.Min(2, modelId.Length)].ToUpper();
+
+    private static ApiSupremeResponse BuildDemoSupremeResult(string query)
+    {
+        var rng = new Random();
+        var demoIds = new[] { "gpt-4o", "llama-3-1-70b", "mistral-large" };
+        var results = demoIds.Select((id, i) =>
+        {
+            var latency  = 800 + rng.Next(0, 2200);
+            var text     = ModelCatalogue.DemoResponses[i % ModelCatalogue.DemoResponses.Length];
+            double score = Math.Round(4.5 + rng.NextDouble() * 5, 2);
+            return new ApiModelEvalResult
+            {
+                ModelId = id,
+                Text    = text,
+                Status  = "done",
+                Tokens  = 120 + rng.Next(0, 300),
+                Ms      = latency,
+                Score   = score,
+            };
+        })
+        .OrderByDescending(r => r.Score)
+        .ToList();
+
+        var winner = results[0];
+        return new ApiSupremeResponse
+        {
+            Query         = query,
+            Results       = results,
+            WinnerId      = winner.ModelId,
+            SupremeAnswer = winner.Text,
+            TotalMs       = results.Max(r => r.Ms),
+        };
+    }
+
     private async void SubmitChatPrompt()
     {
         if (!CanSend) return;
         var prompt = ChatPrompt.Trim();
         ChatPrompt = "";
+
+        if (SupremeMode)
+        {
+            // SupremeAI mode: route through supreme evaluation
+            var placeholderResp = new ModelResponse { ModelId = "supreme", Status = "loading" };
+            var conv = new Conversation { Prompt = prompt, Responses = [placeholderResp] };
+            Conversations.Add(conv);
+            ConvSupremeResults.Add(null);
+            StateHasChanged();
+
+            ApiSupremeResponse supremeResult;
+            var modelIds = SelectedIds.Count > 0 ? SelectedIds : null;
+            var apiResponse = await AiApi.SupremeAsync(prompt, modelIds);
+            supremeResult = apiResponse ?? BuildDemoSupremeResult(prompt);
+
+            var winnerModel = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
+            conv.Responses[0] = new ModelResponse
+            {
+                ModelId = supremeResult.WinnerId,
+                Text    = supremeResult.SupremeAnswer,
+                Status  = "done",
+                Tokens  = supremeResult.Results.FirstOrDefault(r => r.ModelId == supremeResult.WinnerId)?.Tokens ?? 0,
+                Ms      = supremeResult.TotalMs,
+            };
+            ConvSupremeResults[^1] = supremeResult;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        // Direct mode: fan-out to selected models (existing behaviour)
         var selectedModels = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id)).ToList();
-        var conv = new Conversation { Prompt = prompt, Responses = selectedModels.Select(m => new ModelResponse { ModelId = m.Id }).ToList() };
-        Conversations.Add(conv);
+        var directConv = new Conversation { Prompt = prompt, Responses = selectedModels.Select(m => new ModelResponse { ModelId = m.Id }).ToList() };
+        Conversations.Add(directConv);
+        ConvSupremeResults.Add(null);
         StateHasChanged();
 
-        // Build the messages list for the API (single user turn for now)
         var apiMessages = new[] { new ApiChatMessage { Role = "user", Content = prompt } };
 
         var tasks = selectedModels.Select(async (model, idx) =>
         {
-            var resp = conv.Responses.First(r => r.ModelId == model.Id);
+            var resp = directConv.Responses.First(r => r.ModelId == model.Id);
             var startMs = Environment.TickCount;
 
-            // Try the real backend API first
             var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
 
             if (apiResult is not null)
             {
-                // API call succeeded – stream the text character by character for the same UX
                 var text = apiResult.Status == "error"
                     ? $"[Error from {model.Name}: {apiResult.ErrorMessage}]"
                     : apiResult.Text;
@@ -832,7 +1080,6 @@
             }
             else
             {
-                // Fallback: API unreachable – use demo response with staggered delay
                 await Task.Delay(idx * 220 + Random.Shared.Next(300));
                 var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
                 var totalChars = demoText.Length;
