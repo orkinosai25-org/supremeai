@@ -5,7 +5,11 @@ using SupremeAI.Api.Services;
 namespace SupremeAI.Api.Controllers;
 
 /// <summary>
-/// AI model API endpoints consumed by the SupremeAI Blazor WASM frontend.
+/// Direct AI access endpoints.
+/// These endpoints bypass SupremeAI judgment and confidence mechanisms.
+/// For governed, explainable, production-ready responses use
+/// <c>POST /api/ai/supreme</c> (SupremeAI Primary Endpoint) or
+/// <c>POST /supreme/judge</c> (Judgment Engine) instead.
 /// </summary>
 [ApiController]
 [Route("api/ai")]
@@ -25,7 +29,11 @@ public sealed class AiController : ControllerBase
 
     // ── GET /api/ai/models ────────────────────────────────────────────────────
 
-    /// <summary>Returns all available model IDs and their enabled status.</summary>
+    /// <summary>
+    /// [Legacy — Direct Access] Returns all available model IDs and their enabled status.
+    /// This is a catalogue helper endpoint. For model performance profiles derived from
+    /// live judgment history, use <c>GET /supreme/models</c> instead.
+    /// </summary>
     [HttpGet("models")]
     public IActionResult GetModels()
     {
@@ -57,7 +65,12 @@ public sealed class AiController : ControllerBase
 
     // ── POST /api/ai/chat ─────────────────────────────────────────────────────
 
-    /// <summary>Generates a chat completion from the specified model.</summary>
+    /// <summary>
+    /// [Legacy — Direct Access] Generates a chat completion from the specified model.
+    /// Bypasses SupremeAI judgment and confidence mechanisms — the response is not
+    /// scored, ranked, or audited. Not recommended for production or public-sector use.
+    /// For governed responses, use <c>POST /api/ai/supreme</c> or <c>POST /supreme/judge</c>.
+    /// </summary>
     [HttpPost("chat")]
     public async Task<IActionResult> Chat([FromBody] ChatRequest request, CancellationToken ct)
     {
@@ -76,7 +89,11 @@ public sealed class AiController : ControllerBase
 
     // ── POST /api/ai/image ────────────────────────────────────────────────────
 
-    /// <summary>Generates an image from the specified model and prompt.</summary>
+    /// <summary>
+    /// [Legacy — Direct Access] Generates an image from the specified model and prompt.
+    /// Bypasses SupremeAI judgment and confidence mechanisms — the output is not
+    /// scored, ranked, or audited. Not recommended for production or public-sector use.
+    /// </summary>
     [HttpPost("image")]
     public async Task<IActionResult> Image([FromBody] ImageRequest request, CancellationToken ct)
     {
@@ -95,9 +112,12 @@ public sealed class AiController : ControllerBase
     // ── POST /api/ai/supreme ──────────────────────────────────────────────────
 
     /// <summary>
-    /// SupremeAI Brain endpoint.
+    /// SupremeAI unified evaluation endpoint — the recommended default for the frontend.
     /// Fans the prompt out to all specified models (or the default panel) in parallel,
-    /// scores each response, and returns the ranked results plus the winning answer.
+    /// scores each response via the SupremeAI Brain, and returns the ranked results
+    /// together with the winning answer, confidence, and per-model rationale.
+    /// Use this endpoint in preference to <c>POST /api/ai/chat</c> for any
+    /// production, public-sector, or governed AI use case.
     /// </summary>
     [HttpPost("supreme")]
     public async Task<IActionResult> Supreme([FromBody] SupremeRequest request, CancellationToken ct)
