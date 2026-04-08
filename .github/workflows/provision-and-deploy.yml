@@ -156,6 +156,11 @@ jobs:
     name: Provision Azure Infrastructure
     runs-on: ubuntu-latest
     needs: validate-secrets
+    # continue-on-error ensures a broken OIDC configuration does not mark the
+    # entire workflow as failed when PUBLISH_PROFILE-based deployment can still
+    # proceed.  The actual outcome is captured in the `succeeded` output so that
+    # the summary job can report it accurately.
+    continue-on-error: true
     if: |
       github.event.inputs.skip_provisioning != 'true' &&
       needs.validate-secrets.outputs.has_oidc_creds == 'true'
@@ -164,6 +169,7 @@ jobs:
       key_vault_uri:  ${{ steps.deploy.outputs.keyVaultUri }}
       openai_endpoint: ${{ steps.deploy.outputs.openAiEndpoint }}
       web_app_url:     ${{ steps.deploy.outputs.webAppUrl }}
+      succeeded:       ${{ steps.outcome.outputs.succeeded }}
 
     steps:
       - name: Checkout repository
@@ -273,6 +279,21 @@ jobs:
           store_secret "google-gemini-api-key"   "${{ secrets.GOOGLE_GEMINI_API_KEY }}"
           store_secret "xai-grok-api-key"        "${{ secrets.XAI_GROK_API_KEY }}"
 
+      - name: Capture provision outcome
+        if: always()
+        id: outcome
+        shell: bash
+        run: |
+          # Only report succeeded=true when the Bicep deploy step actually ran and
+          # completed successfully.  Any other outcome (failure OR skipped – which
+          # happens when Azure Login failed earlier) means provisioning did not
+          # complete and should be treated as not-succeeded.
+          if [[ "${{ steps.deploy.outcome }}" == "success" ]]; then
+            echo "succeeded=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "succeeded=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # ── 3. Build the backend API ──────────────────────────────────────────────────
   build:
     name: Build SupremeAI Backend API
@@ -370,7 +391,19 @@ jobs:
       - name: Print deployment summary
         shell: bash
         run: |
-          PROV_STATUS="${{ needs.provision.result }}"
+          # With continue-on-error on the provision job, needs.provision.result is
+          # always 'success' or 'skipped'.  Use the explicit `succeeded` output
+          # captured inside the provision job to report the real outcome.
+          if [[ "${{ needs.provision.result }}" == "skipped" ]]; then
+            PROV_STATUS="skipped"
+          elif [[ "${{ needs.provision.outputs.succeeded }}" == "true" ]]; then
+            PROV_STATUS="success"
+          elif [[ "${{ needs.provision.result }}" == "success" ]]; then
+            # continue-on-error masked a real failure (succeeded output is false/absent)
+            PROV_STATUS="failure"
+          else
+            PROV_STATUS="${{ needs.provision.result }}"
+          fi
           BUILD_STATUS="${{ needs.build.result }}"
           DEPLOY_STATUS="${{ needs.deploy.result }}"
 
