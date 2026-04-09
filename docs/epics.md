@@ -1,6 +1,6 @@
-# SupremeAI DevOps — Epics
+# Supreme Model T‑X DevOps — Epics
 
-This document provides a high-level description of each epic in the SupremeAI DevOps platform backlog. Epics represent large bodies of work that are broken down into the individual user stories tracked in [user-stories.md](./user-stories.md).
+This document provides a high-level description of each epic in the Supreme Model T‑X DevOps platform backlog. Epics represent large bodies of work that are broken down into the individual user stories tracked in [user-stories.md](./user-stories.md).
 
 ---
 

@@ -1,14 +1,14 @@
-# SupremeAI API Governance
+# Supreme Model T‑X API Governance
 
-**Release:** `v0.3.2-api-governance`
+**Release:** `v0.5.0-model-t`
 
-This document covers the API governance layer introduced in v0.3.2. It is intended for platform operators, security reviewers, and public-sector technical assessors who need to verify that SupremeAI meets production and regulatory standards.
+This document covers the API governance layer powered by the **Model T‑101 Judgment Engine**. It is intended for platform operators, security reviewers, and public-sector technical assessors who need to verify that Supreme Model T‑X meets production and regulatory standards.
 
 ---
 
 ## Overview
 
-Every HTTP request processed by the SupremeAI API passes through the governance layer. The layer is responsible for:
+Every HTTP request processed by the Supreme Model T‑X API passes through the governance layer. The layer is responsible for:
 
 - Assigning a unique correlation identifier to each request
 - Stamping the API release version on each response
@@ -35,9 +35,9 @@ Liveness and readiness probe. Returns API status, current release version, and p
 ```json
 {
   "status": "healthy",
-  "version": "v0.3.2-api-governance",
+  "version": "v0.5.0-model-t",
   "uptime": "0.00:04:32",
-  "timestamp": "2026-04-08T21:00:00Z"
+  "timestamp": "2026-04-09T23:00:00Z"
 }
 ```
 
@@ -62,9 +62,9 @@ Returns the current API release tag and a short description of the platform. Cli
 
 ```json
 {
-  "version": "v0.3.2-api-governance",
-  "api": "SupremeAI API",
-  "description": "Judgment, Benchmarking, and API Governance layer for SupremeAI. Evaluates multiple AI models, estimates confidence, and provides explainable, auditable decisions."
+  "version": "v0.5.0-model-t",
+  "api": "Supreme Model T‑X API",
+  "description": "Powered by Model T‑101 Judgment Engine. Evaluates multiple AI models, estimates confidence, and provides explainable, auditable decisions."
 }
 ```
 
@@ -78,7 +78,7 @@ Returns the current API release tag and a short description of the platform. Cli
 
 ## Governance Middleware
 
-`GovernanceMiddleware` runs on every incoming request before the request reaches a controller.
+`GovernanceMiddleware` runs on every incoming request before the request reaches a controller. This middleware is the core of the **Model T‑201 Governance Intelligence Layer**.
 
 ### Request Tracing — `X-Request-Id`
 
@@ -93,7 +93,7 @@ X-Request-Id: 9f4a2b1c3e5d6f7a8b0c1d2e3f4a5b6c
 The current API release tag is attached as the `X-Api-Version` response header on every response. This allows downstream clients to detect version mismatches without calling `GET /version`.
 
 ```
-X-Api-Version: v0.3.2-api-governance
+X-Api-Version: v0.5.0-model-t
 ```
 
 ### Audit Logging
@@ -163,8 +163,8 @@ The Swagger/OpenAPI documentation groups endpoints as follows:
 | Group | Endpoints | Notes |
 |-------|-----------|-------|
 | **API Governance** | `GET /health`, `GET /version` | Use for liveness probes and audit confirmation |
-| **SupremeAI — Judgment & Governance** | `GET /supreme/models`, `POST /supreme/judge`, benchmark endpoints | Recommended for production and public-sector deployments |
-| **SupremeAI — Primary Endpoint** | `POST /api/ai/supreme` | Default endpoint used by the SupremeAI frontend |
+| **Supreme Model T‑X — Judgment & Governance** | `GET /supreme/models`, `POST /supreme/judge`, benchmark endpoints | Recommended for production and public-sector deployments |
+| **Supreme Model T‑X — Primary Endpoint** | `POST /api/ai/supreme` | Default endpoint used by the Supreme Model T‑X frontend |
 | **Legacy — Direct Access** | `POST /api/ai/chat`, `POST /api/ai/image`, `GET /api/ai/models` | Bypasses judgment; not recommended for production use |
 
 ---

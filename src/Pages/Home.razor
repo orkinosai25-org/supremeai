@@ -13,7 +13,7 @@
     <!-- ─── Top Bar ─── -->
     <header class="sai-topbar">
         <!-- Crown wordmark logo -->
-        <a href="/" class="sai-brand" aria-label="SupremeAI home">
+        <a href="/" class="sai-brand" aria-label="Supreme Model T‑X home">
             <svg viewBox="0 0 210 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <defs>
                     <linearGradient id="hw-gold" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -45,8 +45,7 @@
                 <text x="153" y="46" font-family="Georgia,'Times New Roman',serif" font-size="25" font-weight="800" fill="url(#hw-diamond)">ai</text>
             </svg>
         </a>
-
-        <!-- Content-type pane tabs -->
+        <span class="sai-brand-tagline">T‑Series Autonomous Governance Models</span>
         <nav class="sai-pane-tabs" aria-label="Content panes">
             @foreach (var (id, label, icon) in PaneDefs)
             {
@@ -87,18 +86,18 @@
             <span class="sai-decision-banner-label">Decision Mode</span>
             <div class="sai-decision-opts" role="radiogroup" aria-label="Select decision mode">
                 <label class="sai-decision-opt @(SupremeMode ? "active" : "")"
-                       title="SupremeAI evaluates multiple AI models to provide the safest and most reliable answer.">
-                    <input type="radio" name="saiDecisionMode" aria-label="SupremeAI — Default / Recommended" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
+                       title="Supreme Model T‑X evaluates multiple AI models to provide the safest and most reliable answer.">
+                    <input type="radio" name="saiDecisionMode" aria-label="Supreme Model T‑X — Default / Recommended" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
                     <span class="sai-decision-opt-inner">
                         <svg width="11" height="11" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="sai-decision-crown" aria-hidden="true">
                             <polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/>
                         </svg>
-                        <span class="sai-decision-opt-name">SupremeAI</span>
+                        <span class="sai-decision-opt-name">Supreme Model T‑X</span>
                         <span class="sai-decision-recommended">Default / Recommended</span>
                     </span>
                 </label>
                 <label class="sai-decision-opt @(!SupremeMode ? "active" : "")"
-                       title="Manual mode bypasses SupremeAI governance and uses a single model only.">
+                       title="Manual mode bypasses Supreme Model T‑X governance and uses a single model only.">
                     <input type="radio" name="saiDecisionMode" aria-label="Manual Model Selection" @onchange="@(() => SupremeMode = false)" checked="@(!SupremeMode)" />
                     <span class="sai-decision-opt-inner">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="sai-decision-manual-icon" aria-hidden="true">
@@ -110,7 +109,7 @@
             </div>
             @if (SupremeMode)
             {
-                <span class="sai-decision-desc">SupremeAI evaluates multiple AI models to provide the safest and most reliable answer.</span>
+                <span class="sai-decision-desc">Powered by Model T‑101 Judgment Engine — evaluates multiple AI models to provide the safest and most reliable answer.</span>
             }
             else
             {
@@ -118,7 +117,7 @@
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
-                    Manual mode bypasses SupremeAI governance and uses a single model only.
+                    Manual mode bypasses Supreme Model T‑X governance and uses a single model only.
                 </span>
             }
         </div>
@@ -158,10 +157,10 @@
             {
                 <div class="sai-supreme-model-note">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    SupremeAI will evaluate multiple models and select the best answer.
+                    Supreme Model T‑X will evaluate multiple models and select the best answer.
                 </div>
                 <div class="sai-model-list-overlay">
-                    <ul class="sai-model-list sai-model-list--dimmed" role="listbox" aria-label="Models auto-selected by SupremeAI" aria-disabled="true">
+                    <ul class="sai-model-list sai-model-list--dimmed" role="listbox" aria-label="Models auto-selected by Supreme Model T‑X" aria-disabled="true">
                         @foreach (var model in ModelCatalogue.ChatModels.Where(m => !m.ComingSoon).Take(5))
                         {
                             <li class="sai-model-item sai-model-item--auto" role="option" aria-selected="false" tabindex="-1">
@@ -176,7 +175,7 @@
                     </ul>
                     <div class="sai-model-list-lock-banner" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="gold"/></svg>
-                        Auto-selected by SupremeAI
+                        Auto-selected by Supreme Model T‑X
                     </div>
                 </div>
             }
@@ -272,8 +271,8 @@
                                 <circle cx="86" cy="21" r="4.5" fill="#50C878" />
                             </g>
                         </svg>
-                        <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">SupremeAI</span></p>
-                        <p class="sai-empty-sub">@(SupremeMode ? "SupremeAI evaluates multiple models, compares their reasoning, and selects the best answer." : "Select models on the left, then type your prompt. Compare AI responses side by side.")</p>
+                        <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">Supreme Model T‑X</span></p>
+                        <p class="sai-empty-sub">@(SupremeMode ? "Supreme Model T‑X evaluates multiple models, compares their reasoning, and selects the best answer." : "Select models on the left, then type your prompt. Compare AI responses side by side.")</p>
                         <div class="sai-chips">
                             @foreach (var (text, lbl) in SuggestionChips)
                             {
@@ -299,12 +298,12 @@
                             <div class="sai-supreme-card-wrap">
                                 <!-- Authority badge -->
                                 <div class="sai-supreme-decided @(resp.Status == "loading" ? "loading" : "")"
-                                     role="button" tabindex="0" title="Click to see why SupremeAI chose this answer"
+                                     role="button" tabindex="0" title="Click to see why Supreme Model T‑X chose this answer"
                                      @onclick="() => ToggleWhyExpanded(convIdx)"
                                      @onkeydown="@(e => { if (e.Key is "Enter" or " ") ToggleWhyExpanded(convIdx); })"
                                      aria-expanded="@isExpanded.ToString().ToLowerInvariant()">
                                     <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
-                                    <span>Decided by SupremeAI</span>
+                                    <span>Decided by Supreme Model T‑X</span>
                                     @if (resp.Status == "done")
                                     {
                                         <span class="sai-confidence-pill">Confidence: @confidenceLbl (@confidence.ToString("F2"))</span>
@@ -319,7 +318,7 @@
                                 <!-- Answer card -->
                                 <div class="sai-card sai-card--supreme" @onclick="() => OpenDetailPanel(resp, winnerModel)" role="button" tabindex="0"
                                      @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, winnerModel); })"
-                                     aria-label="@($"View full SupremeAI answer from {winnerModel?.Name ?? resp.ModelId}")">
+                                     aria-label="@($"View full Supreme Model T‑X answer from {winnerModel?.Name ?? resp.ModelId}")">
                                     <div class="sai-card-header">
                                         <div class="sai-card-logo" style="background:@(winnerModel?.Color ?? "#888")20;color:@(winnerModel?.Color ?? "#888")">@(winnerModel?.Initial ?? "?")</div>
                                         <span class="sai-card-model-name">@(winnerModel?.Name ?? resp.ModelId)</span>
@@ -351,12 +350,12 @@
                                 <!-- Why this answer? expandable panel -->
                                 @if (isExpanded && resp.Status == "done")
                                 {
-                                    <div class="sai-why-panel" role="region" aria-label="SupremeAI decision explanation">
+                                    <div class="sai-why-panel" role="region" aria-label="Supreme Model T‑X decision explanation">
                                         <div class="sai-why-header">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                             Why this answer?
                                         </div>
-                                        <p class="sai-why-desc">SupremeAI evaluated @supremeResult.Results.Count model@(supremeResult.Results.Count == 1 ? "" : "s") and selected the highest-scoring answer.</p>
+                                        <p class="sai-why-desc">Supreme Model T‑X evaluated @supremeResult.Results.Count model@(supremeResult.Results.Count == 1 ? "" : "s") and selected the highest-scoring answer.</p>
                                         <div class="sai-why-models">
                                             @foreach (var r in supremeResult.Results.OrderByDescending(x => x.Score))
                                             {
@@ -433,7 +432,7 @@
                     {
                         <span class="sai-context-supreme">
                             <svg width="10" height="10" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:middle"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
-                            SupremeAI Mode
+                            Supreme Model T‑X Mode
                         </span>
                     }
                     else
@@ -445,12 +444,12 @@
                 {
                     <div class="sai-manual-mode-hint">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Manual mode bypasses SupremeAI governance and uses a single model only.
+                        Manual mode bypasses Supreme Model T‑X governance and uses a single model only.
                     </div>
                 }
                 <div class="sai-prompt-form">
                     <textarea class="sai-prompt-input" rows="1"
-                              placeholder="@(SupremeMode ? "Ask SupremeAI — evaluates all models and selects the best answer…" : "Ask all selected models…")"
+                              placeholder="@(SupremeMode ? "Ask Supreme Model T‑X — evaluates all models and selects the best answer…" : "Ask all selected models…")"
                               maxlength="8000" @bind="ChatPrompt" @bind:event="oninput"
                               @onkeydown="HandlePromptKey"></textarea>
                     <span class="sai-char-count">@ChatPrompt.Length.ToString("N0") / 8,000</span>

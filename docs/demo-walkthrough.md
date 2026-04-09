@@ -1,4 +1,4 @@
-# SupremeAI Demo Walkthrough
+# Supreme Model T‑X Demo Walkthrough
 
 This walkthrough shows how to exercise the key platform capabilities end-to-end in roughly **10 minutes**. It is suitable for live demonstrations, recorded screencasts, and self-guided technical evaluations.
 
@@ -8,7 +8,7 @@ This walkthrough shows how to exercise the key platform capabilities end-to-end 
 
 - .NET 9 SDK installed
 - At least one AI provider key (Azure OpenAI, Anthropic, Google, or xAI) — or run in demo mode without any keys
-- The SupremeAI API running locally (see [QUICKSTART.md](../QUICKSTART.md))
+- The Supreme Model T‑X API running locally (see [QUICKSTART.md](../QUICKSTART.md))
 
 Start the API:
 
@@ -40,10 +40,9 @@ Expected response:
 
 ```json
 {
-  "status": "healthy",
-  "version": "v0.3.2-api-governance",
+  "version": "v0.5.0-model-t",
   "uptime": "0.00:00:12",
-  "timestamp": "2026-04-08T21:00:00Z"
+  "timestamp": "2026-04-09T23:00:00Z"
 }
 ```
 
@@ -62,9 +61,9 @@ Expected response:
 
 ```json
 {
-  "version": "v0.3.2-api-governance",
-  "api": "SupremeAI API",
-  "description": "Judgment, Benchmarking, and API Governance layer for SupremeAI. ..."
+  "version": "v0.5.0-model-t",
+  "api": "Supreme Model T‑X API",
+  "description": "Powered by Model T‑101 Judgment Engine. Evaluates multiple AI models, estimates confidence, and provides explainable, auditable decisions."
 }
 ```
 
@@ -83,7 +82,7 @@ Look for these headers in the response:
 
 ```
 X-Request-Id: 9f4a2b1c3e5d6f7a8b0c1d2e3f4a5b6c
-X-Api-Version: v0.3.2-api-governance
+X-Api-Version: v0.5.0-model-t
 ```
 
 **What to highlight:**  
@@ -109,11 +108,11 @@ Expected output (excerpt):
 ```
 
 **What to highlight:**  
-SupremeAI supports 13 models across six providers. The judgment engine fans a prompt out to all selected models in parallel and ranks the responses.
+Supreme Model T‑X supports 13 models across six providers. The Model T‑101 Judgment Engine fans a prompt out to all selected models in parallel and ranks the responses.
 
 ---
 
-## Step 5 — Run the SupremeAI Judgment Engine
+## Step 5 — Run the Model T‑101 Judgment Engine
 
 This is the core capability. Replace `YOUR_QUERY` with the question you want evaluated.
 
@@ -141,7 +140,7 @@ Expected response structure:
 - `confidence` — a 0–1 score indicating how clearly one model outperformed the others
 - `rationale` — a plain-English explanation of why the winning model was selected
 
-This is what makes SupremeAI an _auditable_ AI platform: every decision includes a reason.
+This is what makes Supreme Model T‑X an _auditable_ AI platform: every decision includes a reason.
 
 ---
 
@@ -199,7 +198,7 @@ Navigate to [http://localhost:5100/swagger](http://localhost:5100/swagger) in a 
 
 **What to highlight:**
 - The **API Governance** group at the top contains `GET /health` and `GET /version`
-- The **SupremeAI — Judgment & Governance** group contains the production endpoints
+- The **Supreme Model T‑X — Judgment & Governance** group contains the production endpoints
 - The **Legacy — Direct Access** group is clearly labelled as not recommended for production use
 - Every endpoint has an `X-Request-Id` and `X-Api-Version` header on responses, visible in the Swagger UI
 
@@ -211,7 +210,7 @@ Open [http://localhost:5095](http://localhost:5095).
 
 1. Enter a question in the input field
 2. Select one or more models (or leave blank to use the default panel)
-3. Click **Ask SupremeAI**
+3. Click **Run Supreme Evaluation**
 4. Observe the ranked model responses, confidence score, and rationale
 
 **What to highlight:**  
