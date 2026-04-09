@@ -434,7 +434,7 @@
         _result is not null &&
         string.IsNullOrWhiteSpace(_result.SupremeAnswer) &&
         _result.Results.Count > 0 &&
-        _result.Results.All(r => r.Status == "error");
+        _result.Results.All(r => string.Equals(r.Status, "error", StringComparison.OrdinalIgnoreCase));
 
     private void ToggleModel(string modelId)
     {

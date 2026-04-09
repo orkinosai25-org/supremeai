@@ -378,12 +378,12 @@ jobs:
           XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
         run: |
           ENV_FILE="./publish/.env"
-          [ -n "$AZURE_OPENAI_ENDPOINT" ] && echo "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" >> "$ENV_FILE"
-          [ -n "$AZURE_OPENAI_API_KEY"  ] && echo "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY"   >> "$ENV_FILE"
-          [ -n "$OPENAI_API_KEY"        ] && echo "OPENAI_API_KEY=$OPENAI_API_KEY"               >> "$ENV_FILE"
-          [ -n "$ANTHROPIC_API_KEY"     ] && echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY"         >> "$ENV_FILE"
-          [ -n "$GOOGLE_GEMINI_API_KEY" ] && echo "GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY" >> "$ENV_FILE"
-          [ -n "$XAI_GROK_API_KEY"      ] && echo "XAI_GROK_API_KEY=$XAI_GROK_API_KEY"          >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_ENDPOINT" ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n' "$AZURE_OPENAI_ENDPOINT" >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_API_KEY"  ] && printf 'AZURE_OPENAI_API_KEY=%s\n'  "$AZURE_OPENAI_API_KEY"  >> "$ENV_FILE"
+          [ -n "$OPENAI_API_KEY"        ] && printf 'OPENAI_API_KEY=%s\n'         "$OPENAI_API_KEY"         >> "$ENV_FILE"
+          [ -n "$ANTHROPIC_API_KEY"     ] && printf 'ANTHROPIC_API_KEY=%s\n'      "$ANTHROPIC_API_KEY"      >> "$ENV_FILE"
+          [ -n "$GOOGLE_GEMINI_API_KEY" ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'  "$GOOGLE_GEMINI_API_KEY"  >> "$ENV_FILE"
+          [ -n "$XAI_GROK_API_KEY"      ] && printf 'XAI_GROK_API_KEY=%s\n'       "$XAI_GROK_API_KEY"       >> "$ENV_FILE"
           COUNT=$(wc -l < "$ENV_FILE" 2>/dev/null || echo 0)
           echo "Injected ${COUNT} API key(s) into .env"
 
