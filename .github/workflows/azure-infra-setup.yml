@@ -48,7 +48,7 @@ jobs:
         if: steps.azure_login.outcome != 'success'
         run: |
           echo "::error::Azure login failed. Ensure the service principal has a federated identity credential for GitHub Actions."
-          echo "  See: https://docs.microsoft.com/azure/developer/github/connect-from-azure"
+          echo "  See: https://learn.microsoft.com/azure/developer/github/connect-from-azure"
           echo "  The federated credential must allow the subject matching this workflow run."
           echo "  Common subjects: repo:${{ github.repository }}:ref:refs/heads/main"
           echo "                   repo:${{ github.repository }}:environment:production"

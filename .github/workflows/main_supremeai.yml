@@ -12,6 +12,10 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai' }}
+  RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_RESOURCE_GROUP || 'supremeai-rg' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -100,7 +104,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'supremeai'
+          app-name: ${{ env.WEBAPP_NAME }}
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.PUBLISH_PROFILE }}
@@ -141,8 +145,8 @@ jobs:
 
           if [ ${#SETTINGS[@]} -gt 0 ]; then
             az webapp config appsettings set \
-              --name          'supremeai' \
-              --resource-group 'supremeai-rg' \
+              --name          "$WEBAPP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
               --settings      "${SETTINGS[@]}" \
               --output        none
             echo "✅ Updated ${#SETTINGS[@]} App Service setting(s)."
