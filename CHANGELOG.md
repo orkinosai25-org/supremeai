@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.0-chat-nav
+
+- Add **Chat** page (`/chat`): model-selector dropdown, multi-turn conversation UI with typing indicator, per-message latency/token metadata, keyboard shortcut (Enter to send, Shift+Enter for newlines), and clear-conversation button; falls back to demo mode when API is unreachable
+- Fix **NavMenu**: remove boilerplate Counter and Weather links; add Chat and Pricing navigation items
+- Improve **CI/CD** (`main_supremeai.yml`): trigger on `pull_request` to `main` in addition to `push`; add `dotnet restore` step; add test discovery step; skip publish/upload/deploy on PRs
+- Bump `GovernanceMiddleware.ApiVersion` to `v0.4.0-chat-nav`
+
 ## v0.3.3-supremeai-first-ui
 
 - Add Blazor WebAssembly frontend: `Home` landing page with hero section, feature cards, live model showcase, and call-to-action navigation
