@@ -60,9 +60,9 @@ public sealed class GovernanceController : ControllerBase
             Version     = GovernanceMiddleware.ApiVersion,
             Api         = "SupremeAI API",
             Description =
-                "Judgment, Benchmarking, and API Governance layer for SupremeAI. " +
+                "Judgment, Benchmarking, API Governance, and Blazor WebAssembly UI layer for SupremeAI. " +
                 "Evaluates multiple AI models, estimates confidence, and provides " +
-                "explainable, auditable decisions.",
+                "explainable, auditable decisions surfaced through the first-generation UI.",
         });
     }
 }

@@ -13,7 +13,7 @@ namespace SupremeAI.Api.Middleware;
 /// </summary>
 public sealed class GovernanceMiddleware
 {
-    internal const string ApiVersion = "v0.3.2-api-governance";
+    internal const string ApiVersion = "v0.3.3-supremeai-first-ui";
 
     private readonly RequestDelegate _next;
     private readonly ILogger<GovernanceMiddleware> _logger;
