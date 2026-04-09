@@ -36,11 +36,21 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login to Azure (OIDC)
+        id: azure_login
+        continue-on-error: true
         uses: azure/login@v2
         with:
           client-id:       ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Check Azure login result
+        if: steps.azure_login.outcome != 'success'
+        run: |
+          echo "::error::Azure login failed. Ensure the service principal has a federated identity credential for this workflow."
+          echo "  See: https://docs.microsoft.com/azure/developer/github/connect-from-azure"
+          echo "  The federated credential subject must be: repo:${{ github.repository }}:ref:${{ github.ref }}"
+          exit 1
 
       - name: Register required Azure resource providers
         run: |

@@ -83,20 +83,35 @@
     <!-- ─── Results ─── -->
     @if (_result is not null)
     {
-        <!-- Supreme Answer -->
-        <section class="brain-supreme-section">
-            <div class="brain-supreme-badge">
-                <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" width="16" height="16" aria-hidden="true">
-                    <polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/>
-                </svg>
-                Supreme Answer
+        @if (AllModelsFailed)
+        {
+            <!-- All models failed – show configuration guidance -->
+            <div class="brain-config-warning" role="alert">
+                <strong>⚠ No models returned a response.</strong>
+                API keys are not configured for any of the selected providers.
+                Set the following environment variables (or GitHub Secrets) and redeploy:
+                <code>AZURE_OPENAI_ENDPOINT</code>, <code>AZURE_OPENAI_API_KEY</code>,
+                <code>GOOGLE_GEMINI_API_KEY</code>, <code>XAI_GROK_API_KEY</code>,
+                <code>ANTHROPIC_API_KEY</code>.
             </div>
-            <div class="brain-winner-label">
-                Winner: <strong>@WinnerName</strong>
-                <span class="brain-meta">· @_result.TotalMs ms total</span>
-            </div>
-            <div class="brain-supreme-answer">@_result.SupremeAnswer</div>
-        </section>
+        }
+        else
+        {
+            <!-- Supreme Answer -->
+            <section class="brain-supreme-section">
+                <div class="brain-supreme-badge">
+                    <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" width="16" height="16" aria-hidden="true">
+                        <polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/>
+                    </svg>
+                    Supreme Answer
+                </div>
+                <div class="brain-winner-label">
+                    Winner: <strong>@WinnerName</strong>
+                    <span class="brain-meta">· @_result.TotalMs ms total</span>
+                </div>
+                <div class="brain-supreme-answer">@_result.SupremeAnswer</div>
+            </section>
+        }
 
         <!-- Per-model results -->
         <section class="brain-results-section">
@@ -360,6 +375,26 @@
     }
     .result-error { color: #f66; }
 
+    /* ── Configuration warning (all models failed) ───────────────────────── */
+    .brain-config-warning {
+        background: #2a1800;
+        border: 1.5px solid #a05000;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: #f0a050;
+        line-height: 1.6;
+    }
+    .brain-config-warning strong { color: #ffc875; }
+    .brain-config-warning code {
+        background: #1a1000;
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.8rem;
+        color: #ffc875;
+    }
+
     /* ── Demo banner ─────────────────────────────────────────────────────── */
     .brain-demo-banner {
         position: fixed;
@@ -389,6 +424,17 @@
             .FirstOrDefault(m => m.Id == _result?.WinnerId)?.Name
         ?? _result?.WinnerId
         ?? "";
+
+    /// <summary>
+    /// True when the API responded but every model returned an error
+    /// (e.g. API keys are missing).  Used to show a configuration hint
+    /// instead of a blank Supreme Answer box.
+    /// </summary>
+    private bool AllModelsFailed =>
+        _result is not null &&
+        string.IsNullOrWhiteSpace(_result.SupremeAnswer) &&
+        _result.Results.Count > 0 &&
+        _result.Results.All(r => r.Status == "error");
 
     private void ToggleModel(string modelId)
     {
