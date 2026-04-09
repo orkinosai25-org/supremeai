@@ -14,7 +14,7 @@ all Azure resources required to run SupremeAI's AI model integrations.
 | **Serverless endpoints** | Phi-3.5 Mini, Phi-3 Medium 128k, Llama 3.1 70B, Mistral Large, Command R+, Jais 30B |
 | **Storage Account** | Required by AI Foundry Hub |
 | **App Service Plan** | Linux B1 hosting plan for the backend API |
-| **Azure Web App** | ASP.NET Core 9 app with managed identity and Key Vault integration |
+| **Azure Web App** | ASP.NET Core 10 app with managed identity and Key Vault integration |
 
 ## Prerequisites
 
@@ -87,11 +87,30 @@ az keyvault secret set --vault-name $KV_NAME \
 
 az keyvault secret set --vault-name $KV_NAME \
   --name xai-grok-api-key --value "xai-..."
+
+# Optional: direct OpenAI API key (for future use)
+az keyvault secret set --vault-name $KV_NAME \
+  --name openai-api-key --value "sk-..."
 ```
 
-### 2. Configure the backend API
+### 2. App Service Key Vault references
 
-Set the `AZURE_KEYVAULT_URI` environment variable before running the API:
+The App Service is configured with **Key Vault references** for all AI provider
+credentials. The web app's system-assigned managed identity is granted the
+`Key Vault Secrets User` role so it can resolve these references at runtime.
+
+This means environment variables like `ANTHROPIC_API_KEY`, `GOOGLE_GEMINI_API_KEY`,
+`AZURE_OPENAI_API_KEY`, etc. are automatically populated from Key Vault — **no
+manual app setting updates are needed** after storing the secrets.
+
+Example App Setting value set by Bicep:
+```
+ANTHROPIC_API_KEY = @Microsoft.KeyVault(VaultName=supremeaikv;SecretName=anthropic-api-key)
+```
+
+### 3. Configure the backend API (local development)
+
+Set the `AZURE_KEYVAULT_URI` environment variable before running the API locally:
 
 ```bash
 export AZURE_KEYVAULT_URI=$(az keyvault show --name $KV_NAME \
@@ -114,14 +133,27 @@ Or via `appsettings.json` / environment variable in your hosting platform:
 The `SupremeAI.Api` backend reads the following environment variables
 (all are optional – missing keys cause that provider to return an error):
 
-| Variable | Description |
-|---|---|
-| `AZURE_KEYVAULT_URI` | Key Vault URI – used to auto-load all other secrets |
-| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI endpoint URL (read from KV if not set) |
-| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key (read from KV if not set) |
-| `ANTHROPIC_API_KEY` | Anthropic Claude API key |
-| `GOOGLE_GEMINI_API_KEY` | Google Gemini API key |
-| `XAI_GROK_API_KEY` | xAI Grok API key |
+| Variable | Key Vault Secret Name | Description |
+|---|---|---|
+| `AZURE_KEYVAULT_URI` | *(not in KV)* | Key Vault URI – used to auto-load all other secrets in local dev |
+| `AZURE_OPENAI_ENDPOINT` | `azure-openai-endpoint` | Azure OpenAI endpoint URL |
+| `AZURE_OPENAI_API_KEY` | `azure-openai-api-key` | Azure OpenAI API key |
+| `OPENAI_API_KEY` | `openai-api-key` | Direct OpenAI API key (optional, for future use) |
+| `ANTHROPIC_API_KEY` | `anthropic-api-key` | Anthropic Claude API key |
+| `GOOGLE_GEMINI_API_KEY` | `google-gemini-api-key` | Google Gemini API key |
+| `XAI_GROK_API_KEY` | `xai-grok-api-key` | xAI Grok API key |
+| `PHI_35_MINI_ENDPOINT` | `phi-3-5-mini-endpoint` | Azure AI – Phi-3.5 Mini endpoint |
+| `PHI_35_MINI_API_KEY` | `phi-3-5-mini-key` | Azure AI – Phi-3.5 Mini API key |
+| `PHI_3_MEDIUM_ENDPOINT` | `phi-3-medium-endpoint` | Azure AI – Phi-3 Medium endpoint |
+| `PHI_3_MEDIUM_API_KEY` | `phi-3-medium-key` | Azure AI – Phi-3 Medium API key |
+| `LLAMA_31_70B_ENDPOINT` | `llama-3-1-70b-endpoint` | Azure AI – Llama 3.1 70B endpoint |
+| `LLAMA_31_70B_API_KEY` | `llama-3-1-70b-key` | Azure AI – Llama 3.1 70B API key |
+| `MISTRAL_LARGE_ENDPOINT` | `mistral-large-endpoint` | Azure AI – Mistral Large endpoint |
+| `MISTRAL_LARGE_API_KEY` | `mistral-large-key` | Azure AI – Mistral Large API key |
+| `COMMAND_R_PLUS_ENDPOINT` | `command-r-plus-endpoint` | Azure AI – Command R+ endpoint |
+| `COMMAND_R_PLUS_API_KEY` | `command-r-plus-key` | Azure AI – Command R+ API key |
+| `JAIS_30B_ENDPOINT` | `jais-30b-endpoint` | Azure AI – Jais 30B endpoint |
+| `JAIS_30B_API_KEY` | `jais-30b-key` | Azure AI – Jais 30B API key |
 
 ## Supported regions
 
@@ -145,7 +177,7 @@ scripts/azure/
 ├── setup.sh            # Bash setup script
 ├── setup.ps1           # PowerShell setup script
 └── modules/
-    ├── app-service.bicep   # App Service Plan + Web App with managed identity
+    ├── app-service.bicep   # App Service Plan + Web App with managed identity + KV references
     ├── key-vault.bicep     # Key Vault with RBAC
     ├── openai.bicep        # Azure OpenAI + model deployments
     └── ai-foundry.bicep    # AI Foundry Hub/Project + serverless endpoints
