@@ -205,7 +205,6 @@ app.UseRateLimiter();
 app.UseMiddleware<GovernanceMiddleware>();
 app.UseAuthorization();
 
-app.MapRazorPages();
 app.MapControllers();
 
 // Blazor UI is the default for "/"
