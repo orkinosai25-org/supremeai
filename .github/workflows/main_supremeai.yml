@@ -7,13 +7,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,15 +26,32 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./src/SupremeAI.Api
+
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/SupremeAI.Api
+
+      - name: Run tests
+        run: |
+          # Run any test projects discovered under the repo root; skip if none exist.
+          TEST_PROJECTS=$(find "$GITHUB_WORKSPACE" -name "*.Tests.csproj" -o -name "*Tests*.csproj" 2>/dev/null)
+          if [ -n "$TEST_PROJECTS" ]; then
+            echo "$TEST_PROJECTS" | xargs -I{} dotnet test "{}" --configuration Release --verbosity normal
+          else
+            echo "No test projects found – skipping test step."
+          fi
         working-directory: ./src/SupremeAI.Api
 
       - name: dotnet publish
+        if: github.event_name != 'pull_request'
         run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
         working-directory: ./src/SupremeAI.Api
 
       - name: Upload artifact for deployment job
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
@@ -40,8 +60,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    if: github.event_name != 'pull_request'
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - name: Download artifact from build job
