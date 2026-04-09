@@ -197,9 +197,12 @@ app.UseSwaggerUI(options =>
 
 app.UseHttpsRedirection();
 
+// Serve physical static files (CSS, images, etc.) before rate limiting
 app.UseStaticFiles();
-app.UseBlazorFrameworkFiles();
 
+// Explicit routing must come before rate limiting so the rate limiter can read
+// endpoint metadata (e.g. DisableRateLimiting on static-asset endpoints).
+app.UseRouting();
 app.UseCors("BlazorFrontend");
 app.UseRateLimiter();
 app.UseMiddleware<GovernanceMiddleware>();
@@ -207,7 +210,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Serve Blazor framework files and fingerprinted assets via the endpoint manifest.
+// Rate limiting is disabled so the hundreds of WASM assembly downloads don't
+// exhaust the per-IP quota (static file serving is already safe to exempt).
+app.MapStaticAssets().DisableRateLimiting();
+
 // Blazor UI is the default for "/"
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html").DisableRateLimiting();
 
 app.Run();
