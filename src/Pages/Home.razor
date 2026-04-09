@@ -1048,7 +1048,9 @@
             ApiSupremeResponse supremeResult;
             var modelIds = SelectedIds.Count > 0 ? SelectedIds : null;
             var apiResponse = await AiApi.SupremeAsync(prompt, modelIds);
-            supremeResult = apiResponse ?? BuildDemoSupremeResult(prompt);
+            supremeResult = (apiResponse is { SupremeAnswer.Length: > 0 })
+                ? apiResponse
+                : BuildDemoSupremeResult(prompt);
 
             var winnerModel = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
             conv.Responses[0] = new ModelResponse
