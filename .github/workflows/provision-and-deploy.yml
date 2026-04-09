@@ -16,12 +16,17 @@
 #                           When these are absent, provisioning is skipped and only
 #                           deployment (using PUBLISH_PROFILE) will run.
 #
-# Optional secrets (app runs in demo mode when absent):
+# Optional secrets (stored in Key Vault; app runs in demo mode when absent):
 #   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
 #   AZURE_OPENAI_API_KEY  – Pre-existing Azure OpenAI API key
+#   OPENAI_API_KEY        – Direct OpenAI API key (optional, for future use)
 #   ANTHROPIC_API_KEY     – Anthropic Claude API key
 #   GOOGLE_GEMINI_API_KEY – Google Gemini API key
 #   XAI_GROK_API_KEY      – xAI Grok API key
+#
+# Note: Azure AI Foundry model secrets (Phi, Llama, Mistral, etc.) are provisioned
+# automatically by the Bicep templates and stored directly in Key Vault.
+# App Service reads all secrets via Key Vault references in its application settings.
 #
 # Optional repository variables (Settings → Secrets and variables → Variables):
 #   AZURE_RESOURCE_GROUP  – Resource group name          (default: supremeai-rg)
@@ -80,6 +85,7 @@ jobs:
           PUBLISH_PROFILE_SET:       ${{ secrets.PUBLISH_PROFILE != '' }}
           AZURE_OPENAI_ENDPOINT_SET: ${{ secrets.AZURE_OPENAI_ENDPOINT != '' }}
           AZURE_OPENAI_API_KEY_SET:  ${{ secrets.AZURE_OPENAI_API_KEY != '' }}
+          OPENAI_API_KEY_SET:        ${{ secrets.OPENAI_API_KEY != '' }}
           ANTHROPIC_API_KEY_SET:     ${{ secrets.ANTHROPIC_API_KEY != '' }}
           GOOGLE_GEMINI_API_KEY_SET: ${{ secrets.GOOGLE_GEMINI_API_KEY != '' }}
           XAI_GROK_API_KEY_SET:      ${{ secrets.XAI_GROK_API_KEY != '' }}
@@ -139,6 +145,7 @@ jobs:
           OPTIONAL_MISSING=()
           [[ "$AZURE_OPENAI_ENDPOINT_SET" != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
           [[ "$AZURE_OPENAI_API_KEY_SET"  != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
+          [[ "$OPENAI_API_KEY_SET"        != "true" ]] && OPTIONAL_MISSING+=("OPENAI_API_KEY")
           [[ "$ANTHROPIC_API_KEY_SET"     != "true" ]] && OPTIONAL_MISSING+=("ANTHROPIC_API_KEY")
           [[ "$GOOGLE_GEMINI_API_KEY_SET" != "true" ]] && OPTIONAL_MISSING+=("GOOGLE_GEMINI_API_KEY")
           [[ "$XAI_GROK_API_KEY_SET"      != "true" ]] && OPTIONAL_MISSING+=("XAI_GROK_API_KEY")
@@ -275,6 +282,7 @@ jobs:
 
           store_secret "azure-openai-endpoint"  "${{ secrets.AZURE_OPENAI_ENDPOINT }}"
           store_secret "azure-openai-api-key"   "${{ secrets.AZURE_OPENAI_API_KEY }}"
+          store_secret "openai-api-key"          "${{ secrets.OPENAI_API_KEY }}"
           store_secret "anthropic-api-key"       "${{ secrets.ANTHROPIC_API_KEY }}"
           store_secret "google-gemini-api-key"   "${{ secrets.GOOGLE_GEMINI_API_KEY }}"
           store_secret "xai-grok-api-key"        "${{ secrets.XAI_GROK_API_KEY }}"
@@ -304,10 +312,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET 9 SDK
+      - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore NuGet packages
         run: dotnet restore src/SupremeAI.Api/SupremeAI.Api.csproj
