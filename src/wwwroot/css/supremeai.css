@@ -115,6 +115,18 @@ body {
   filter: drop-shadow(0 0 14px rgba(80, 200, 120, 0.4));
 }
 
+.sai-brand-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.2));
+  transition: filter 0.16s ease;
+}
+
+.sai-brand:hover .sai-brand-logo-img {
+  filter: drop-shadow(0 0 14px rgba(80, 200, 120, 0.4));
+}
+
 /* Brand tagline */
 .sai-brand-tagline {
   font-size: 0.65rem;
@@ -1055,6 +1067,15 @@ body {
   width: 80px;
   animation: sai-bounce 1.2s ease-in-out infinite;
   filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.4));
+}
+
+.sai-loading-video {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  animation: sai-bounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.4));
+  border-radius: 12px;
 }
 
 @keyframes sai-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }

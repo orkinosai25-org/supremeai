@@ -19,7 +19,13 @@
     <div id="app">
         <div class="sai-loading">
             <div class="sai-loading-crown">
-                <svg viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg">
+                <video class="sai-loading-video" autoplay muted loop playsinline poster="images/new-logo.jpg"
+                       onerror="this.style.display='none';document.getElementById('sai-crown-fallback').style.display='block'">
+                    <source src="images/new-logo.mp4" type="video/mp4" />
+                </video>
+                <!-- Fallback crown SVG shown when video cannot load -->
+                <svg id="sai-crown-fallback" viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg"
+                     role="img" aria-label="Supreme Model T‑X logo" style="display:none">
                     <defs>
                         <linearGradient id="lg-gold" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stop-color="#FFE566" />
