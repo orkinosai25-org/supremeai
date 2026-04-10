@@ -1,6 +1,6 @@
-# SupremeAI DevOps — User Stories
+# Supreme Model T‑X DevOps — User Stories
 
-This document contains all user stories for the SupremeAI DevOps platform, organised by epic. Each story follows the standard format: *As a [role], I want [feature], so that [benefit].*
+This document contains all user stories for the Supreme Model T‑X DevOps platform, organised by epic. Each story follows the standard format: *As a [role], I want [feature], so that [benefit].*
 
 ---
 

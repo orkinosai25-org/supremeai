@@ -1,0 +1,181 @@
+@page "/pricing"
+@using SupremeAI.Models
+@using SupremeAI.Services
+@inject SubscriptionService Subscription
+@inject NavigationManager Nav
+
+<div class="sai-shell @(IsDark ? "" : "sai-light")">
+
+    <!-- ─── Top Bar ─── -->
+    <header class="sai-topbar">
+        <a href="/" class="sai-brand" aria-label="Supreme Model T‑X home">
+            <img src="images/new-logo.jpg" alt="Supreme Model T‑X" class="sai-brand-logo-img" />
+        </a>
+
+        <div class="sai-topbar-actions">
+            <a href="/" class="sai-icon-btn" style="text-decoration:none;font-size:0.8rem;padding:0.3rem 0.75rem;border-radius:var(--radius-md);border:1px solid var(--sai-border);color:var(--sai-text-sec)">
+                ← Back to App
+            </a>
+            <button class="sai-icon-btn" @onclick="() => IsDark = !IsDark" title="Toggle theme">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (IsDark) { <text>&#x2600;</text> }
+                    else { <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /> }
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ─── Pricing content ─── -->
+    <div class="sai-pricing-page">
+
+        <div class="sai-pricing-hero">
+            <h1 class="sai-pricing-title">Choose Your <span class="sai-gradient-text">Plan</span></h1>
+            <p class="sai-pricing-subtitle">Unlock the full power of multi-model AI — scale from free to enterprise at your own pace.</p>
+        </div>
+
+        <div class="sai-plan-grid">
+            @foreach (var plan in SubscriptionPlans.Plans)
+            {
+                var isActive = Subscription.CurrentPlan.Tier == plan.Tier;
+                <div class="sai-plan-card @(plan.IsPopular ? "popular" : "") @(isActive ? "current" : "")" style="--plan-color:@plan.Color">
+                    @if (plan.IsPopular)
+                    {
+                        <div class="sai-plan-badge">Most Popular</div>
+                    }
+                    @if (isActive)
+                    {
+                        <div class="sai-plan-badge current-badge">Current Plan</div>
+                    }
+                    <div class="sai-plan-header">
+                        <span class="sai-gem-badge @plan.GemClass">@plan.Name</span>
+                        <div class="sai-plan-price">
+                            <span class="sai-plan-amount">@plan.Price</span>
+                            <span class="sai-plan-suffix">@plan.PriceSuffix</span>
+                        </div>
+                        <div class="sai-plan-stats">
+                            <span class="sai-plan-stat">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+                                @plan.MaxModelsText models
+                            </span>
+                            <span class="sai-plan-stat">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                                @plan.MessagesText
+                            </span>
+                        </div>
+                    </div>
+                    <ul class="sai-plan-features">
+                        @foreach (var feature in plan.Features)
+                        {
+                            <li class="sai-plan-feature">
+                                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2" /></svg>
+                                @feature
+                            </li>
+                        }
+                    </ul>
+                    <button class="sai-plan-cta @(isActive ? "active-cta" : "")"
+                            style="@(!isActive ? $"--cta-color:{plan.Color}" : "")"
+                            @onclick="() => ChoosePlan(plan.Tier)"
+                            disabled="@isActive">
+                        @if (isActive) { <span>Current Plan</span> }
+                        else if (plan.Tier == PlanTier.Enterprise) { <span>Contact Sales</span> }
+                        else if (plan.Tier == PlanTier.Free) { <span>Get Started Free</span> }
+                        else { <span>Upgrade to @plan.Name</span> }
+                    </button>
+                </div>
+            }
+        </div>
+
+        <!-- ─── Add-ons ─── -->
+        <div class="sai-addons-section">
+            <h2 class="sai-addons-title">Add-ons</h2>
+            <p class="sai-addons-sub">Enhance any paid plan with flexible extras</p>
+            <div class="sai-addons-grid">
+                @foreach (var addon in SubscriptionPlans.Addons)
+                {
+                    <div class="sai-addon-card">
+                        <div class="sai-addon-name">@addon.Name</div>
+                        <div class="sai-addon-price">@addon.Price</div>
+                        <div class="sai-addon-desc">@addon.Description</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ─── Comparison table ─── -->
+        <div class="sai-compare-section">
+            <h2 class="sai-addons-title">Full Comparison</h2>
+            <div class="sai-compare-wrap">
+                <table class="sai-compare-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            @foreach (var plan in SubscriptionPlans.Plans)
+                            {
+                                <th><span class="sai-gem-badge @plan.GemClass">@plan.Name</span></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Models at once</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@plan.MaxModelsText</td> }
+                        </tr>
+                        <tr>
+                            <td>Messages / day</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@plan.MessagesText</td> }
+                        </tr>
+                        <tr>
+                            <td>High-end models</td>
+                            @foreach (var plan in SubscriptionPlans.Plans)
+                            {
+                                <td>@(plan.AllowedTiers.Contains(ModelTier.Diamond) ? "✓" : "—")</td>
+                            }
+                        </tr>
+                        <tr>
+                            <td>Multimodal</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.Multimodal ? "✓" : "—")</td> }
+                        </tr>
+                        <tr>
+                            <td>File uploads</td>
+                            @foreach (var plan in SubscriptionPlans.Plans)
+                            {
+                                <td>@(plan.MaxUploadMb == 0 ? "—" : plan.MaxUploadMb == -1 ? "Unlimited" : $"{plan.MaxUploadMb} MB")</td>
+                            }
+                        </tr>
+                        <tr>
+                            <td>Video generation</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.VideoGeneration ? "✓" : "—")</td> }
+                        </tr>
+                        <tr>
+                            <td>HD image generation</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.HdImageGeneration ? "✓" : "—")</td> }
+                        </tr>
+                        <tr>
+                            <td>Multi-agent workflows</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.MultiAgentWorkflows ? "✓" : "—")</td> }
+                        </tr>
+                        <tr>
+                            <td>Commercial use</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.CommercialUse ? "✓" : "—")</td> }
+                        </tr>
+                        <tr>
+                            <td>Teams & admin</td>
+                            @foreach (var plan in SubscriptionPlans.Plans) { <td>@(plan.TeamsAndAdmin ? "✓" : "—")</td> }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private bool IsDark = true;
+
+    private void ChoosePlan(PlanTier tier)
+    {
+        Subscription.SelectPlan(tier);
+        Nav.NavigateTo("/");
+    }
+}

@@ -1,0 +1,59 @@
+<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="T-Series sub-brand shield logo">
+  <defs>
+    <linearGradient id="sh-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+    <linearGradient id="sh-emerald" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="sh-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="sh-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="sh-glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Shield outer border with gradient -->
+  <path d="M80 8 L148 32 L148 88 Q148 132 80 154 Q12 132 12 88 L12 32 Z"
+        fill="url(#sh-border)" opacity="0.15"/>
+
+  <!-- Shield body -->
+  <path d="M80 14 L142 36 L142 88 Q142 128 80 148 Q18 128 18 88 L18 36 Z"
+        fill="url(#sh-bg)"/>
+
+  <!-- Shield border stroke -->
+  <path d="M80 14 L142 36 L142 88 Q142 128 80 148 Q18 128 18 88 L18 36 Z"
+        fill="none" stroke="url(#sh-gold)" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Crown inside shield -->
+  <g transform="translate(50, 22)" filter="url(#sh-glow)">
+    <rect x="0" y="26" width="60" height="8" rx="3" fill="url(#sh-gold)" opacity="0.9"/>
+    <polygon points="4,26 4,10 16,18 30,2 44,18 56,10 56,26" fill="url(#sh-gold)"/>
+    <ellipse cx="30" cy="3" rx="5" ry="3.5" fill="#C6E8F5" opacity="0.9"/>
+    <circle cx="5" cy="12" r="3" fill="#50C878" opacity="0.85"/>
+    <circle cx="55" cy="12" r="3" fill="#50C878" opacity="0.85"/>
+  </g>
+
+  <!-- "T" letterform -->
+  <text x="80" y="105" text-anchor="middle"
+        font-family="Georgia,'Times New Roman',serif"
+        font-size="42" font-weight="800"
+        fill="url(#sh-emerald)"
+        filter="url(#sh-glow)">T</text>
+
+  <!-- "‑SERIES" sub-label -->
+  <text x="80" y="124" text-anchor="middle"
+        font-family="'Courier New',Courier,monospace"
+        font-size="9" font-weight="700" letter-spacing="2"
+        fill="url(#sh-gold)">‑SERIES</text>
+</svg>

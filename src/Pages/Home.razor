@@ -1,0 +1,1240 @@
+@page "/"
+@using SupremeAI.Models
+@using SupremeAI.Services
+@inject IJSRuntime JS
+@inject SubscriptionService Subscription
+@inject NavigationManager Nav
+@inject HttpClient Http
+@inject AiApiService AiApi
+@implements IDisposable
+
+<div class="sai-shell @(IsDark ? "" : "sai-light")">
+
+    <!-- ─── Top Bar ─── -->
+    <header class="sai-topbar">
+        <!-- Brand logo (new-logo.jpg) -->
+        <a href="/" class="sai-brand" aria-label="Supreme Model T‑X home">
+            <img src="images/new-logo.jpg" alt="Supreme Model T‑X" class="sai-brand-logo-img" />
+        </a>
+        <span class="sai-brand-tagline" role="text" aria-label="T‑Series Autonomous Governance Models">T‑Series Autonomous Governance Models</span>
+        <nav class="sai-pane-tabs" aria-label="Content panes">
+            @foreach (var (id, label, icon) in PaneDefs)
+            {
+                <button class="sai-pane-tab @(ActivePane == id ? "active" : "")"
+                        @onclick="() => SwitchPane(id)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="tab-icon">
+                        @((MarkupString)icon)
+                    </svg>
+                    @label
+                </button>
+            }
+        </nav>
+
+        <div class="sai-topbar-actions">
+            <button class="sai-icon-btn" @onclick="ToggleTheme" title="Toggle theme">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (IsDark)
+                    {
+                        <text>&#x2600;</text>
+                    }
+                    else
+                    {
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    }
+                </svg>
+            </button>
+            <button class="sai-plans-btn" @onclick='() => Nav.NavigateTo("/pricing")'>
+                <span class="sai-gem-badge @Subscription.CurrentPlan.GemClass" style="font-size:0.65rem;padding:0.1rem 0.4rem">@Subscription.CurrentPlan.Name</span>
+                Plans
+            </button>
+            <button class="sai-signin-btn">Sign In</button>
+        </div>
+    </header>
+
+    <!-- ─── Decision Mode Banner ─── -->
+    <div class="sai-decision-banner" role="region" aria-label="Decision mode">
+        <div class="sai-decision-banner-inner">
+            <span class="sai-decision-banner-label">Decision Mode</span>
+            <div class="sai-decision-opts" role="radiogroup" aria-label="Select decision mode">
+                <label class="sai-decision-opt @(SupremeMode ? "active" : "")"
+                       title="Supreme Model T‑X evaluates multiple AI models to provide the safest and most reliable answer.">
+                    <input type="radio" name="saiDecisionMode" aria-label="Supreme Model T‑X — Default / Recommended" @onchange="@(() => SupremeMode = true)" checked="@SupremeMode" />
+                    <span class="sai-decision-opt-inner">
+                        <svg width="11" height="11" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="sai-decision-crown" aria-hidden="true">
+                            <polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/>
+                        </svg>
+                        <span class="sai-decision-opt-name">Supreme Model T‑X</span>
+                        <span class="sai-decision-recommended">Default / Recommended</span>
+                    </span>
+                </label>
+                <label class="sai-decision-opt @(!SupremeMode ? "active" : "")"
+                       title="Manual mode bypasses Supreme Model T‑X governance and uses a single model only.">
+                    <input type="radio" name="saiDecisionMode" aria-label="Manual Model Selection" @onchange="@(() => SupremeMode = false)" checked="@(!SupremeMode)" />
+                    <span class="sai-decision-opt-inner">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="sai-decision-manual-icon" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                        </svg>
+                        <span class="sai-decision-opt-name">Manual Model Selection</span>
+                    </span>
+                </label>
+            </div>
+            @if (SupremeMode)
+            {
+                <span class="sai-decision-desc">Powered by Model T‑101 Judgment Engine — evaluates multiple AI models to provide the safest and most reliable answer.</span>
+            }
+            else
+            {
+                <span class="sai-decision-manual-warn">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Manual mode bypasses Supreme Model T‑X governance and uses a single model only.
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- ─── Body ─── -->
+    <div class="sai-body">
+
+        <!-- ─── Upgrade prompt overlay ─── -->
+        @if (ShowUpgradePrompt)
+        {
+            <div class="sai-upgrade-overlay" @onclick="() => ShowUpgradePrompt = false">
+                <div class="sai-upgrade-modal" @onclick:stopPropagation="true">
+                    <button class="sai-upgrade-close" @onclick="() => ShowUpgradePrompt = false" aria-label="Close">
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                    </button>
+                    <div class="sai-upgrade-icon">🔒</div>
+                    <h3 class="sai-upgrade-title">@UpgradePromptTitle</h3>
+                    <p class="sai-upgrade-desc">@UpgradePromptDesc</p>
+                    <button class="sai-upgrade-cta" @onclick="GoToPricing">View Plans</button>
+                </div>
+            </div>
+        }
+
+        <!-- ─── Model Sidebar ─── -->
+        <aside class="sai-model-sidebar" aria-label="Model selection">
+
+            <div class="sai-sidebar-header">
+                <h2 class="sai-sidebar-title">Models</h2>
+                @if (!SupremeMode)
+                {
+                    <span class="sai-count-badge">@CountBadgeText</span>
+                }
+            </div>
+
+            @if (SupremeMode)
+            {
+                <div class="sai-supreme-model-note">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Supreme Model T‑X will evaluate multiple models and select the best answer.
+                </div>
+                <div class="sai-model-list-overlay">
+                    <ul class="sai-model-list sai-model-list--dimmed" role="listbox" aria-label="Models auto-selected by Supreme Model T‑X" aria-disabled="true">
+                        @foreach (var model in ModelCatalogue.ChatModels.Where(m => !m.ComingSoon).Take(5))
+                        {
+                            <li class="sai-model-item sai-model-item--auto" role="option" aria-selected="false" tabindex="-1">
+                                <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                                <div class="sai-model-info">
+                                    <div class="sai-model-name">@model.Name</div>
+                                    <div class="sai-model-provider">@model.Provider</div>
+                                </div>
+                                <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="sai-model-list-lock-banner" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="gold"/></svg>
+                        Auto-selected by Supreme Model T‑X
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="sai-select-row">
+                    <button class="sai-select-btn" @onclick="SelectAll">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 6 5 10 11 2" /></svg>
+                        Select All
+                    </button>
+                    <button class="sai-select-btn secondary" @onclick="ClearAll">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                        Clear All
+                    </button>
+                </div>
+                <div class="sai-preset-row" role="group">
+                    @foreach (var mode in new[] { "all", "default", "custom" })
+                    {
+                        <button class="sai-preset-btn @(SelectionMode == mode ? "active" : "")"
+                                @onclick="() => ApplyMode(mode)">
+                            @(char.ToUpper(mode[0]) + mode[1..])
+                        </button>
+                    }
+                </div>
+                <ul class="sai-model-list" role="listbox" aria-multiselectable="true">
+                    @foreach (var model in ModelCatalogue.ChatModels)
+                    {
+                        var isSelected = SelectedIds.Contains(model.Id);
+                        var isLocked = !Subscription.IsModelAllowed(model.Id);
+                        <li class="sai-model-item @(isSelected ? "selected" : "") @(isLocked ? "locked" : "")"
+                            role="option" aria-selected="@isSelected" tabindex="0"
+                            @onclick="() => ToggleModel(model.Id)"
+                            @onkeydown="(e) => HandleModelKey(e, model.Id)">
+                            <div class="sai-checkbox">
+                                @if (isLocked)
+                                {
+                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                                }
+                                else
+                                {
+                                    <svg class="sai-checkbox-check" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="1 6 5 10 11 2" />
+                                    </svg>
+                                }
+                            </div>
+                            <div class="sai-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-info">
+                                <div class="sai-model-name">
+                                    @model.Name@if (model.ComingSoon) {<span style="font-size:0.62em;opacity:0.5"> (soon)</span>}
+                                </div>
+                                <div class="sai-model-provider">@model.Provider</div>
+                            </div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </aside>
+
+        <!-- CHAT PANE -->
+        <section class="sai-pane @(ActivePane == "chat" ? "active" : "")" aria-label="Chat">
+            @if (Conversations.Count > 0 && Conversations.Last().Responses.Count > 1)
+            {
+                <div class="sai-resp-header">
+                    <div class="sai-resp-tabs" role="tablist">
+                        @foreach (var resp in Conversations.Last().Responses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
+                            <button class="sai-resp-tab" role="tab">
+                                <span class="sai-tab-dot" style="background:@(m?.Color ?? "#888")"></span>
+                                @(m?.Name ?? resp.ModelId)
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="sai-response-grid @GridColClass">
+                @if (!Conversations.Any())
+                {
+                    <div class="sai-empty">
+                        <video class="sai-empty-video" autoplay muted loop playsinline poster="images/new-logo.jpg"
+                               role="img" aria-label="Supreme Model T‑X logo"
+                               onerror="this.style.display='none'">
+                            <source src="images/new-logo.mp4" type="video/mp4" />
+                        </video>
+                        <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">Supreme Model T‑X</span></p>
+                        <p class="sai-empty-sub">@(SupremeMode ? "Supreme Model T‑X evaluates multiple models, compares their reasoning, and selects the best answer." : "Select models on the left, then type your prompt. Compare AI responses side by side.")</p>
+                        <div class="sai-chips">
+                            @foreach (var (text, lbl) in SuggestionChips)
+                            {
+                                <button class="sai-chip" @onclick="() => SetSuggestion(text)">@lbl</button>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var (conv, convIdx) in Conversations.Select((c, i) => (c, i)))
+                    {
+                        var supremeResult = convIdx < ConvSupremeResults.Count ? ConvSupremeResults[convIdx] : null;
+
+                        @if (supremeResult is not null)
+                        {
+                            var winnerModel    = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
+                            var topScore       = supremeResult.Results.Count > 0 ? supremeResult.Results.Max(r => r.Score) : 0.0;
+                            var confidence     = topScore / 10.0;
+                            var confidenceLbl  = confidence >= 0.85 ? "High" : confidence >= 0.65 ? "Medium" : "Low";
+                            var isExpanded     = _whyExpandedConvs.Contains(convIdx);
+                            var resp           = conv.Responses[0];
+                            <div class="sai-supreme-card-wrap">
+                                <!-- Authority badge -->
+                                <div class="sai-supreme-decided @(resp.Status == "loading" ? "loading" : "")"
+                                     role="button" tabindex="0" title="Click to see why Supreme Model T‑X chose this answer"
+                                     @onclick="() => ToggleWhyExpanded(convIdx)"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") ToggleWhyExpanded(convIdx); })"
+                                     aria-expanded="@isExpanded.ToString().ToLowerInvariant()">
+                                    <svg width="13" height="13" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
+                                    <span>Decided by Supreme Model T‑X</span>
+                                    @if (resp.Status == "done")
+                                    {
+                                        <span class="sai-confidence-pill">Confidence: @confidenceLbl (@confidence.ToString("F2"))</span>
+                                        @if (winnerModel is not null)
+                                        {
+                                            <span class="sai-decided-winner">· @winnerModel.Name</span>
+                                        }
+                                    }
+                                    <span class="sai-why-toggle" aria-hidden="true">@(isExpanded ? "▾" : "▸") Why this answer?</span>
+                                </div>
+
+                                <!-- Answer card -->
+                                <div class="sai-card sai-card--supreme" @onclick="() => OpenDetailPanel(resp, winnerModel)" role="button" tabindex="0"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, winnerModel); })"
+                                     aria-label="@($"View full Supreme Model T‑X answer from {winnerModel?.Name ?? resp.ModelId}")">
+                                    <div class="sai-card-header">
+                                        <div class="sai-card-logo" style="background:@(winnerModel?.Color ?? "#888")20;color:@(winnerModel?.Color ?? "#888")">@(winnerModel?.Initial ?? "?")</div>
+                                        <span class="sai-card-model-name">@(winnerModel?.Name ?? resp.ModelId)</span>
+                                        @if (winnerModel is not null)
+                                        {
+                                            <span class="sai-gem-badge @winnerModel.TierCssClass" style="margin-right:0.2rem">@winnerModel.TierLabel</span>
+                                        }
+                                        <div class="sai-card-status @resp.Status"></div>
+                                        <span class="sai-card-expand-hint" aria-hidden="true">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                        </span>
+                                    </div>
+                                    <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
+                                        @if (resp.Status == "loading")
+                                        {
+                                            <span class="sai-skeleton sai-skeleton-md"></span>
+                                            <span class="sai-skeleton sai-skeleton-lg"></span>
+                                            <span class="sai-skeleton sai-skeleton-sm"></span>
+                                        }
+                                        else { @resp.Text }
+                                    </div>
+                                    <div class="sai-card-footer">
+                                        <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-supreme.txt")'>Download</button>
+                                    </div>
+                                </div>
+
+                                <!-- Why this answer? expandable panel -->
+                                @if (isExpanded && resp.Status == "done")
+                                {
+                                    <div class="sai-why-panel" role="region" aria-label="Supreme Model T‑X decision explanation">
+                                        <div class="sai-why-header">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            Why this answer?
+                                        </div>
+                                        <p class="sai-why-desc">Supreme Model T‑X evaluated @supremeResult.Results.Count model@(supremeResult.Results.Count == 1 ? "" : "s") and selected the highest-scoring answer.</p>
+                                        <div class="sai-why-models">
+                                            @foreach (var r in supremeResult.Results.OrderByDescending(x => x.Score))
+                                            {
+                                                var m         = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == r.ModelId);
+                                                var mColor    = m?.Color ?? "#888";
+                                                var isWinner  = r.ModelId == supremeResult.WinnerId;
+                                                <div class="sai-why-model-row @(isWinner ? "winner" : "")">
+                                                    <div class="sai-why-model-logo" style="background:@(mColor)20;color:@mColor">@ModelInitial(r.ModelId, m)</div>
+                                                    <span class="sai-why-model-name">@(m?.Name ?? r.ModelId)</span>
+                                                    @if (isWinner) { <span class="sai-why-winner-star" title="Winner">★</span> }
+                                                    <div class="sai-why-score-bar-wrap">
+                                                        <div class="sai-why-score-bar" style="width:@(r.Score * 10)%;background:@mColor"></div>
+                                                    </div>
+                                                    <span class="sai-why-score-val">@r.Score.ToString("F1")</span>
+                                                    <span class="sai-why-ms">@r.Ms ms</span>
+                                                </div>
+                                            }
+                                        </div>
+                                        <p class="sai-why-rationale">
+                                            <strong>@(winnerModel?.Name ?? supremeResult.WinnerId)</strong> scored <strong>@topScore.ToString("F1")/10</strong> — the highest among all evaluated models — giving a confidence of <strong>@confidenceLbl (@confidence.ToString("P0"))</strong>.
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var resp in conv.Responses)
+                            {
+                                var model = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == resp.ModelId);
+                                <div class="sai-card" @onclick="() => OpenDetailPanel(resp, model)" role="button" tabindex="0"
+                                     @onkeydown="@(e => { if (e.Key is "Enter" or " ") OpenDetailPanel(resp, model); })"
+                                     aria-label="@($"View full response from {model?.Name ?? resp.ModelId}")">
+                                    <div class="sai-card-header">
+                                        <div class="sai-card-logo" style="background:@(model?.Color ?? "#888")20;color:@(model?.Color ?? "#888")">@(model?.Initial ?? "?")</div>
+                                        <span class="sai-card-model-name">@(model?.Name ?? resp.ModelId)</span>
+                                        @if (model is not null)
+                                        {
+                                            <span class="sai-gem-badge @model.TierCssClass" style="margin-right:0.2rem">@model.TierLabel</span>
+                                        }
+                                        <div class="sai-card-status @resp.Status"></div>
+                                        <span class="sai-card-expand-hint" aria-hidden="true">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                        </span>
+                                    </div>
+                                    <div class="sai-card-body @(resp.Status == "loading" ? "thinking" : "")">
+                                        @if (resp.Status == "loading")
+                                        {
+                                            <span class="sai-skeleton sai-skeleton-md"></span>
+                                            <span class="sai-skeleton sai-skeleton-lg"></span>
+                                            <span class="sai-skeleton sai-skeleton-sm"></span>
+                                        }
+                                        else { @resp.Text }
+                                    </div>
+                                    <div class="sai-card-footer">
+                                        <span>@(resp.Status == "done" ? $"~{resp.Tokens} tokens · {resp.Ms / 1000.0:F1}s" : "—")</span>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick="() => CopyText(resp.Text)">Copy</button>
+                                        <button class="sai-card-action-btn" @onclick:stopPropagation="true" @onclick='() => DownloadText(resp.Text, $"response-{resp.ModelId}.txt")'>Download</button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                }
+            </div>
+            <div class="sai-prompt-wrap">
+                <div class="sai-prompt-context">
+                    <span class="sai-context-tag">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                        Chat
+                    </span>
+                    <span class="sai-context-div">·</span>
+                    @if (SupremeMode)
+                    {
+                        <span class="sai-context-supreme">
+                            <svg width="10" height="10" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:middle"><polygon points="10,1 12.9,7 19.5,7.6 14.75,11.8 16.2,18.4 10,14.9 3.8,18.4 5.25,11.8 0.5,7.6 7.1,7" fill="currentColor"/></svg>
+                            Supreme Model T‑X Mode
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="sai-context-models">@ModelContextText</span>
+                    }
+                </div>
+                @if (!SupremeMode)
+                {
+                    <div class="sai-manual-mode-hint">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Manual mode bypasses Supreme Model T‑X governance and uses a single model only.
+                    </div>
+                }
+                <div class="sai-prompt-form">
+                    <textarea class="sai-prompt-input" rows="1"
+                              placeholder="@(SupremeMode ? "Ask Supreme Model T‑X — evaluates all models and selects the best answer…" : "Ask all selected models…")"
+                              maxlength="8000" @bind="ChatPrompt" @bind:event="oninput"
+                              @onkeydown="HandlePromptKey"></textarea>
+                    <span class="sai-char-count">@ChatPrompt.Length.ToString("N0") / 8,000</span>
+                    <button class="sai-send-btn" @onclick="SubmitChatPrompt" disabled="@(!CanSend)" aria-label="Send">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- IMAGES PANE -->
+        <section class="sai-pane @(ActivePane == "images" ? "active" : "")" aria-label="Image generation">
+            <div class="sai-pane-inner">
+                @if (!Subscription.CurrentPlan.Multimodal)
+                {
+                    <div class="sai-pane-locked">
+                        <div class="sai-pane-locked-box">
+                            <div class="sai-upgrade-icon">🖼️🔒</div>
+                            <h3 class="sai-upgrade-title">Image generation requires a multimodal plan</h3>
+                            <p class="sai-upgrade-desc">Image generation requires a multimodal plan. Upgrade to <strong>Pro</strong>, <strong>Creative</strong>, or <strong>Enterprise</strong> to generate images with DALL-E 3 and more.</p>
+                            <button class="sai-upgrade-cta" @onclick='() => Nav.NavigateTo("/pricing")'>View Plans</button>
+                        </div>
+                    </div>
+                }
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon images">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Image Generation</h2><p class="sai-pane-subtitle">Create stunning visuals with Azure AI vision models</p></div>
+                </div>
+                <div class="sai-model-cards-grid">
+                    @foreach (var model in ModelCatalogue.ImageModels)
+                    {
+                        <div class="sai-model-card @(SelectedImageModelId == model.Id ? "selected" : "")" @onclick="() => SelectedImageModelId = model.Id">
+                            <div class="sai-model-card-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-card-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="sai-model-card-provider">@model.Provider</div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+                <div class="sai-results-area">
+                    @if (string.IsNullOrEmpty(ImageResult))
+                    {
+                        <div class="sai-pane-empty">Select a model above and describe an image to generate</div>
+                    }
+                    else
+                    {
+                        var imgModel = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+                        <div class="sai-card" style="max-width:520px;margin:0 auto">
+                            <div class="sai-card-header">
+                                <div class="sai-card-logo" style="background:@(imgModel?.Color ?? "#888")20;color:@(imgModel?.Color ?? "#888")">@(imgModel?.Initial ?? "?")</div>
+                                <span class="sai-card-model-name">@(imgModel?.Name ?? SelectedImageModelId)</span>
+                                <div class="sai-card-status @ImageGenStatus"></div>
+                            </div>
+                            <div class="sai-card-body">@((MarkupString)ImageResult)</div>
+                            <div class="sai-card-footer">
+                                <span></span>
+                                <button class="sai-card-action-btn" disabled="@string.IsNullOrEmpty(ImageDownloadUrl)" @onclick="DownloadImage">Download</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="A majestic mountain landscape at golden hour, photorealistic…"
+                                  @bind="ImagePrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="sai-select" @bind="ImageStyle">
+                            <option value="vivid">Vivid</option><option value="natural">Natural</option>
+                            <option value="cinematic">Cinematic</option><option value="anime">Anime</option>
+                        </select>
+                        <button class="sai-send-btn" @onclick="SubmitImagePrompt" disabled="@string.IsNullOrWhiteSpace(ImagePrompt)" aria-label="Generate image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" /><polyline points="21 15 16 10 5 21" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEO PANE -->
+        <section class="sai-pane @(ActivePane == "video" ? "active" : "")" aria-label="Video generation">
+            <div class="sai-pane-inner">
+                @if (!Subscription.CurrentPlan.VideoGeneration)
+                {
+                    <div class="sai-pane-locked">
+                        <div class="sai-pane-locked-box">
+                            <div class="sai-upgrade-icon">🎬🔒</div>
+                            <h3 class="sai-upgrade-title">Video generation requires Creative or above</h3>
+                            <p class="sai-upgrade-desc">Upgrade to <strong>Creative</strong> or <strong>Enterprise</strong> to generate videos with Runway, Pika, and Sora.</p>
+                            <button class="sai-upgrade-cta" @onclick='() => Nav.NavigateTo("/pricing")'>View Plans</button>
+                        </div>
+                    </div>
+                }
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon video">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Video Generation</h2><p class="sai-pane-subtitle">Generate AI-powered video clips from text prompts</p></div>
+                </div>
+                <div class="sai-model-cards-grid">
+                    @foreach (var model in ModelCatalogue.VideoModels)
+                    {
+                        <div class="sai-model-card @(SelectedVideoModelId == model.Id ? "selected" : "")" @onclick="() => SelectedVideoModelId = model.Id">
+                            <div class="sai-model-card-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="sai-model-card-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="sai-model-card-provider">@model.Provider</div>
+                            <span class="sai-gem-badge @model.TierCssClass">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+                <div class="sai-results-area">
+                    @if (string.IsNullOrEmpty(VideoResult))
+                    {
+                        <div class="sai-pane-empty">Select a model above and describe a video scene to create</div>
+                    }
+                    else
+                    {
+                        var vidModel = ModelCatalogue.VideoModels.FirstOrDefault(x => x.Id == SelectedVideoModelId);
+                        <div class="sai-card" style="max-width:520px;margin:0 auto">
+                            <div class="sai-card-header">
+                                <div class="sai-card-logo" style="background:@(vidModel?.Color ?? "#888")20;color:@(vidModel?.Color ?? "#888")">@(vidModel?.Initial ?? "?")</div>
+                                <span class="sai-card-model-name">@(vidModel?.Name ?? SelectedVideoModelId)</span>
+                                <div class="sai-card-status @VideoGenStatus"></div>
+                            </div>
+                            <div class="sai-card-body">@((MarkupString)VideoResult)</div>
+                            <div class="sai-card-footer">
+                                <span></span>
+                                <button class="sai-card-action-btn" disabled="@string.IsNullOrEmpty(VideoDownloadUrl)" @onclick="DownloadVideo">Download</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="A time-lapse of a city skyline at sunset with moving clouds…"
+                                  @bind="VideoPrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="sai-select" @bind="VideoDuration">
+                            <option value="5s">5 sec</option><option value="10s">10 sec</option><option value="30s">30 sec</option>
+                        </select>
+                        <button class="sai-send-btn" @onclick="SubmitVideoPrompt" disabled="@string.IsNullOrWhiteSpace(VideoPrompt)" aria-label="Generate video">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CREATIVE WRITING PANE -->
+        <section class="sai-pane @(ActivePane == "creative" ? "active" : "")" aria-label="Creative writing">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon creative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Creative Writing</h2><p class="sai-pane-subtitle">Stories, poetry, scripts, and imaginative content</p></div>
+                </div>
+                <div class="sai-style-chips">
+                    @foreach (var (id, lbl) in CreativeStyles)
+                    {
+                        <button class="sai-style-chip @(CreativeStyle == id ? "active" : "")" @onclick="() => CreativeStyle = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-response-grid @(CreativeResponses.Count >= 2 ? "cols-2" : "cols-1")" style="flex:1;overflow-y:auto">
+                    @if (!CreativeResponses.Any())
+                    {
+                        <div class="sai-pane-empty" style="grid-column:1/-1">Choose a writing style above and describe what you'd like to create</div>
+                    }
+                    else
+                    {
+                        @foreach (var (modelId, text, done) in CreativeResponses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == modelId);
+                            <div class="sai-card">
+                                <div class="sai-card-header">
+                                    <div class="sai-card-logo" style="background:@(m?.Color ?? "#888")20;color:@(m?.Color ?? "#888")">@(m?.Initial ?? "?")</div>
+                                    <span class="sai-card-model-name">@(m?.Name ?? modelId)</span>
+                                    <div class="sai-card-status @(done ? "done" : "loading")"></div>
+                                </div>
+                                <div class="sai-card-body @(done ? "" : "thinking")">
+                                    @if (!done)
+                                    {
+                                        <span class="sai-skeleton sai-skeleton-lg"></span>
+                                        <span class="sai-skeleton sai-skeleton-md"></span>
+                                    }
+                                    else { @text }
+                                </div>
+                                <div class="sai-card-footer">
+                                    <span style="font-size:0.7rem;color:var(--sai-text-muted)">✍️ @CreativeStyle</span>
+                                    <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick='() => DownloadText(text, $"{CreativeStyle}-{modelId}.txt")'>Download</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="What would you like to write? Give a theme, characters, or brief…"
+                                  @bind="CreativePrompt" @bind:event="oninput" maxlength="8000"></textarea>
+                        <button class="sai-send-btn" @onclick="SubmitCreativePrompt" disabled="@string.IsNullOrWhiteSpace(CreativePrompt)" aria-label="Write">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CODE PANE -->
+        <section class="sai-pane @(ActivePane == "code" ? "active" : "")" aria-label="Code assistant">
+            <div class="sai-pane-inner">
+                <div class="sai-pane-header">
+                    <div class="sai-pane-icon code">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+                    </div>
+                    <div><h2 class="sai-pane-title">Code Assistant</h2><p class="sai-pane-subtitle">Write, explain, debug, and review code with AI</p></div>
+                </div>
+                <div class="sai-style-chips">
+                    @foreach (var (id, lbl) in CodeLanguages)
+                    {
+                        <button class="sai-style-chip @(CodeLang == id ? "active" : "")" @onclick="() => CodeLang = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-style-chips" style="padding-top:0.3rem">
+                    @foreach (var (id, lbl) in CodeTasks)
+                    {
+                        <button class="sai-style-chip @(CodeTask == id ? "active" : "")" @onclick="() => CodeTask = id">@lbl</button>
+                    }
+                </div>
+                <div class="sai-response-grid @(CodeResponses.Count >= 2 ? "cols-2" : "cols-1")" style="flex:1;overflow-y:auto">
+                    @if (!CodeResponses.Any())
+                    {
+                        <div class="sai-pane-empty" style="grid-column:1/-1">Pick a language and task above, then describe what you need</div>
+                    }
+                    else
+                    {
+                        @foreach (var (modelId, text, done) in CodeResponses)
+                        {
+                            var m = ModelCatalogue.ChatModels.FirstOrDefault(x => x.Id == modelId);
+                            <div class="sai-card">
+                                <div class="sai-card-header">
+                                    <div class="sai-card-logo" style="background:@(m?.Color ?? "#888")20;color:@(m?.Color ?? "#888")">@(m?.Initial ?? "?")</div>
+                                    <span class="sai-card-model-name">@(m?.Name ?? modelId)</span>
+                                    <div class="sai-card-status @(done ? "done" : "loading")"></div>
+                                </div>
+                                <div class="sai-card-body @(done ? "" : "thinking")" style="font-family:var(--font-mono);font-size:0.85rem">
+                                    @if (!done)
+                                    {
+                                        <span class="sai-skeleton sai-skeleton-lg"></span>
+                                        <span class="sai-skeleton sai-skeleton-sm"></span>
+                                    }
+                                    else { @text }
+                                </div>
+                                <div class="sai-card-footer">
+                                    <span style="font-size:0.7rem;color:var(--sai-text-muted)">💻 @CodeLang · @CodeTask</span>
+                                    <button class="sai-card-action-btn" @onclick="() => CopyText(text)">Copy</button>
+                                    <button class="sai-card-action-btn" @onclick="() => DownloadCode(text, modelId)">Download</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="sai-prompt-wrap">
+                    <div class="sai-prompt-form">
+                        <textarea class="sai-prompt-input" rows="1" placeholder="Describe what you need, or paste code to explain / debug…"
+                                  @bind="CodePrompt" @bind:event="oninput" maxlength="8000"></textarea>
+                        <button class="sai-send-btn" @onclick="SubmitCodePrompt" disabled="@string.IsNullOrWhiteSpace(CodePrompt)" aria-label="Generate code">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── Response Detail Panel (Azure/M365 slide-up bottom pane) ─── -->
+        @if (DetailPanelOpen && DetailPanelResponse is not null)
+        {
+            <div class="sai-detail-backdrop" @onclick="CloseDetailPanel" role="presentation"></div>
+            <aside class="sai-detail-panel" @ref="DetailPanelRef" tabindex="-1"
+                   role="dialog" aria-modal="true" aria-label="Full response"
+                   @onkeydown="HandleDetailPanelKey">
+                <div class="sai-detail-panel-handle" aria-hidden="true"></div>
+                <div class="sai-detail-panel-header">
+                    @if (DetailPanelModel is not null)
+                    {
+                        <div class="sai-card-logo" style="background:@(DetailPanelModel.Color)20;color:@DetailPanelModel.Color">@DetailPanelModel.Initial</div>
+                    }
+                    <span class="sai-detail-panel-title">@(DetailPanelModel?.Name ?? DetailPanelResponse.ModelId)</span>
+                    @if (DetailPanelModel is not null)
+                    {
+                        <span class="sai-gem-badge @DetailPanelModel.TierCssClass">@DetailPanelModel.TierLabel</span>
+                    }
+                    <div class="sai-card-status @DetailPanelResponse.Status"></div>
+                    <button class="sai-detail-panel-close" @onclick="CloseDetailPanel" aria-label="Close">
+                        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" /></svg>
+                    </button>
+                </div>
+                <div class="sai-detail-panel-body">@DetailPanelResponse.Text</div>
+                <div class="sai-detail-panel-footer">
+                    <span>@(DetailPanelResponse.Status == "done" ? $"~{DetailPanelResponse.Tokens} tokens · {DetailPanelResponse.Ms / 1000.0:F1}s" : "—")</span>
+                    <button class="sai-card-action-btn" @onclick="() => CopyText(DetailPanelResponse.Text)">Copy</button>
+                    <button class="sai-card-action-btn" @onclick='() => DownloadText(DetailPanelResponse.Text, $"response-{DetailPanelResponse.ModelId}.txt")'>Download</button>
+                </div>
+            </aside>
+        }
+
+    </div>
+</div>
+
+@code {
+    private bool IsDark = true;
+    private string ActivePane = "chat";
+    private string SelectionMode = "all";
+    private HashSet<string> SelectedIds = new(ModelCatalogue.ChatModels.Select(m => m.Id));
+    private List<Conversation> Conversations = [];
+    private List<ApiSupremeResponse?> ConvSupremeResults = [];
+    private HashSet<int> _whyExpandedConvs = [];
+    private bool SupremeMode = true;
+    private string ChatPrompt = "";
+    private string SelectedImageModelId = ModelCatalogue.ImageModels[0].Id;
+    private string ImagePrompt = "";
+    private string ImageStyle = "vivid";
+    private string ImageResult = "";
+    private string ImageDownloadUrl = "";
+    private string ImageGenStatus = "loading";
+    private string SelectedVideoModelId = ModelCatalogue.VideoModels[1].Id;
+    private string VideoPrompt = "";
+    private string VideoDuration = "5s";
+    private bool ShowUpgradePrompt = false;
+    private string UpgradePromptTitle = "";
+    private string UpgradePromptDesc = "";
+    private string VideoResult = "";
+    private string VideoDownloadUrl = "";
+    private string VideoGenStatus = "loading";
+    private string CreativeStyle = "story";
+    private string CreativePrompt = "";
+    private List<(string ModelId, string Text, bool Done)> CreativeResponses = [];
+    private string CodeLang = "any";
+    private string CodeTask = "write";
+    private string CodePrompt = "";
+    private List<(string ModelId, string Text, bool Done)> CodeResponses = [];
+
+    // ─── Response detail panel (Azure/M365 bottom pane) ───
+    private ModelResponse? DetailPanelResponse = null;
+    private AiModel? DetailPanelModel = null;
+    private bool DetailPanelOpen = false;
+    private ElementReference DetailPanelRef;
+
+    private static readonly (string id, string label, string icon)[] PaneDefs =
+    [
+        ("chat",     "Chat",     "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>"),
+        ("images",   "Images",   "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><polyline points=\"21 15 16 10 5 21\"/>"),
+        ("video",    "Video",    "<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>"),
+        ("creative", "Creative", "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z\"/>"),
+        ("code",     "Code",     "<polyline points=\"16 18 22 12 16 6\"/><polyline points=\"8 6 2 12 8 18\"/>"),
+    ];
+
+    private static readonly (string id, string label)[] CreativeStyles =
+    [
+        ("story","📖 Story"),("poem","🌸 Poem"),("script","🎬 Script"),
+        ("blog","📝 Blog Post"),("email","✉️ Email"),("pitch","💼 Pitch"),("lyrics","🎵 Lyrics"),
+    ];
+
+    private static readonly (string id, string label)[] CodeLanguages =
+    [
+        ("any","⚡ Any"),("python","🐍 Python"),("typescript","🔷 TypeScript"),
+        ("javascript","🟡 JavaScript"),("rust","🦀 Rust"),("go","🐹 Go"),
+        ("java","☕ Java"),("csharp","💜 C#"),("sql","🗃️ SQL"),
+    ];
+
+    private static readonly (string id, string label)[] CodeTasks =
+    [
+        ("write","✍️ Write"),("explain","🔍 Explain"),("debug","🐛 Debug"),
+        ("review","👁️ Review"),("test","✅ Tests"),("optimize","⚡ Optimize"),
+    ];
+
+    private static readonly (string text, string label)[] SuggestionChips =
+    [
+        ("Explain quantum computing in simple terms","💡 Explain quantum computing"),
+        ("Write a Python function to sort a list of dicts","🐍 Python sort function"),
+        ("What are the biggest AI breakthroughs in 2025?","🚀 AI breakthroughs 2025"),
+        ("Compare AWS vs Azure vs GCP for a startup","☁️ Cloud provider comparison"),
+    ];
+
+    private string CountBadgeText => SelectionMode == "all" ? "All" : SelectedIds.Count.ToString();
+    private string ModelContextText =>
+        SelectionMode == "all" ? "All models selected" :
+        SelectedIds.Count == 1 ? "1 model selected" : $"{SelectedIds.Count} models selected";
+    private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && (SupremeMode || SelectedIds.Count > 0);
+    private string GridColClass
+    {
+        get
+        {
+            if (!Conversations.Any()) return "cols-1";
+            // SupremeAI mode always renders single-column cards
+            var lastSupreme = ConvSupremeResults.Count > 0 ? ConvSupremeResults[^1] : null;
+            if (lastSupreme is not null) return "cols-1";
+            var n = Conversations.Last().Responses.Count;
+            return $"cols-{Math.Min(n, 3)}";
+        }
+    }
+
+    private void ToggleTheme() => IsDark = !IsDark;
+    private void SwitchPane(string pane) => ActivePane = pane;
+    private void GoToPricing() { ShowUpgradePrompt = false; Nav.NavigateTo("/pricing"); }
+
+    private void OpenDetailPanel(ModelResponse resp, AiModel? model)
+    {
+        DetailPanelResponse = resp;
+        DetailPanelModel = model;
+        DetailPanelOpen = true;
+    }
+
+    private void CloseDetailPanel()
+    {
+        DetailPanelOpen = false;
+        DetailPanelResponse = null;
+        DetailPanelModel = null;
+    }
+
+    private void HandleDetailPanelKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") CloseDetailPanel();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (DetailPanelOpen)
+        {
+            try { await DetailPanelRef.FocusAsync(); } catch { /* element may not be in DOM yet */ }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Subscription.OnPlanChanged += OnPlanChanged;
+        EnforceCurrentPlanLimits();
+    }
+
+    public void Dispose() => Subscription.OnPlanChanged -= OnPlanChanged;
+
+    private void OnPlanChanged()
+    {
+        EnforceCurrentPlanLimits();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void EnforceCurrentPlanLimits()
+    {
+        var plan = Subscription.CurrentPlan;
+        // Remove models not allowed by the new plan
+        SelectedIds.RemoveWhere(id => !Subscription.IsModelAllowed(id));
+        // Trim to the max allowed count
+        if (plan.MaxModels > 0 && SelectedIds.Count > plan.MaxModels)
+        {
+            var trimmed = SelectedIds.Take(plan.MaxModels).ToHashSet();
+            SelectedIds = trimmed;
+        }
+        if (SelectedIds.Count == 0)
+        {
+            var fallback = ModelCatalogue.ChatModels.FirstOrDefault(m => !m.ComingSoon && plan.AllowedTiers.Contains(m.Tier))?.Id ?? "";
+            if (!string.IsNullOrEmpty(fallback)) SelectedIds.Add(fallback);
+        }
+        SelectionMode = "custom";
+    }
+
+    private void ToggleModel(string id)
+    {
+        if (SelectedIds.Contains(id))
+        {
+            if (SelectedIds.Count == 1) return;
+            SelectedIds.Remove(id);
+        }
+        else
+        {
+            if (!Subscription.IsModelAllowed(id))
+            {
+                var model = ModelCatalogue.ChatModels.First(m => m.Id == id);
+                var requiredPlan = SubscriptionPlans.Plans.FirstOrDefault(p => p.AllowedTiers.Contains(model.Tier));
+                UpgradePromptTitle = "Model locked";
+                UpgradePromptDesc = requiredPlan is not null
+                    ? $"{model.Name} ({model.TierLabel} tier) is available on {requiredPlan.Name} and above. Upgrade your plan to unlock it."
+                    : $"{model.Name} is not available on your current plan. Upgrade to unlock it.";
+                ShowUpgradePrompt = true;
+                return;
+            }
+            var maxModels = Subscription.CurrentPlan.MaxModels;
+            if (maxModels > 0 && SelectedIds.Count >= maxModels)
+            {
+                UpgradePromptTitle = $"{Subscription.CurrentPlan.Name} plan limit reached";
+                UpgradePromptDesc = $"Your {Subscription.CurrentPlan.Name} plan supports up to {maxModels} model{(maxModels == 1 ? "" : "s")} at once. Upgrade to select more.";
+                ShowUpgradePrompt = true;
+                return;
+            }
+            SelectedIds.Add(id);
+        }
+        SelectionMode = "custom";
+    }
+
+    private void HandleModelKey(KeyboardEventArgs e, string id) { if (e.Key is "Enter" or " ") ToggleModel(id); }
+
+    private void ApplyMode(string mode)
+    {
+        SelectionMode = mode;
+        var plan = Subscription.CurrentPlan;
+        if (mode == "all")
+        {
+            var allowed = ModelCatalogue.ChatModels.Where(m => plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+            if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+            SelectedIds = new HashSet<string>(allowed);
+        }
+        else if (mode == "default")
+        {
+            var allowed = ModelCatalogue.ChatModels.Where(m => m.DefaultSelected && plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+            if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+            SelectedIds = new HashSet<string>(allowed);
+        }
+    }
+
+    private void SelectAll()
+    {
+        var plan = Subscription.CurrentPlan;
+        var allowed = ModelCatalogue.ChatModels.Where(m => plan.AllowedTiers.Contains(m.Tier)).Select(m => m.Id);
+        if (plan.MaxModels > 0) allowed = allowed.Take(plan.MaxModels);
+        SelectedIds = new HashSet<string>(allowed);
+        SelectionMode = "all";
+    }
+
+    private void ClearAll()
+    {
+        var fallback = ModelCatalogue.ChatModels.FirstOrDefault(m => !m.ComingSoon)?.Id ?? "";
+        SelectedIds = fallback.Length > 0 ? [fallback] : [];
+        SelectionMode = "custom";
+    }
+
+    private void HandlePromptKey(KeyboardEventArgs e) { if (e.Key == "Enter" && !e.ShiftKey && CanSend) SubmitChatPrompt(); }
+    private void SetSuggestion(string text) => ChatPrompt = text;
+
+    private void ToggleWhyExpanded(int convIdx)
+    {
+        if (!_whyExpandedConvs.Remove(convIdx))
+            _whyExpandedConvs.Add(convIdx);
+    }
+
+    private static string ModelInitial(string modelId, AiModel? model) =>
+        model?.Initial ?? modelId[..Math.Min(2, modelId.Length)].ToUpper();
+
+    private static ApiSupremeResponse BuildDemoSupremeResult(string query)
+    {
+        var rng = new Random();
+        var demoIds = new[] { "gpt-4o", "llama-3-1-70b", "mistral-large" };
+        var results = demoIds.Select((id, i) =>
+        {
+            var latency  = 800 + rng.Next(0, 2200);
+            var text     = ModelCatalogue.DemoResponses[i % ModelCatalogue.DemoResponses.Length];
+            double score = Math.Round(4.5 + rng.NextDouble() * 5, 2);
+            return new ApiModelEvalResult
+            {
+                ModelId = id,
+                Text    = text,
+                Status  = "done",
+                Tokens  = 120 + rng.Next(0, 300),
+                Ms      = latency,
+                Score   = score,
+            };
+        })
+        .OrderByDescending(r => r.Score)
+        .ToList();
+
+        var winner = results[0];
+        return new ApiSupremeResponse
+        {
+            Query         = query,
+            Results       = results,
+            WinnerId      = winner.ModelId,
+            SupremeAnswer = winner.Text,
+            TotalMs       = results.Max(r => r.Ms),
+        };
+    }
+
+    private async void SubmitChatPrompt()
+    {
+        if (!CanSend) return;
+        var prompt = ChatPrompt.Trim();
+        ChatPrompt = "";
+
+        if (SupremeMode)
+        {
+            // SupremeAI mode: route through supreme evaluation
+            var placeholderResp = new ModelResponse { ModelId = "supreme", Status = "loading" };
+            var conv = new Conversation { Prompt = prompt, Responses = [placeholderResp] };
+            Conversations.Add(conv);
+            ConvSupremeResults.Add(null);
+            StateHasChanged();
+
+            ApiSupremeResponse supremeResult;
+            var modelIds = SelectedIds.Count > 0 ? SelectedIds : null;
+            var apiResponse = await AiApi.SupremeAsync(prompt, modelIds);
+            supremeResult = (apiResponse is { SupremeAnswer.Length: > 0 })
+                ? apiResponse
+                : BuildDemoSupremeResult(prompt);
+
+            var winnerModel = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
+            conv.Responses[0] = new ModelResponse
+            {
+                ModelId = supremeResult.WinnerId,
+                Text    = supremeResult.SupremeAnswer,
+                Status  = "done",
+                Tokens  = supremeResult.Results.FirstOrDefault(r => r.ModelId == supremeResult.WinnerId)?.Tokens ?? 0,
+                Ms      = supremeResult.TotalMs,
+            };
+            ConvSupremeResults[^1] = supremeResult;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        // Direct mode: fan-out to selected models (existing behaviour)
+        var selectedModels = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id)).ToList();
+        var directConv = new Conversation { Prompt = prompt, Responses = selectedModels.Select(m => new ModelResponse { ModelId = m.Id }).ToList() };
+        Conversations.Add(directConv);
+        ConvSupremeResults.Add(null);
+        StateHasChanged();
+
+        var apiMessages = new[] { new ApiChatMessage { Role = "user", Content = prompt } };
+
+        var tasks = selectedModels.Select(async (model, idx) =>
+        {
+            var resp = directConv.Responses.First(r => r.ModelId == model.Id);
+            var startMs = Environment.TickCount;
+
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
+
+            if (apiResult is not null)
+            {
+                var text = apiResult.Status == "error"
+                    ? $"[Error from {model.Name}: {apiResult.ErrorMessage}]"
+                    : apiResult.Text;
+
+                var totalChars = text.Length;
+                var chunkSize = Math.Max(1, totalChars / 60);
+                var charIndex = 0;
+                while (charIndex < totalChars)
+                {
+                    charIndex = Math.Min(charIndex + chunkSize, totalChars);
+                    resp.Text = text[..charIndex];
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(25);
+                }
+                resp.Status = apiResult.Status == "error" ? "error" : "done";
+                resp.Tokens = apiResult.Tokens;
+                resp.Ms     = apiResult.Ms > 0 ? apiResult.Ms : Environment.TickCount - startMs;
+            }
+            else
+            {
+                await Task.Delay(idx * 220 + Random.Shared.Next(300));
+                var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
+                var totalChars = demoText.Length;
+                var chunkSize = Math.Max(1, totalChars / 60);
+                var charIndex = 0;
+                while (charIndex < totalChars)
+                {
+                    charIndex = Math.Min(charIndex + chunkSize, totalChars);
+                    resp.Text = demoText[..charIndex];
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(50);
+                }
+                resp.Status = "done";
+                resp.Tokens = totalChars / 4;
+                resp.Ms = Environment.TickCount - startMs;
+            }
+
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async void SubmitImagePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(ImagePrompt)) return;
+        var prompt = ImagePrompt.Trim();
+        var model = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+        ImageGenStatus = "loading";
+        ImageDownloadUrl = "";
+        ImageResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:180px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating image…</p></div>";
+        ImagePrompt = "";
+        StateHasChanged();
+
+        var apiResult = await AiApi.ImageAsync(SelectedImageModelId, prompt);
+
+        ImageGenStatus = "done";
+        if (apiResult is not null && apiResult.Status == "done" && !string.IsNullOrWhiteSpace(apiResult.ImageUrl))
+        {
+            ImageDownloadUrl = apiResult.ImageUrl;
+            var revised = string.IsNullOrWhiteSpace(apiResult.RevisedPrompt) ? "" :
+                $"<p style='margin-top:0.5rem;font-size:0.75rem;color:var(--sai-text-muted)'>Revised: {EscHtml(apiResult.RevisedPrompt)}</p>";
+            ImageResult = $"<div style='text-align:center;padding:1rem'><img src='{apiResult.ImageUrl}' alt='Generated image' style='max-width:100%;border-radius:10px' />{revised}</div>";
+        }
+        else
+        {
+            ImageDownloadUrl = "";
+            // Fallback placeholder
+            var errorMsg = apiResult?.ErrorMessage;
+            var note = string.IsNullOrWhiteSpace(errorMsg)
+                ? "Connect Azure AI Foundry to render real images."
+                : EscHtml(errorMsg);
+            ImageResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:180px;background:linear-gradient(135deg,{model?.Color ?? "#888"}22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🖼️ Image generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>{note}</p></div>";
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void SubmitVideoPrompt()
+    {
+        if (string.IsNullOrWhiteSpace(VideoPrompt)) return;
+        var prompt = VideoPrompt.Trim();
+        VideoGenStatus = "loading";
+        VideoDownloadUrl = "";
+        VideoResult = "<div style='text-align:center;padding:1rem'><span class='sai-skeleton' style='display:block;width:100%;height:160px;border-radius:10px'></span><p style='margin-top:0.75rem;font-size:0.85rem;color:var(--sai-text-muted)'>Generating video…</p></div>";
+        VideoPrompt = "";
+        StateHasChanged();
+        await Task.Delay(3000);
+        VideoGenStatus = "done";
+        VideoResult = $"<div style='text-align:center;padding:1rem'><div style='width:100%;height:160px;background:linear-gradient(135deg,#E0115F22,var(--sai-bg-mid));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--sai-text-muted);font-size:0.875rem'>🎬 Video generated for: &quot;{EscHtml(prompt)}&quot;</div><p style='margin-top:0.75rem;font-size:0.78rem;color:var(--sai-text-muted)'>Connect Azure AI Foundry for real video output.</p></div>";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void SubmitCreativePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(CreativePrompt)) return;
+        var prompt = CreativePrompt.Trim();
+        CreativePrompt = "";
+        var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
+        CreativeResponses = models.Select(m => (m.Id, "", false)).ToList();
+        StateHasChanged();
+
+        var systemPrompt = $"You are a creative writing assistant. Write in the style of a {CreativeStyle}. Be imaginative and engaging.";
+        var apiMessages  = new[] {
+            new ApiChatMessage { Role = "system", Content = systemPrompt },
+            new ApiChatMessage { Role = "user",   Content = prompt },
+        };
+
+        var tasks = models.Select(async (model, idx) =>
+        {
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
+            var text = apiResult is { Status: "done" }
+                ? apiResult.Text
+                : $"{prompt}\n\n{ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length]}";
+            CreativeResponses[idx] = (model.Id, text, true);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async void SubmitCodePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(CodePrompt)) return;
+        var prompt = CodePrompt.Trim();
+        CodePrompt = "";
+        var models = ModelCatalogue.ChatModels.Where(m => SelectedIds.Contains(m.Id) && !m.ComingSoon).Take(2).ToList();
+        CodeResponses = models.Select(m => (m.Id, "", false)).ToList();
+        StateHasChanged();
+
+        var langNote   = CodeLang != "any" ? $" Use {CodeLang}." : "";
+        var systemPrompt = $"You are an expert software engineer. Task: {CodeTask}.{langNote} Respond with clean, well-commented code.";
+        var apiMessages  = new[] {
+            new ApiChatMessage { Role = "system", Content = systemPrompt },
+            new ApiChatMessage { Role = "user",   Content = prompt },
+        };
+
+        var tasks = models.Select(async (model, idx) =>
+        {
+            var apiResult = await AiApi.ChatAsync(model.Id, apiMessages);
+            var lang = CodeLang != "any" ? CodeLang : "code";
+            var text = apiResult is { Status: "done" }
+                ? apiResult.Text
+                : $"# {prompt} — {lang}\n# Task: {CodeTask}\n# Connect Azure AI Foundry for real output\n\n{ModelCatalogue.DemoResponses[(idx + 2) % ModelCatalogue.DemoResponses.Length]}";
+            CodeResponses[idx] = (model.Id, text, true);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task CopyText(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    private async Task DownloadText(string text, string filename)
+    {
+        if (!string.IsNullOrEmpty(text))
+            await JS.InvokeVoidAsync("saiDownloadText", filename, text);
+    }
+
+    private async Task DownloadCode(string code, string modelId)
+    {
+        if (string.IsNullOrEmpty(code)) return;
+        var ext = CodeLang switch
+        {
+            "python"     => "py",
+            "typescript" => "ts",
+            "javascript" => "js",
+            "rust"       => "rs",
+            "go"         => "go",
+            "java"       => "java",
+            "csharp"     => "cs",
+            "sql"        => "sql",
+            _            => "txt",
+        };
+        var safeName = System.Text.RegularExpressions.Regex.Replace(modelId, @"[^a-z0-9\-]", "-");
+        await JS.InvokeVoidAsync("saiDownloadText", $"code-{safeName}.{ext}", code);
+    }
+
+    private async Task DownloadImage()
+    {
+        if (!string.IsNullOrEmpty(ImageDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", ImageDownloadUrl, "generated-image.png");
+    }
+
+    private async Task DownloadVideo()
+    {
+        if (!string.IsNullOrEmpty(VideoDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", VideoDownloadUrl, "generated-video.mp4");
+    }
+
+    private static string EscHtml(string s) =>
+        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+}

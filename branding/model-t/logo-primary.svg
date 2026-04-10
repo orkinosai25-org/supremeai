@@ -1,0 +1,59 @@
+<svg viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Supreme Model T-X primary logo">
+  <defs>
+    <linearGradient id="mt-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+    <linearGradient id="mt-emerald" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="mt-cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="mt-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <filter id="mt-glow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background pill -->
+  <rect width="320" height="80" rx="12" fill="url(#mt-bg)"/>
+
+  <!-- Crown emblem -->
+  <g transform="translate(14, 10)" filter="url(#mt-glow)">
+    <!-- Crown base -->
+    <rect x="0" y="32" width="44" height="8" rx="2.5" fill="url(#mt-gold)"/>
+    <!-- Crown points -->
+    <polygon points="2,32 2,12 11,20 22,4 33,20 42,12 42,32" fill="url(#mt-gold)"/>
+    <!-- Crown jewels -->
+    <ellipse cx="22" cy="5" rx="4" ry="3" fill="#C6E8F5" opacity="0.95"/>
+    <circle cx="3" cy="14" r="2.5" fill="#50C878" opacity="0.9"/>
+    <circle cx="41" cy="14" r="2.5" fill="#50C878" opacity="0.9"/>
+    <!-- Circuit nodes beneath crown -->
+    <circle cx="10" cy="44" r="2" fill="url(#mt-cyan)" opacity="0.8"/>
+    <circle cx="22" cy="44" r="2" fill="url(#mt-cyan)" opacity="0.8"/>
+    <circle cx="34" cy="44" r="2" fill="url(#mt-cyan)" opacity="0.8"/>
+    <line x1="10" y1="44" x2="22" y2="44" stroke="url(#mt-cyan)" stroke-width="1" opacity="0.5"/>
+    <line x1="22" y1="44" x2="34" y2="44" stroke="url(#mt-cyan)" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark: SUPREME -->
+  <text x="72" y="32" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="800" fill="url(#mt-emerald)">S</text>
+  <text x="91" y="32" font-family="Georgia,'Times New Roman',serif" font-size="18" font-weight="700" fill="#C0C0C0">UPREME</text>
+
+  <!-- Model identifier: MODEL T-X -->
+  <text x="72" y="56" font-family="'Courier New',Courier,monospace" font-size="13" font-weight="700" fill="url(#mt-gold)" letter-spacing="1.5">MODEL T‑X</text>
+
+  <!-- Separator line -->
+  <line x1="72" y1="36" x2="300" y2="36" stroke="#334155" stroke-width="0.5" opacity="0.6"/>
+
+  <!-- Tagline -->
+  <text x="72" y="72" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="500" fill="#64748B" letter-spacing="0.8">T‑SERIES AUTONOMOUS GOVERNANCE MODELS</text>
+</svg>

@@ -1,0 +1,156 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy ASP.Net Core app to Azure Web App - supremeai
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai' }}
+  RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_RESOURCE_GROUP || 'supremeai-rg' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./src/SupremeAI.Api
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/SupremeAI.Api
+
+      - name: Run tests
+        run: |
+          # Run any test projects discovered under the repo root; skip if none exist.
+          TEST_PROJECTS=$(find "$GITHUB_WORKSPACE" -name "*.Tests.csproj" -o -name "*Tests*.csproj" 2>/dev/null)
+          if [ -n "$TEST_PROJECTS" ]; then
+            echo "$TEST_PROJECTS" | xargs -I{} dotnet test "{}" --configuration Release --verbosity normal
+          else
+            echo "No test projects found – skipping test step."
+          fi
+        working-directory: ./src/SupremeAI.Api
+
+      - name: dotnet publish
+        if: github.event_name != 'pull_request'
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        working-directory: ./src/SupremeAI.Api
+
+      # Inject API keys from GitHub secrets into a .env file that the app
+      # loads at startup.  Only non-empty secrets are written so the file
+      # never contains placeholder values.  The .env file is gitignored and
+      # only lives inside the ephemeral build artifact.
+      - name: Inject API keys into publish artifact
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:   ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
+        run: |
+          ENV_FILE="${{ env.DOTNET_ROOT }}/myapp/.env"
+          [ -n "$AZURE_OPENAI_ENDPOINT" ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n' "$AZURE_OPENAI_ENDPOINT" >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_API_KEY"  ] && printf 'AZURE_OPENAI_API_KEY=%s\n'  "$AZURE_OPENAI_API_KEY"  >> "$ENV_FILE"
+          [ -n "$OPENAI_API_KEY"        ] && printf 'OPENAI_API_KEY=%s\n'         "$OPENAI_API_KEY"         >> "$ENV_FILE"
+          [ -n "$ANTHROPIC_API_KEY"     ] && printf 'ANTHROPIC_API_KEY=%s\n'      "$ANTHROPIC_API_KEY"      >> "$ENV_FILE"
+          [ -n "$GOOGLE_GEMINI_API_KEY" ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'  "$GOOGLE_GEMINI_API_KEY"  >> "$ENV_FILE"
+          [ -n "$XAI_GROK_API_KEY"      ] && printf 'XAI_GROK_API_KEY=%s\n'       "$XAI_GROK_API_KEY"       >> "$ENV_FILE"
+          COUNT=$(wc -l < "$ENV_FILE" 2>/dev/null || echo 0)
+          echo "Injected ${COUNT} API key(s) into .env"
+
+      - name: Upload artifact for deployment job
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      id-token: write   # required for OIDC login to configure App Service settings
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+      
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
+          slot-name: 'Production'
+          package: .
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+
+      # After deploying the package, use Azure CLI to push API key secrets
+      # directly to the App Service configuration.  This step is optional:
+      # if OIDC credentials are not configured the step is skipped and the
+      # .env file baked into the artifact (by the build job) serves as the
+      # fallback key source.
+      - name: Azure Login (OIDC) – configure app settings
+        id: azure_login
+        continue-on-error: true
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set API keys as Azure App Service environment variables
+        if: steps.azure_login.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:   ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
+        run: |
+          SETTINGS=()
+          [ -n "$AZURE_OPENAI_ENDPOINT" ] && SETTINGS+=("AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT")
+          [ -n "$AZURE_OPENAI_API_KEY"  ] && SETTINGS+=("AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY")
+          [ -n "$OPENAI_API_KEY"        ] && SETTINGS+=("OPENAI_API_KEY=$OPENAI_API_KEY")
+          [ -n "$ANTHROPIC_API_KEY"     ] && SETTINGS+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
+          [ -n "$GOOGLE_GEMINI_API_KEY" ] && SETTINGS+=("GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY")
+          [ -n "$XAI_GROK_API_KEY"      ] && SETTINGS+=("XAI_GROK_API_KEY=$XAI_GROK_API_KEY")
+
+          if [ ${#SETTINGS[@]} -gt 0 ]; then
+            az webapp config appsettings set \
+              --name          "$WEBAPP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --settings      "${SETTINGS[@]}" \
+              --output        none
+            echo "✅ Updated ${#SETTINGS[@]} App Service setting(s)."
+          else
+            echo "⚠ No API key secrets configured – App Service settings not updated."
+          fi
+          

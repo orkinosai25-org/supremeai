@@ -1,0 +1,55 @@
+name: Create Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name to create'
+        required: true
+        default: 'v0.1.0-judgment-engine'
+      sha:
+        description: 'Commit SHA to tag (defaults to main HEAD)'
+        required: false
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create tag
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = context.payload.inputs.tag || 'v0.1.0-judgment-engine';
+            const inputSha = context.payload.inputs.sha;
+            const sha = inputSha
+              ? inputSha
+              : (await github.rest.repos.getBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  branch: 'main'
+                })).data.commit.sha;
+
+            // Check if tag already exists
+            try {
+              await github.rest.git.getRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${tag}`
+              });
+              console.log(`Tag ${tag} already exists, skipping.`);
+              return;
+            } catch (e) {
+              // Tag does not exist, create it
+            }
+
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${tag}`,
+              sha: sha
+            });
+
+            console.log(`Created tag ${tag} at ${sha}`);

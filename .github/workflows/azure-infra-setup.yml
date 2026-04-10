@@ -1,0 +1,106 @@
+# Provisions Azure AI infrastructure for SupremeAI using Bicep templates.
+# Triggered manually or on changes to the Azure setup scripts/templates.
+
+name: Azure Infrastructure Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: 'Azure resource group name'
+        required: false
+        default: 'supremeai-rg'
+      location:
+        description: 'Azure region'
+        required: false
+        default: 'eastus'
+      base_name:
+        description: 'Base name for all resources'
+        required: false
+        default: 'supremeai'
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/azure/**'
+
+permissions:
+  id-token: write   # Required for OIDC token exchange with Azure
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure (OIDC)
+        id: azure_login
+        continue-on-error: true
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Check Azure login result
+        if: steps.azure_login.outcome != 'success'
+        run: |
+          echo "::error::Azure login failed. Ensure the service principal has a federated identity credential for GitHub Actions."
+          echo "  See: https://learn.microsoft.com/azure/developer/github/connect-from-azure"
+          echo "  The federated credential must allow the subject matching this workflow run."
+          echo "  Common subjects: repo:${{ github.repository }}:ref:refs/heads/main"
+          echo "                   repo:${{ github.repository }}:environment:production"
+          exit 1
+
+      - name: Register required Azure resource providers
+        run: |
+          for provider in \
+            Microsoft.CognitiveServices \
+            Microsoft.MachineLearningServices \
+            Microsoft.KeyVault \
+            Microsoft.Storage \
+            Microsoft.Web; do
+            state=$(az provider show --namespace "$provider" --query "registrationState" -o tsv 2>/dev/null || echo "NotRegistered")
+            if [ "$state" != "Registered" ]; then
+              echo "Registering $provider..."
+              az provider register --namespace "$provider" --wait
+            else
+              echo "$provider - already registered"
+            fi
+          done
+
+      - name: Create resource group
+        run: |
+          az group create \
+            --name "${{ github.event.inputs.resource_group || 'supremeai-rg' }}" \
+            --location "${{ github.event.inputs.location || 'eastus' }}" \
+            --tags project=SupremeAI \
+            --output none
+
+      - name: Deploy Azure infrastructure (Bicep)
+        id: bicep
+        uses: azure/arm-deploy@v2
+        with:
+          scope:             resourcegroup
+          resourceGroupName: ${{ github.event.inputs.resource_group || 'supremeai-rg' }}
+          template:          scripts/azure/main.bicep
+          parameters: >
+            baseName=${{ github.event.inputs.base_name || 'supremeai' }}
+            location=${{ github.event.inputs.location || 'eastus' }}
+          deploymentName: supremeai-infra-${{ github.run_number }}
+          failOnStdErr: false
+
+      - name: Print deployment outputs
+        run: |
+          echo ""
+          echo "══════════════════════════════════════════════"
+          echo "  Azure infrastructure provisioning complete  "
+          echo "══════════════════════════════════════════════"
+          echo "  Key Vault URI    : ${{ steps.bicep.outputs.keyVaultUri }}"
+          echo "  OpenAI Endpoint  : ${{ steps.bicep.outputs.openAiEndpoint }}"
+          echo "  Web App Name     : ${{ steps.bicep.outputs.webAppName }}"
+          echo "  Web App URL      : ${{ steps.bicep.outputs.webAppUrl }}"
+          echo ""
+

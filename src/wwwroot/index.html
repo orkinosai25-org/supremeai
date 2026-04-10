@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supreme Model T‑X — Multi-Model AI Platform</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="https://unpkg.com/@fluentui/web-components/dist/web-components.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/supremeai.css" />
+    <link rel="icon" href="../branding/favicon.svg" type="image/svg+xml" />
+    <link href="SupremeAI.styles.css" rel="stylesheet" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="sai-loading">
+            <div class="sai-loading-crown">
+                <video class="sai-loading-video" autoplay muted loop playsinline poster="images/new-logo.jpg"
+                       onerror="this.style.display='none';document.getElementById('sai-crown-fallback').style.display='block'">
+                    <source src="images/new-logo.mp4" type="video/mp4" />
+                </video>
+                <!-- Fallback crown SVG shown when video cannot load -->
+                <svg id="sai-crown-fallback" viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg"
+                     role="img" aria-label="Supreme Model T‑X logo" style="display:none">
+                    <defs>
+                        <linearGradient id="lg-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFE566" />
+                            <stop offset="50%" stop-color="#FFD700" />
+                            <stop offset="100%" stop-color="#B8860B" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="4" y="42" width="88" height="14" rx="4" fill="url(#lg-gold)" opacity="0.9" />
+                    <polygon points="8,42 8,16 26,30 48,4 70,30 88,16 88,42" fill="url(#lg-gold)" opacity="0.9" />
+                    <ellipse cx="48" cy="5" rx="7" ry="5" fill="#C6E8F5" />
+                    <circle cx="10" cy="20" r="4" fill="#50C878" />
+                    <circle cx="86" cy="20" r="4" fill="#50C878" />
+                </svg>
+            </div>
+            <p class="sai-loading-text">Supreme Model T‑X</p>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.saiDownloadText = function (filename, content) {
+            var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+        window.saiDownloadUrl = function (url, filename) {
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+    </script>
+</body>
+
+</html>

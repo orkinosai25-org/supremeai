@@ -1,0 +1,8 @@
+src-legacy/
+src/bin/
+src/obj/
+src/SupremeAI.Api/bin/
+src/SupremeAI.Api/obj/
+# API keys – never commit
+src/SupremeAI.Api/.env
+*.env
