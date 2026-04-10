@@ -227,21 +227,11 @@
                 @if (!Conversations.Any())
                 {
                     <div class="sai-empty">
-                        <svg class="sai-empty-crown" viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="ec-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#FFE566" /><stop offset="50%" stop-color="#FFD700" /><stop offset="100%" stop-color="#B8860B" />
-                                </linearGradient>
-                                <filter id="ec-glow"><feGaussianBlur stdDeviation="1.5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-                            </defs>
-                            <g filter="url(#ec-glow)">
-                                <rect x="4" y="44" width="88" height="14" rx="5" fill="url(#ec-gold)" opacity="0.92" />
-                                <polygon points="8,44 8,16 26,30 48,6 70,30 88,16 88,44" fill="url(#ec-gold)" opacity="0.92" />
-                                <ellipse cx="48" cy="7" rx="7" ry="5.5" fill="#C6E8F5" />
-                                <circle cx="10" cy="21" r="4.5" fill="#50C878" />
-                                <circle cx="86" cy="21" r="4.5" fill="#50C878" />
-                            </g>
-                        </svg>
+                        <video class="sai-empty-video" autoplay muted loop playsinline poster="images/new-logo.jpg"
+                               role="img" aria-label="Supreme Model T‑X logo"
+                               onerror="this.style.display='none'">
+                            <source src="images/new-logo.mp4" type="video/mp4" />
+                        </video>
                         <p class="sai-empty-title">Ask anything with <span class="sai-gradient-text">Supreme Model T‑X</span></p>
                         <p class="sai-empty-sub">@(SupremeMode ? "Supreme Model T‑X evaluates multiple models, compares their reasoning, and selects the best answer." : "Select models on the left, then type your prompt. Compare AI responses side by side.")</p>
                         <div class="sai-chips">
