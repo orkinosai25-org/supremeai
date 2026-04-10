@@ -115,6 +115,19 @@ body {
   filter: drop-shadow(0 0 14px rgba(80, 200, 120, 0.4));
 }
 
+/* Brand tagline */
+.sai-brand-tagline {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sai-text-muted);
+  white-space: nowrap;
+  margin-left: 0.6rem;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
 /* Pane switcher pill tabs */
 .sai-pane-tabs {
   display: flex;

@@ -10,10 +10,12 @@ namespace SupremeAI.Api.Middleware;
 ///     they are talking to.
 ///   - Records wall-clock latency for every request/response cycle and emits
 ///     structured log entries (inbound + outbound) for audit purposes.
+///
+/// Powered by the Model T-101 Judgment Engine — Supreme Model T-X governance layer.
 /// </summary>
 public sealed class GovernanceMiddleware
 {
-    internal const string ApiVersion = "v0.4.0-chat-nav";
+    internal const string ApiVersion = "v0.5.0-model-t";
 
     private readonly RequestDelegate _next;
     private readonly ILogger<GovernanceMiddleware> _logger;

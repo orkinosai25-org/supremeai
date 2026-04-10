@@ -1,4 +1,4 @@
-# SupremeAI DevOps — Issue Backlog
+# Supreme Model T‑X DevOps — Issue Backlog
 
 This directory contains individual Markdown files for each user story. Each file is ready to be submitted as a GitHub Issue.
 

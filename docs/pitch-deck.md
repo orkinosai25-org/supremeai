@@ -1,4 +1,4 @@
-# SupremeAI — Investor Pitch Deck
+# Supreme Model T‑X — Investor Pitch Deck
 
 > **Confidential — For discussion purposes only**
 
@@ -6,12 +6,12 @@
 
 ## Slide 1 — Cover
 
-**SupremeAI**
-*Benchmarking-Driven Multi-Model Orchestration & Sovereign AI Intelligence Platform*
+**Supreme Model T‑X**
+*T‑Series Autonomous Governance Models — Benchmarking-Driven Multi-Model Orchestration & Sovereign AI Intelligence Platform*
 
-> SupremeAI is a benchmarking-driven multi-model orchestration platform built on Azure AI Foundry that automatically evaluates, routes, and improves responses across foundation models while generating datasets to train its own enterprise reasoning layer.
+> Supreme Model T‑X is a benchmarking-driven multi-model orchestration platform built on Azure AI Foundry that automatically evaluates, routes, and improves responses across foundation models while generating datasets to train its own enterprise reasoning layer.
 
-**Raising: £3 M Seed Round** — to train the SupremeAI meta-reasoning layer and launch the benchmark infrastructure platform.
+**Raising: £3 M Seed Round** — to train the Supreme Model T‑X meta-reasoning layer and launch the benchmark infrastructure platform.
 
 - Website: [github.com/orkinosai25-org/supremeai](https://github.com/orkinosai25-org/supremeai)
 - Contact: [founder@supremeai.io](mailto:founder@supremeai.io)
@@ -19,9 +19,9 @@
 
 ---
 
-## Slide 2 — What is SupremeAI? — Full Platform Overview
+## Slide 2 — What is Supreme Model T‑X? — Full Platform Overview
 
-SupremeAI is **not a chatbot wrapper**. It is a five-layer AI infrastructure platform built on Azure AI Foundry, combining multi-model orchestration, independent benchmarking, and an evaluation-driven proprietary reasoning model into a single unified product.
+Supreme Model T‑X is **not a chatbot wrapper**. It is a five-layer AI infrastructure platform built on Azure AI Foundry, combining multi-model orchestration, independent benchmarking, and an evaluation-driven proprietary reasoning model into a single unified product.
 
 ### The Platform in One View
 
@@ -59,7 +59,7 @@ SupremeAI is **not a chatbot wrapper**. It is a five-layer AI infrastructure pla
 | Unlimited | £39 | High-volume token access (fair-use policy applies); up to 10 parallel models; video (Sora); Supreme LLM reports |
 | Enterprise | Custom | B2B Benchmarking API; private deployment; SSO; EU AI Act audit trail |
 
-### What SupremeAI earns
+### What Supreme Model T‑X earns
 
 1. **B2C subscriptions** — recurring monthly revenue across all tiers
 2. **Enterprise licensing** — multi-seat agreements with custom SLAs
@@ -91,9 +91,9 @@ The **Benchmark Flywheel**: every user query generates evaluation data → data 
 
 ## Slide 4 — The Solution
 
-**SupremeAI is three complementary engines on a single platform.**
+**Supreme Model T‑X is three complementary engines on a single platform.**
 
-> SupremeAI is building the evaluation and routing intelligence layer between foundation models and enterprise deployment environments.
+> Supreme Model T‑X is building the evaluation and routing intelligence layer between foundation models and enterprise deployment environments.
 
 ### Engine 1 — Multi-Model Orchestration Control Layer
 A single subscription unlocks every model on Azure AI Foundry. Users choose their model per request, run multiple models in parallel to compare responses, and access multimodal capabilities (text, vision, video, agents) — all through one unified API and UI.
@@ -102,13 +102,13 @@ A single subscription unlocks every model on Azure AI Foundry. Users choose thei
 An independent, reproducible evaluation platform that enterprises, LLM developers, research labs, and government procurement teams use to score and compare models across accuracy, latency, cost, safety, and domain-specific tasks — without relying on vendor self-reporting.
 
 ### Engine 3 — Evaluation-Driven Distillation (Supreme LLM)
-SupremeAI runs structured multi-model evaluation pipelines, curates the highest-quality response signals, and uses them to continuously train a proprietary reasoning model — the Supreme LLM — that gets smarter the more models it evaluates.
+Supreme Model T‑X runs structured multi-model evaluation pipelines, curates the highest-quality response signals, and uses them to continuously train a proprietary reasoning model — the Supreme LLM — that gets smarter the more models it evaluates.
 
 ---
 
 ## Slide 5 — Platform Architecture
 
-SupremeAI is an infrastructure play, not a single-model gamble.
+Supreme Model T‑X is an infrastructure play, not a single-model gamble.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -202,7 +202,7 @@ Multi-model evaluation pipeline
        └────────────────────────────────┘
 ```
 
-**Investor framing:** This is an evaluation-driven distillation architecture — a recursive model improvement loop where each benchmarking cycle generates proprietary training signal, compounding SupremeAI's advantage over time.
+**Investor framing:** This is an evaluation-driven distillation architecture — a recursive model improvement loop where each benchmarking cycle generates proprietary training signal, compounding Supreme Model T‑X's advantage over time.
 
 > Aligned with emerging evaluation-first training strategies used across modern LLM routing research and ensemble reasoning systems.
 
@@ -210,7 +210,7 @@ Multi-model evaluation pipeline
 
 ## Slide 9 — Supreme LLM: Model Strategy & Roadmap
 
-The Supreme LLM is not a single product — it is a multi-phase reasoning model that evolves as SupremeAI's evaluation pipeline matures. GPU investment at seed stage funds Phase 1 and Phase 2.
+The Supreme LLM is not a single product — it is a multi-phase reasoning model that evolves as Supreme Model T‑X's evaluation pipeline matures. GPU investment at seed stage funds Phase 1 and Phase 2.
 
 | Phase | Timeline | Capability | What GPU compute delivers |
 |-------|----------|------------|---------------------------|
@@ -221,7 +221,7 @@ The Supreme LLM is not a single product — it is a multi-phase reasoning model 
 
 ### What the £3 M GPU budget delivers (Phase 1 outcomes)
 
-> GPU investment will train the SupremeAI meta-reasoning layer using evaluation-driven dataset generation across multi-model responses from Azure AI Foundry.
+> GPU investment will train the Supreme Model T‑X meta-reasoning layer using evaluation-driven dataset generation across multi-model responses from Azure AI Foundry.
 
 Specific deliverables from the GPU allocation:
 
@@ -265,7 +265,7 @@ This breakdown gives investors a clear, auditable map from capital to model capa
 
 ---
 
-## Slide 11 — The SupremeAI Benchmark Flywheel
+## Slide 11 — The Supreme Model T‑X Benchmark Flywheel
 
 **Investors fund flywheels. This is ours.**
 
@@ -280,7 +280,7 @@ This breakdown gives investors a clear, auditable map from capital to model capa
           └───────────────────────┬──────────────────────┘
                                   │                ▲
           ┌───────────────────────▼──────────────┐ │
-          │  2. SupremeAI evaluates              │ │
+          │  2. Supreme Model T‑X evaluates              │ │
           │     all responses                   │ │
           └───────────────────────┬─────────────┘ │
                                   │               │
@@ -300,27 +300,27 @@ This breakdown gives investors a clear, auditable map from capital to model capa
           └──────────────────────────────────────┘
 ```
 
-Each cycle deepens SupremeAI's proprietary data moat and widens the gap with competitors who lack the same evaluation loop.
+Each cycle deepens Supreme Model T‑X's proprietary data moat and widens the gap with competitors who lack the same evaluation loop.
 
-As enterprises integrate SupremeAI routing APIs into production workflows, switching costs increase due to embedded benchmark datasets, routing policies, and evaluation histories.
+As enterprises integrate Supreme Model T‑X routing APIs into production workflows, switching costs increase due to embedded benchmark datasets, routing policies, and evaluation histories.
 
 **Comparable strategies** (but applied to multi-model orchestration — a newer, larger opportunity):
 - Scale AI — built a data flywheel for model training; reached $13 B valuation
 - Weights & Biases — built an evaluation flywheel for MLOps; reached $1 B valuation
 
-SupremeAI's flywheel combines both — plus a consumer subscription front-end that generates evaluation signal at scale.
+Supreme Model T‑X's flywheel combines both — plus a consumer subscription front-end that generates evaluation signal at scale.
 
 ---
 
 ## Slide 12 — Five-Layer Revenue Architecture
 
-SupremeAI is a **platform economy** — recurring + data + marketplace revenue stacked across five complementary streams.
+Supreme Model T‑X is a **platform economy** — recurring + data + marketplace revenue stacked across five complementary streams.
 
 ### Stream 1 — B2C SaaS Subscriptions *(recurring, predictable)*
 Monthly revenue from individual developers, researchers, and teams across Starter (£5), Pro (£19), and Unlimited (£39) tiers.
 
 ### Stream 2 — Enterprise Licensing *(high ACV, sticky)*
-Multi-seat agreements with custom SLAs, private deployment, and priority engineering support for enterprises integrating SupremeAI into production workflows.
+Multi-seat agreements with custom SLAs, private deployment, and priority engineering support for enterprises integrating Supreme Model T‑X into production workflows.
 
 ### Stream 3 — Metered Overage Usage *(pay-as-you-go scalability)*
 Token/request overage charges when subscribers exceed their monthly tier limits — capturing high-usage power users without requiring them to jump to a higher tier immediately.
@@ -329,7 +329,7 @@ Token/request overage charges when subscribers exceed their monthly tier limits 
 Evaluation datasets, model scoring reports, and comparative benchmark studies sold to enterprises, LLM developers, research institutions, and government AI procurement teams. No comparable neutral dataset at scale exists today.
 
 ### Stream 5 — Model Marketplace Commissions *(network effects)*
-Revenue share from third-party fine-tuned and domain-specific model providers who list their models on the SupremeAI platform, accessed by subscribers.
+Revenue share from third-party fine-tuned and domain-specific model providers who list their models on the Supreme Model T‑X platform, accessed by subscribers.
 
 ### Revenue Summary
 
@@ -357,9 +357,9 @@ Revenue share from third-party fine-tuned and domain-specific model providers wh
 
 ## Slide 13 — Market Opportunity
 
-**SupremeAI's category: AI model access + evaluation + routing infrastructure market**
+**Supreme Model T‑X's category: AI model access + evaluation + routing infrastructure market**
 
-SupremeAI sits between **Microsoft Azure AI Foundry** (the model supply layer) and **enterprise AI developers** (the demand layer) — making it the critical platform-layer opportunity in the fastest-growing segment of enterprise software.
+Supreme Model T‑X sits between **Microsoft Azure AI Foundry** (the model supply layer) and **enterprise AI developers** (the demand layer) — making it the critical platform-layer opportunity in the fastest-growing segment of enterprise software.
 
 | Segment | Size (2025) | CAGR |
 |---------|:-----------:|:----:|
@@ -367,22 +367,22 @@ SupremeAI sits between **Microsoft Azure AI Foundry** (the model supply layer) a
 | LLM API & Inference Market | ~£9.5 B | 62 % |
 | AI Benchmarking & Evaluation Tools | ~£2 B | 55 % |
 | Enterprise AI Safety & Compliance | ~£3 B | 48 % |
-| **SupremeAI SAM (orchestration + benchmarking + routing)** | **~£8 B** | **50 %** |
-| **SupremeAI SOM (Year 3 target)** | **~£400 M** | — |
+| **Supreme Model T‑X SAM (orchestration + benchmarking + routing)** | **~£8 B** | **50 %** |
+| **Supreme Model T‑X SOM (Year 3 target)** | **~£400 M** | — |
 
 *Market sizes are global industry figures converted at ~1.25 USD/GBP for consistency.*
 
 > The AI services market is projected to exceed **~£800 B by 2030**.  
-> SupremeAI captures value from three of the fastest-growing sub-segments simultaneously: access, evaluation, and infrastructure routing.
+> Supreme Model T‑X captures value from three of the fastest-growing sub-segments simultaneously: access, evaluation, and infrastructure routing.
 
 ### UK / European Regulatory Tailwind
 
 UK government and EU AI Act compliance requirements are generating urgent, funded demand for:
-- **Independent model evaluation infrastructure** — SupremeAI's benchmarking layer is this
-- **Sovereign AI capability** — SupremeAI's trained reasoning model is this
-- **Enterprise AI safety tooling** — SupremeAI's hallucination and safety scoring is this
+- **Independent model evaluation infrastructure** — Supreme Model T‑X's benchmarking layer is this
+- **Sovereign AI capability** — Supreme Model T‑X's trained reasoning model is this
+- **Enterprise AI safety tooling** — Supreme Model T‑X's hallucination and safety scoring is this
 
-SupremeAI fills the critical gap: UK currently has no neutral, independent evaluation-layer platform sitting between foundation-model providers and enterprise deployment environments. SupremeAI is that platform — positioned at precisely the moment government procurement budgets are moving into this space.
+Supreme Model T‑X fills the critical gap: UK currently has no neutral, independent evaluation-layer platform sitting between foundation-model providers and enterprise deployment environments. Supreme Model T‑X is that platform — positioned at precisely the moment government procurement budgets are moving into this space.
 
 ---
 
@@ -390,7 +390,7 @@ SupremeAI fills the critical gap: UK currently has no neutral, independent evalu
 
 | Platform | Multi-model orchestration | Flat subscription | Parallel model responses | Multimodal (video etc.) | Independent benchmarking | Proprietary meta-model |
 |----------|:-------------------------:|:-----------------:|:------------------------:|:-----------------------:|:------------------------:|:----------------------:|
-| **SupremeAI** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Supreme Model T‑X** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Poe (Quora) | ✅ | ✅ | ❌ | ⚠️ (limited) | ❌ | ❌ |
 | OpenRouter | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Together AI / Fireworks | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -421,7 +421,7 @@ No competitor has all six capabilities in one platform. We are building the moat
 
 ## Slide 16 — Deployment Strategy
 
-SupremeAI is designed from the ground up to meet enterprise and government deployment requirements — not retrofitted for compliance after growth.
+Supreme Model T‑X is designed from the ground up to meet enterprise and government deployment requirements — not retrofitted for compliance after growth.
 
 ### Deployment Modes
 
@@ -438,9 +438,9 @@ This deployment flexibility enables:
 - **Regulated industries adoption** — financial services, healthcare, legal sectors with strict data residency requirements
 - **Government benchmarking usage** — UK DSIT, GCHQ/NCSC, and EU AI Act compliance environments
 - **Defence and financial services integration** — environments where data cannot leave organisational boundaries
-- **EU AI Act compliance** — SupremeAI's audit trail and evaluation infrastructure maps directly to Article 9 (risk management) and Article 10 (data governance) requirements
+- **EU AI Act compliance** — Supreme Model T‑X's audit trail and evaluation infrastructure maps directly to Article 9 (risk management) and Article 10 (data governance) requirements
 
-SupremeAI is not just a SaaS product — it is procurement-grade AI evaluation infrastructure suitable for the most regulated deployment environments.
+Supreme Model T‑X is not just a SaaS product — it is procurement-grade AI evaluation infrastructure suitable for the most regulated deployment environments.
 
 ---
 
@@ -533,11 +533,11 @@ SupremeAI is not just a SaaS product — it is procurement-grade AI evaluation i
 
 ---
 
-## Slide 21 — £3 M Seed Round to Train the SupremeAI Meta-Reasoning Layer and Launch the Benchmark Infrastructure Platform
+## Slide 21 — £3 M Seed Round to Train the Supreme Model T‑X Meta-Reasoning Layer and Launch the Benchmark Infrastructure Platform
 
 ### Raising: £3 M Seed Round
 
-This is an **infrastructure and engineering raise** — not a SaaS marketing budget. The capital funds the GPU compute and talent required to build the Supreme LLM training pipeline and benchmarking platform that generate SupremeAI's compounding data moat.
+This is an **infrastructure and engineering raise** — not a SaaS marketing budget. The capital funds the GPU compute and talent required to build the Supreme LLM training pipeline and benchmarking platform that generate Supreme Model T‑X's compounding data moat.
 
 | Use of Funds | Allocation | Amount |
 |--------------|:----------:|:------:|
@@ -569,29 +569,29 @@ This is an **infrastructure and engineering raise** — not a SaaS marketing bud
 3. **Subscription AI is proven at scale.** ChatGPT Plus, Claude Pro, and Copilot prove mass willingness to pay £20–£39/month for AI access.
 4. **The EU AI Act and UK AI governance create institutional demand for independent benchmarking** — a new billion-pound regulatory compliance market.
 5. **Evaluation-driven distillation is an emerging architecture.** The window to become the trusted independent evaluation layer is open now — not in two years.
-6. **UK has a sovereign AI gap.** No UK-headquartered platform independently evaluates, routes, and benchmarks foundation models at scale. SupremeAI is being built to fill that institutional role before the category consolidates.
+6. **UK has a sovereign AI gap.** No UK-headquartered platform independently evaluates, routes, and benchmarks foundation models at scale. Supreme Model T‑X is being built to fill that institutional role before the category consolidates.
 
 ---
 
 ## Slide 23 — Vision
 
-> **"SupremeAI will become the world's independent intelligence layer for AI — the platform that every developer, researcher, enterprise, and regulator trusts to access, evaluate, and continuously improve the foundation models that power the future."**
+> **"Supreme Model T‑X will become the world's independent intelligence layer for AI — the platform that every developer, researcher, enterprise, and regulator trusts to access, evaluate, and continuously improve the foundation models that power the future."**
 
 We are not building a chatbot wrapper. We are building the institution that makes AI trustworthy, accessible, and self-improving — for everyone.
 
-*The AI market will exceed $5 trillion. SupremeAI is building its foundational evaluation and orchestration infrastructure — the layer that every model, team, and regulator will depend on.*
+*The AI market will exceed $5 trillion. Supreme Model T‑X is building its foundational evaluation and orchestration infrastructure — the layer that every model, team, and regulator will depend on.*
 
 ---
 
 ## Appendix A — Sample Investor Outreach Email
 
 ```
-Subject: Seed Investment Opportunity — SupremeAI:
+Subject: Seed Investment Opportunity — Supreme Model T‑X:
          Multi-Model Orchestration + Benchmarking-as-a-Service Platform
 
 Dear [Investor / Partner Name],
 
-I am the founder of SupremeAI (https://github.com/orkinosai25-org/supremeai),
+I am the founder of Supreme Model T‑X (https://github.com/orkinosai25-org/supremeai),
 a benchmarking-driven multi-model orchestration platform built on Azure AI
 Foundry that automatically evaluates, routes, and improves responses across
 foundation models while generating datasets to train its own enterprise
@@ -621,7 +621,7 @@ and financial model.
 
 Best regards,
 [Your Name]
-SupremeAI | founder@supremeai.io
+Supreme Model T‑X | founder@supremeai.io
 ```
 
 ---
@@ -655,5 +655,5 @@ SupremeAI | founder@supremeai.io
 
 ---
 
-*SupremeAI — Confidential pitch materials. All financial projections are forward-looking statements and subject to change.*  
+*Supreme Model T‑X — Confidential pitch materials. All financial projections are forward-looking statements and subject to change.*  
 *Last updated: March 31, 2026*
