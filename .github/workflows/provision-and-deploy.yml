@@ -171,11 +171,48 @@ jobs:
             echo "  provisioned automatically by Bicep – no manual key management needed for those."
           fi
 
-  # ── 2. Provision Azure infrastructure ────────────────────────────────────────
+  # ── 2. Detect whether infrastructure files changed ───────────────────────────
+  # Provisioning is expensive and idempotent, but re-running Bicep on every
+  # code push is wasteful.  This job checks whether any Bicep templates or
+  # Azure setup scripts changed in the current commit.  The provision job uses
+  # this output (combined with manual workflow_dispatch) to decide whether to
+  # run.  On a branch's first push (no parent commit), we conservatively treat
+  # infra as changed so that provisioning always runs on initial setup.
+  check-infra-changes:
+    name: Check for infra file changes
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect Bicep / Azure-scripts changes
+        id: diff
+        shell: bash
+        run: |
+          # On a fresh branch the parent commit may not exist; treat that as changed.
+          if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "No parent commit – treating infra as changed (initial setup)."
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | \
+            grep -E '(^scripts/azure/|\.bicep$)' | wc -l)
+          if [[ "$CHANGED" -gt 0 ]]; then
+            echo "changed=true"  >> "$GITHUB_OUTPUT"
+            echo "Infra files changed ($CHANGED file(s)) – provisioning will run."
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No infra files changed – provisioning skipped for this push."
+          fi
+
+  # ── 3. Provision Azure infrastructure ────────────────────────────────────────
   provision:
     name: Provision Azure Infrastructure
     runs-on: ubuntu-latest
-    needs: validate-secrets
+    needs: [validate-secrets, check-infra-changes]
     # continue-on-error ensures a broken OIDC configuration does not mark the
     # entire workflow as failed when PUBLISH_PROFILE-based deployment can still
     # proceed.  The actual outcome is captured in the `succeeded` output so that
@@ -183,7 +220,8 @@ jobs:
     continue-on-error: true
     if: |
       github.event.inputs.skip_provisioning != 'true' &&
-      needs.validate-secrets.outputs.has_oidc_creds == 'true'
+      needs.validate-secrets.outputs.has_oidc_creds == 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check-infra-changes.outputs.changed == 'true')
     outputs:
       key_vault_name: ${{ steps.deploy.outputs.keyVaultName }}
       key_vault_uri:  ${{ steps.deploy.outputs.keyVaultUri }}
@@ -538,7 +576,7 @@ jobs:
   summary:
     name: Deployment Summary
     runs-on: ubuntu-latest
-    needs: [validate-secrets, provision, build, deploy]
+    needs: [validate-secrets, check-infra-changes, provision, build, deploy]
     if: always()
 
     steps:
