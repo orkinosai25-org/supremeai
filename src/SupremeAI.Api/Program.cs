@@ -189,11 +189,51 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+// ── Exception handling ────────────────────────────────────────────────────────
+// In development the built-in developer exception page is used automatically.
+// In all environments a JSON exception handler ensures that unhandled exceptions
+// are never returned to clients as raw HTML stack traces.
+app.UseExceptionHandler(errorApp =>
 {
-    options.RoutePrefix = "swagger";
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode  = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        var exceptionFeature = context.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+
+        if (exceptionFeature?.Error is { } ex)
+            logger.LogError(ex, "Unhandled exception for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "An unexpected error occurred. Please try again later."
+        });
+    });
 });
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.RoutePrefix = "swagger";
+    });
+}
+else
+{
+    // Expose Swagger in non-Development environments only on explicit opt-in
+    // by setting ENABLE_SWAGGER=true (e.g. staging/preview deployments).
+    var enableSwagger = app.Configuration["ENABLE_SWAGGER"];
+    if (string.Equals(enableSwagger, "true", StringComparison.OrdinalIgnoreCase))
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(options => { options.RoutePrefix = "swagger"; });
+    }
+}
 
 app.UseHttpsRedirection();
 
