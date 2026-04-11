@@ -1,5 +1,9 @@
 # Provisions Azure AI infrastructure for SupremeAI using Bicep templates.
-# Triggered manually or on changes to the Azure setup scripts/templates.
+# Triggered manually via workflow_dispatch only.
+# Run this workflow once after setting up AZURE_CLIENT_ID, AZURE_TENANT_ID, and
+# AZURE_SUBSCRIPTION_ID as repository secrets with a federated identity credential
+# configured for GitHub Actions OIDC.
+# See: https://learn.microsoft.com/azure/developer/github/connect-from-azure
 
 name: Azure Infrastructure Setup
 
@@ -18,11 +22,6 @@ on:
         description: 'Base name for all resources'
         required: false
         default: 'supremeai'
-  push:
-    branches:
-      - main
-    paths:
-      - 'scripts/azure/**'
 
 permissions:
   id-token: write   # Required for OIDC token exchange with Azure
