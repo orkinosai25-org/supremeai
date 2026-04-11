@@ -166,11 +166,18 @@
 
 </div>
 
-<!-- ─── Demo mode banner ─── -->
-@if (_demoMode && _result is not null)
+<!-- ─── Backend unavailable warning ─── -->
+@if (_backendUnavailable)
 {
-    <div class="brain-demo-banner">
-        Demo mode — backend API unavailable. Showing simulated evaluation results.
+    <div class="brain-api-warning" role="alert">
+        <strong>⚠ Backend API unavailable.</strong>
+        The SupremeAI API could not be reached. Configure the following environment variables in your deployment and redeploy:
+        <code>AZURE_OPENAI_ENDPOINT</code>, <code>AZURE_OPENAI_API_KEY</code>,
+        <code>GOOGLE_GEMINI_API_KEY</code>, <code>XAI_GROK_API_KEY</code>,
+        <code>ANTHROPIC_API_KEY</code>,
+        <code>LLAMA_31_70B_ENDPOINT</code>, <code>LLAMA_31_70B_API_KEY</code>,
+        <code>MISTRAL_LARGE_ENDPOINT</code>, <code>MISTRAL_LARGE_API_KEY</code>.
+        See <code>.env.example</code> in the repository for the full list.
     </div>
 }
 
@@ -409,25 +416,32 @@
         color: #ffc875;
     }
 
-    /* ── Demo banner ─────────────────────────────────────────────────────── */
-    .brain-demo-banner {
-        position: fixed;
-        bottom: 1rem; left: 50%;
-        transform: translateX(-50%);
-        background: #222;
-        border: 1px solid #444;
-        border-radius: 999px;
-        padding: 0.4rem 1.25rem;
-        font-size: 0.75rem;
-        color: #888;
-        white-space: nowrap;
+    /* ── API unavailable warning ─────────────────────────────────────────── */
+    .brain-api-warning {
+        max-width: 900px;
+        margin: 1rem auto;
+        padding: 0.75rem 1.25rem;
+        background: #2a1800;
+        border: 1.5px solid #a05000;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        color: #f0a050;
+        line-height: 1.7;
+    }
+    .brain-api-warning strong { color: #ffc875; }
+    .brain-api-warning code {
+        background: #1a1000;
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.78rem;
+        color: #ffc875;
     }
 </style>
 
 @code {
     private string _query = "";
     private bool _isRunning;
-    private bool _demoMode;
+    private bool _backendUnavailable;
     private string? _errorMessage;
     private ApiSupremeResponse? _result;
 
@@ -463,6 +477,7 @@
         _isRunning = true;
         _errorMessage = null;
         _result = null;
+        _backendUnavailable = false;
         StateHasChanged();
 
         try
@@ -476,12 +491,11 @@
             if (response is not null)
             {
                 _result = response;
-                _demoMode = false;
             }
             else
             {
-                _result = BuildDemoResult(_query);
-                _demoMode = true;
+                // API unreachable — do not fabricate results; show configuration guidance.
+                _backendUnavailable = true;
             }
         }
         catch (Exception ex)
@@ -492,41 +506,5 @@
         {
             _isRunning = false;
         }
-    }
-
-    // ── Demo / fallback ────────────────────────────────────────────────────
-
-    private static readonly string[] DemoModelIds = ["gpt-4o", "llama-3-1-70b", "mistral-large"];
-
-    private static ApiSupremeResponse BuildDemoResult(string query)
-    {
-        var rng = new Random();
-        var results = DemoModelIds.Select((id, i) =>
-        {
-            var latency  = 800 + rng.Next(0, 2200);
-            var text     = ModelCatalogue.DemoResponses[i % ModelCatalogue.DemoResponses.Length];
-            double score = Math.Round(4.5 + rng.NextDouble() * 5, 2);
-            return new ApiModelEvalResult
-            {
-                ModelId = id,
-                Text    = text,
-                Status  = "done",
-                Tokens  = 120 + rng.Next(0, 300),
-                Ms      = latency,
-                Score   = score,
-            };
-        })
-        .OrderByDescending(r => r.Score)
-        .ToList();
-
-        var winner = results[0];
-        return new ApiSupremeResponse
-        {
-            Query         = query,
-            Results       = results,
-            WinnerId      = winner.ModelId,
-            SupremeAnswer = winner.Text,
-            TotalMs       = results.Max(r => r.Ms),
-        };
     }
 }

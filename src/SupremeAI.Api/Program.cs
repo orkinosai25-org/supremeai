@@ -91,10 +91,11 @@ builder.Services.AddSwaggerGen(c =>
 
         return (controller, action) switch
         {
-            ("Ai", "Supreme")  => ["SupremeAI — Primary Endpoint"],
-            ("Ai", _)          => ["Legacy — Direct Access"],
-            ("Governance", _)  => ["API Governance"],
-            _                  => ["SupremeAI — Judgment & Governance"],
+            ("Ai", "Supreme")      => ["SupremeAI — Primary Endpoint"],
+            ("Ai", "Diagnostics")  => ["API Governance"],
+            ("Ai", _)              => ["Legacy — Direct Access"],
+            ("Governance", _)      => ["API Governance"],
+            _                      => ["SupremeAI — Judgment & Governance"],
         };
     });
 });

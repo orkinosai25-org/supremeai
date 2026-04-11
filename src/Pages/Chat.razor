@@ -142,11 +142,24 @@
         </button>
     </div>
 
-    <!-- ─── Demo mode banner ─── -->
-    @if (_demoMode && _messages.Any(m => !m.IsUser))
+    <!-- ─── Backend unavailable warning ─── -->
+    @if (_backendUnavailable)
     {
-        <div class="chat-demo-banner">
-            Demo mode — backend API unavailable. Showing simulated responses.
+        <div class="chat-config-warning" role="alert">
+            <strong>⚠ Backend API unavailable.</strong>
+            The SupremeAI API could not be reached. Real AI responses are disabled.
+            <br />
+            To enable real inference, configure the following environment variables in your deployment
+            (Azure App Service → Configuration, or a <code>.env</code> file for local development):
+            <ul>
+                <li><code>AZURE_OPENAI_ENDPOINT</code> + <code>AZURE_OPENAI_API_KEY</code> — GPT-4o, o1-preview, DALL-E 3</li>
+                <li><code>ANTHROPIC_API_KEY</code> — Claude 3.5 Sonnet</li>
+                <li><code>GOOGLE_GEMINI_API_KEY</code> — Gemini 1.5 Pro</li>
+                <li><code>XAI_GROK_API_KEY</code> — Grok-2</li>
+                <li><code>LLAMA_31_70B_ENDPOINT</code> + <code>LLAMA_31_70B_API_KEY</code> — Llama 3.1 70B (Azure AI Foundry)</li>
+                <li><code>MISTRAL_LARGE_ENDPOINT</code> + <code>MISTRAL_LARGE_API_KEY</code> — Mistral Large (Azure AI Foundry)</li>
+            </ul>
+            See <code>.env.example</code> in the repository for the full list.
         </div>
     }
 
@@ -385,13 +398,29 @@
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Demo banner ─────────────────────────────────────────────────────── */
-    .chat-demo-banner {
-        text-align: center;
-        font-size: 0.75rem;
-        color: #666;
-        padding: 0.25rem 0;
+    /* ── Backend unavailable warning ─────────────────────────────────────── */
+    .chat-config-warning {
+        background: #2a1800;
+        border: 1.5px solid #a05000;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        color: #f0a050;
+        line-height: 1.6;
     }
+    .chat-config-warning strong { color: #ffc875; }
+    .chat-config-warning code {
+        background: #1a1000;
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.78rem;
+        color: #ffc875;
+    }
+    .chat-config-warning ul {
+        margin: 0.4rem 0 0 1.2rem;
+        padding: 0;
+    }
+    .chat-config-warning li { margin-bottom: 0.15rem; }
 </style>
 
 @code {
@@ -401,7 +430,7 @@
 
     private string _inputText = "";
     private bool _isRunning;
-    private bool _demoMode;
+    private bool _backendUnavailable;
     private string? _errorMessage;
 
     private readonly List<ChatEntry> _messages = [];
@@ -440,7 +469,7 @@
 
             if (response is not null && response.Status != "error")
             {
-                _demoMode = false;
+                _backendUnavailable = false;
                 _messages.Add(new ChatEntry
                 {
                     IsUser  = false,
@@ -462,15 +491,14 @@
             }
             else
             {
-                // No backend – demo fallback
-                _demoMode = true;
-                var demo = ModelCatalogue.DemoResponses[_messages.Count % ModelCatalogue.DemoResponses.Length];
+                // API is unreachable — show warning, do not fabricate a response.
+                _backendUnavailable = true;
                 _messages.Add(new ChatEntry
                 {
                     IsUser  = false,
                     ModelId = _selectedModelId,
-                    Content = demo,
-                    Ms      = 800 + Random.Shared.Next(0, 1500),
+                    Content = "⚠ The backend API is unavailable. Configure your API keys and redeploy. See the warning below for details.",
+                    IsError = true,
                 });
             }
         }
@@ -490,7 +518,7 @@
     {
         _messages.Clear();
         _errorMessage = null;
-        _demoMode = false;
+        _backendUnavailable = false;
     }
 
     private async Task ScrollToBottom()

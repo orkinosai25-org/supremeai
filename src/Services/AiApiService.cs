@@ -5,15 +5,14 @@ namespace SupremeAI.Services;
 
 /// <summary>
 /// Client-side service that calls the SupremeAI backend API.
-/// Falls back to demo/mock responses when the API is unreachable.
+/// Returns null when the API is unreachable; callers should treat null as a
+/// connectivity failure and surface a configuration error — not a demo response.
 /// </summary>
 public sealed class AiApiService
 {
     private readonly HttpClient _http;
 
     // Backend API base path – relative to the Blazor app's base address.
-    // Override by setting the "ApiBaseUrl" configuration key, or point to your
-    // deployed API (e.g. https://api.supremeai.example.com).
     private const string ApiBase = "api/ai";
 
     public AiApiService(HttpClient http)
@@ -23,7 +22,7 @@ public sealed class AiApiService
 
     /// <summary>
     /// Sends a chat request to the backend API.
-    /// Returns null on network error so the caller can fall back to demo mode.
+    /// Returns null on network error; the caller should surface a configuration error.
     /// </summary>
     public async Task<ApiChatResponse?> ChatAsync(
         string modelId,
@@ -50,7 +49,7 @@ public sealed class AiApiService
 
     /// <summary>
     /// Sends an image generation request to the backend API.
-    /// Returns null on network error so the caller can fall back to demo mode.
+    /// Returns null on network error; the caller should surface a configuration error.
     /// </summary>
     public async Task<ApiImageResponse?> ImageAsync(
         string modelId,
@@ -74,7 +73,7 @@ public sealed class AiApiService
     /// <summary>
     /// Calls the SupremeAI Brain endpoint: fans the query to multiple models,
     /// scores each response, and returns the ranked results + winning answer.
-    /// Returns null on network error so the caller can fall back to demo mode.
+    /// Returns null on network error; the caller should surface a configuration error.
     /// </summary>
     public async Task<ApiSupremeResponse?> SupremeAsync(
         string query,
