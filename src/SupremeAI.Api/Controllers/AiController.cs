@@ -19,12 +19,14 @@ public sealed class AiController : ControllerBase
 {
     private readonly ModelProviderFactory _factory;
     private readonly BrainService _brain;
+    private readonly IConfiguration _config;
     private readonly ILogger<AiController> _logger;
 
-    public AiController(ModelProviderFactory factory, BrainService brain, ILogger<AiController> logger)
+    public AiController(ModelProviderFactory factory, BrainService brain, IConfiguration config, ILogger<AiController> logger)
     {
         _factory = factory;
         _brain   = brain;
+        _config  = config;
         _logger  = logger;
     }
 
@@ -135,5 +137,114 @@ public sealed class AiController : ControllerBase
 
         var response = await _brain.EvaluateAsync(request, ct);
         return Ok(response);
+    }
+
+    // ── GET /api/ai/diagnostics ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the configuration status of all model providers.
+    /// Shows which environment variables are set (without exposing their values).
+    /// Use this endpoint to diagnose why models are returning errors — if a provider
+    /// shows <c>configured: false</c>, set the listed <c>requiredEnv</c> variables
+    /// in Azure App Service → Configuration (or in a <c>.env</c> file locally).
+    /// </summary>
+    [HttpGet("diagnostics")]
+    public IActionResult Diagnostics()
+    {
+        _logger.LogInformation("Diagnostics requested.");
+
+        // Check each required environment variable / config key.
+        // We report only whether the key is set, never its value.
+        static bool IsSet(IConfiguration cfg, params string[] keys)
+            => keys.Any(k => !string.IsNullOrWhiteSpace(cfg[k]));
+
+        var providers = new[]
+        {
+            new
+            {
+                provider    = "Azure OpenAI",
+                models      = new[] { "gpt-4o", "o1-preview", "gpt-4o-mini", "dalle-3" },
+                configured  = IsSet(_config, "AZURE_OPENAI_ENDPOINT", "AzureOpenAI:Endpoint")
+                           && IsSet(_config, "AZURE_OPENAI_API_KEY",  "AzureOpenAI:ApiKey"),
+                requiredEnv = new[] { "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY" },
+            },
+            new
+            {
+                provider    = "Anthropic",
+                models      = new[] { "claude-3-5-sonnet" },
+                configured  = IsSet(_config, "ANTHROPIC_API_KEY", "Anthropic:ApiKey"),
+                requiredEnv = new[] { "ANTHROPIC_API_KEY" },
+            },
+            new
+            {
+                provider    = "Google Gemini",
+                models      = new[] { "gemini-1-5-pro" },
+                configured  = IsSet(_config, "GOOGLE_GEMINI_API_KEY", "Google:GeminiApiKey"),
+                requiredEnv = new[] { "GOOGLE_GEMINI_API_KEY" },
+            },
+            new
+            {
+                provider    = "xAI Grok",
+                models      = new[] { "grok-2" },
+                configured  = IsSet(_config, "XAI_GROK_API_KEY", "Xai:GrokApiKey"),
+                requiredEnv = new[] { "XAI_GROK_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Llama 3.1 70B",
+                models      = new[] { "llama-3-1-70b" },
+                configured  = IsSet(_config, "LLAMA_31_70B_ENDPOINT") && IsSet(_config, "LLAMA_31_70B_API_KEY"),
+                requiredEnv = new[] { "LLAMA_31_70B_ENDPOINT", "LLAMA_31_70B_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Mistral Large",
+                models      = new[] { "mistral-large" },
+                configured  = IsSet(_config, "MISTRAL_LARGE_ENDPOINT") && IsSet(_config, "MISTRAL_LARGE_API_KEY"),
+                requiredEnv = new[] { "MISTRAL_LARGE_ENDPOINT", "MISTRAL_LARGE_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Phi-3.5 Mini",
+                models      = new[] { "phi-3-5-mini" },
+                configured  = IsSet(_config, "PHI_35_MINI_ENDPOINT") && IsSet(_config, "PHI_35_MINI_API_KEY"),
+                requiredEnv = new[] { "PHI_35_MINI_ENDPOINT", "PHI_35_MINI_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Phi-3 Medium",
+                models      = new[] { "phi-3-medium" },
+                configured  = IsSet(_config, "PHI_3_MEDIUM_ENDPOINT") && IsSet(_config, "PHI_3_MEDIUM_API_KEY"),
+                requiredEnv = new[] { "PHI_3_MEDIUM_ENDPOINT", "PHI_3_MEDIUM_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Command R+",
+                models      = new[] { "command-r-plus" },
+                configured  = IsSet(_config, "COMMAND_R_PLUS_ENDPOINT") && IsSet(_config, "COMMAND_R_PLUS_API_KEY"),
+                requiredEnv = new[] { "COMMAND_R_PLUS_ENDPOINT", "COMMAND_R_PLUS_API_KEY" },
+            },
+            new
+            {
+                provider    = "Azure AI Foundry – Jais 30B",
+                models      = new[] { "jais-30b" },
+                configured  = IsSet(_config, "JAIS_30B_ENDPOINT") && IsSet(_config, "JAIS_30B_API_KEY"),
+                requiredEnv = new[] { "JAIS_30B_ENDPOINT", "JAIS_30B_API_KEY" },
+            },
+        };
+
+        var configured = providers.Count(p => p.configured);
+        return Ok(new
+        {
+            summary          = $"{configured} of {providers.Length} provider(s) configured.",
+            allConfigured    = configured == providers.Length,
+            anyConfigured    = configured > 0,
+            providers,
+            hint             = configured == 0
+                ? "No providers are configured. Set the requiredEnv variables in Azure App Service → Configuration (or in a .env file for local development). See .env.example in the repository."
+                : configured < providers.Length
+                    ? "Some providers are not configured. Models from unconfigured providers will return an error response."
+                    : null,
+        });
     }
 }
