@@ -380,23 +380,49 @@ jobs:
       # loads at startup.  This is a fallback for when Key Vault references
       # have not yet resolved (e.g. first deploy, or OIDC provisioning skipped).
       # Only non-empty secrets are written so the file never contains placeholders.
+      # Azure-native model credentials (OpenAI, Phi, Llama, Mistral, etc.) are
+      # provisioned by Bicep into Key Vault — listed here as GitHub Secret fallbacks.
       - name: Inject API keys into publish artifact
         shell: bash
         env:
-          AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_KEY:   ${{ secrets.AZURE_OPENAI_API_KEY }}
-          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
-          GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
-          XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
+          AZURE_OPENAI_ENDPOINT:    ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:     ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:    ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:         ${{ secrets.XAI_GROK_API_KEY }}
+          PHI_35_MINI_ENDPOINT:     ${{ secrets.PHI_35_MINI_ENDPOINT }}
+          PHI_35_MINI_API_KEY:      ${{ secrets.PHI_35_MINI_API_KEY }}
+          PHI_3_MEDIUM_ENDPOINT:    ${{ secrets.PHI_3_MEDIUM_ENDPOINT }}
+          PHI_3_MEDIUM_API_KEY:     ${{ secrets.PHI_3_MEDIUM_API_KEY }}
+          LLAMA_31_70B_ENDPOINT:    ${{ secrets.LLAMA_31_70B_ENDPOINT }}
+          LLAMA_31_70B_API_KEY:     ${{ secrets.LLAMA_31_70B_API_KEY }}
+          MISTRAL_LARGE_ENDPOINT:   ${{ secrets.MISTRAL_LARGE_ENDPOINT }}
+          MISTRAL_LARGE_API_KEY:    ${{ secrets.MISTRAL_LARGE_API_KEY }}
+          COMMAND_R_PLUS_ENDPOINT:  ${{ secrets.COMMAND_R_PLUS_ENDPOINT }}
+          COMMAND_R_PLUS_API_KEY:   ${{ secrets.COMMAND_R_PLUS_API_KEY }}
+          JAIS_30B_ENDPOINT:        ${{ secrets.JAIS_30B_ENDPOINT }}
+          JAIS_30B_API_KEY:         ${{ secrets.JAIS_30B_API_KEY }}
         run: |
           ENV_FILE="./publish/.env"
-          [ -n "$AZURE_OPENAI_ENDPOINT" ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n' "$AZURE_OPENAI_ENDPOINT" >> "$ENV_FILE"
-          [ -n "$AZURE_OPENAI_API_KEY"  ] && printf 'AZURE_OPENAI_API_KEY=%s\n'  "$AZURE_OPENAI_API_KEY"  >> "$ENV_FILE"
-          [ -n "$OPENAI_API_KEY"        ] && printf 'OPENAI_API_KEY=%s\n'         "$OPENAI_API_KEY"         >> "$ENV_FILE"
-          [ -n "$ANTHROPIC_API_KEY"     ] && printf 'ANTHROPIC_API_KEY=%s\n'      "$ANTHROPIC_API_KEY"      >> "$ENV_FILE"
-          [ -n "$GOOGLE_GEMINI_API_KEY" ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'  "$GOOGLE_GEMINI_API_KEY"  >> "$ENV_FILE"
-          [ -n "$XAI_GROK_API_KEY"      ] && printf 'XAI_GROK_API_KEY=%s\n'       "$XAI_GROK_API_KEY"       >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_ENDPOINT"   ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n'   "$AZURE_OPENAI_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_API_KEY"    ] && printf 'AZURE_OPENAI_API_KEY=%s\n'    "$AZURE_OPENAI_API_KEY"    >> "$ENV_FILE"
+          [ -n "$OPENAI_API_KEY"          ] && printf 'OPENAI_API_KEY=%s\n'           "$OPENAI_API_KEY"           >> "$ENV_FILE"
+          [ -n "$ANTHROPIC_API_KEY"       ] && printf 'ANTHROPIC_API_KEY=%s\n'        "$ANTHROPIC_API_KEY"        >> "$ENV_FILE"
+          [ -n "$GOOGLE_GEMINI_API_KEY"   ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'   "$GOOGLE_GEMINI_API_KEY"   >> "$ENV_FILE"
+          [ -n "$XAI_GROK_API_KEY"        ] && printf 'XAI_GROK_API_KEY=%s\n'        "$XAI_GROK_API_KEY"        >> "$ENV_FILE"
+          [ -n "$PHI_35_MINI_ENDPOINT"    ] && printf 'PHI_35_MINI_ENDPOINT=%s\n'    "$PHI_35_MINI_ENDPOINT"    >> "$ENV_FILE"
+          [ -n "$PHI_35_MINI_API_KEY"     ] && printf 'PHI_35_MINI_API_KEY=%s\n'     "$PHI_35_MINI_API_KEY"     >> "$ENV_FILE"
+          [ -n "$PHI_3_MEDIUM_ENDPOINT"   ] && printf 'PHI_3_MEDIUM_ENDPOINT=%s\n'   "$PHI_3_MEDIUM_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$PHI_3_MEDIUM_API_KEY"    ] && printf 'PHI_3_MEDIUM_API_KEY=%s\n'    "$PHI_3_MEDIUM_API_KEY"    >> "$ENV_FILE"
+          [ -n "$LLAMA_31_70B_ENDPOINT"   ] && printf 'LLAMA_31_70B_ENDPOINT=%s\n'   "$LLAMA_31_70B_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$LLAMA_31_70B_API_KEY"    ] && printf 'LLAMA_31_70B_API_KEY=%s\n'    "$LLAMA_31_70B_API_KEY"    >> "$ENV_FILE"
+          [ -n "$MISTRAL_LARGE_ENDPOINT"  ] && printf 'MISTRAL_LARGE_ENDPOINT=%s\n'  "$MISTRAL_LARGE_ENDPOINT"  >> "$ENV_FILE"
+          [ -n "$MISTRAL_LARGE_API_KEY"   ] && printf 'MISTRAL_LARGE_API_KEY=%s\n'   "$MISTRAL_LARGE_API_KEY"   >> "$ENV_FILE"
+          [ -n "$COMMAND_R_PLUS_ENDPOINT" ] && printf 'COMMAND_R_PLUS_ENDPOINT=%s\n' "$COMMAND_R_PLUS_ENDPOINT" >> "$ENV_FILE"
+          [ -n "$COMMAND_R_PLUS_API_KEY"  ] && printf 'COMMAND_R_PLUS_API_KEY=%s\n'  "$COMMAND_R_PLUS_API_KEY"  >> "$ENV_FILE"
+          [ -n "$JAIS_30B_ENDPOINT"       ] && printf 'JAIS_30B_ENDPOINT=%s\n'       "$JAIS_30B_ENDPOINT"       >> "$ENV_FILE"
+          [ -n "$JAIS_30B_API_KEY"        ] && printf 'JAIS_30B_API_KEY=%s\n'        "$JAIS_30B_API_KEY"        >> "$ENV_FILE"
           COUNT=$(wc -l < "$ENV_FILE" 2>/dev/null || echo 0)
           echo "Injected ${COUNT} API key(s) into .env"
 
@@ -432,35 +458,62 @@ jobs:
       # After deploying, push any GitHub-secret API keys directly to App Service
       # configuration so they take effect immediately (Key Vault references may
       # take a few minutes to propagate on first deploy).
-      - name: Set API keys as Azure App Service environment variables
+      # Azure AI Foundry vars (Phi, Llama, Mistral, etc.) are listed here too
+      # so they can be set from GitHub Secrets when Bicep provisioning is skipped.
+      - name: Set all AI provider settings on App Service
         if: steps.deploy_azure_login.outcome == 'success'
         continue-on-error: true
         shell: bash
         env:
-          AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_KEY:   ${{ secrets.AZURE_OPENAI_API_KEY }}
-          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
-          GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
-          XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
+          AZURE_OPENAI_ENDPOINT:    ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:     ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:    ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:         ${{ secrets.XAI_GROK_API_KEY }}
+          PHI_35_MINI_ENDPOINT:     ${{ secrets.PHI_35_MINI_ENDPOINT }}
+          PHI_35_MINI_API_KEY:      ${{ secrets.PHI_35_MINI_API_KEY }}
+          PHI_3_MEDIUM_ENDPOINT:    ${{ secrets.PHI_3_MEDIUM_ENDPOINT }}
+          PHI_3_MEDIUM_API_KEY:     ${{ secrets.PHI_3_MEDIUM_API_KEY }}
+          LLAMA_31_70B_ENDPOINT:    ${{ secrets.LLAMA_31_70B_ENDPOINT }}
+          LLAMA_31_70B_API_KEY:     ${{ secrets.LLAMA_31_70B_API_KEY }}
+          MISTRAL_LARGE_ENDPOINT:   ${{ secrets.MISTRAL_LARGE_ENDPOINT }}
+          MISTRAL_LARGE_API_KEY:    ${{ secrets.MISTRAL_LARGE_API_KEY }}
+          COMMAND_R_PLUS_ENDPOINT:  ${{ secrets.COMMAND_R_PLUS_ENDPOINT }}
+          COMMAND_R_PLUS_API_KEY:   ${{ secrets.COMMAND_R_PLUS_API_KEY }}
+          JAIS_30B_ENDPOINT:        ${{ secrets.JAIS_30B_ENDPOINT }}
+          JAIS_30B_API_KEY:         ${{ secrets.JAIS_30B_API_KEY }}
         run: |
           SETTINGS=()
-          [ -n "$AZURE_OPENAI_ENDPOINT" ] && SETTINGS+=("AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT")
-          [ -n "$AZURE_OPENAI_API_KEY"  ] && SETTINGS+=("AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY")
-          [ -n "$OPENAI_API_KEY"        ] && SETTINGS+=("OPENAI_API_KEY=$OPENAI_API_KEY")
-          [ -n "$ANTHROPIC_API_KEY"     ] && SETTINGS+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
-          [ -n "$GOOGLE_GEMINI_API_KEY" ] && SETTINGS+=("GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY")
-          [ -n "$XAI_GROK_API_KEY"      ] && SETTINGS+=("XAI_GROK_API_KEY=$XAI_GROK_API_KEY")
+          [ -n "$AZURE_OPENAI_ENDPOINT"   ] && SETTINGS+=("AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT")
+          [ -n "$AZURE_OPENAI_API_KEY"    ] && SETTINGS+=("AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY")
+          [ -n "$OPENAI_API_KEY"          ] && SETTINGS+=("OPENAI_API_KEY=$OPENAI_API_KEY")
+          [ -n "$ANTHROPIC_API_KEY"       ] && SETTINGS+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
+          [ -n "$GOOGLE_GEMINI_API_KEY"   ] && SETTINGS+=("GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY")
+          [ -n "$XAI_GROK_API_KEY"        ] && SETTINGS+=("XAI_GROK_API_KEY=$XAI_GROK_API_KEY")
+          [ -n "$PHI_35_MINI_ENDPOINT"    ] && SETTINGS+=("PHI_35_MINI_ENDPOINT=$PHI_35_MINI_ENDPOINT")
+          [ -n "$PHI_35_MINI_API_KEY"     ] && SETTINGS+=("PHI_35_MINI_API_KEY=$PHI_35_MINI_API_KEY")
+          [ -n "$PHI_3_MEDIUM_ENDPOINT"   ] && SETTINGS+=("PHI_3_MEDIUM_ENDPOINT=$PHI_3_MEDIUM_ENDPOINT")
+          [ -n "$PHI_3_MEDIUM_API_KEY"    ] && SETTINGS+=("PHI_3_MEDIUM_API_KEY=$PHI_3_MEDIUM_API_KEY")
+          [ -n "$LLAMA_31_70B_ENDPOINT"   ] && SETTINGS+=("LLAMA_31_70B_ENDPOINT=$LLAMA_31_70B_ENDPOINT")
+          [ -n "$LLAMA_31_70B_API_KEY"    ] && SETTINGS+=("LLAMA_31_70B_API_KEY=$LLAMA_31_70B_API_KEY")
+          [ -n "$MISTRAL_LARGE_ENDPOINT"  ] && SETTINGS+=("MISTRAL_LARGE_ENDPOINT=$MISTRAL_LARGE_ENDPOINT")
+          [ -n "$MISTRAL_LARGE_API_KEY"   ] && SETTINGS+=("MISTRAL_LARGE_API_KEY=$MISTRAL_LARGE_API_KEY")
+          [ -n "$COMMAND_R_PLUS_ENDPOINT" ] && SETTINGS+=("COMMAND_R_PLUS_ENDPOINT=$COMMAND_R_PLUS_ENDPOINT")
+          [ -n "$COMMAND_R_PLUS_API_KEY"  ] && SETTINGS+=("COMMAND_R_PLUS_API_KEY=$COMMAND_R_PLUS_API_KEY")
+          [ -n "$JAIS_30B_ENDPOINT"       ] && SETTINGS+=("JAIS_30B_ENDPOINT=$JAIS_30B_ENDPOINT")
+          [ -n "$JAIS_30B_API_KEY"        ] && SETTINGS+=("JAIS_30B_API_KEY=$JAIS_30B_API_KEY")
 
           if [ ${#SETTINGS[@]} -gt 0 ]; then
             az webapp config appsettings set \
-              --name          "$WEBAPP_NAME" \
+              --name           "$WEBAPP_NAME" \
               --resource-group "$RESOURCE_GROUP" \
-              --settings      "${SETTINGS[@]}" \
-              --output        none
+              --settings       "${SETTINGS[@]}" \
+              --output         none
             echo "✅ Updated ${#SETTINGS[@]} App Service setting(s)."
           else
-            echo "⚠ No API key secrets configured – App Service settings not updated."
+            echo "⚠ No additional API key secrets configured as GitHub Secrets."
+            echo "  Azure-native model settings are configured via Bicep Key Vault references."
           fi
 
       - name: Health check – wait for API to respond

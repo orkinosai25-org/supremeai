@@ -1,5 +1,32 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# SupremeAI – Build, Provision and Deploy
+#
+# Triggered on every push/merge to main (or manually).
+# Zero-manual-setup: runs Bicep to provision all Azure AI resources when OIDC
+# credentials are configured, then deploys the app — no Portal steps ever needed.
+#
+# ── Zero-manual-setup (recommended) ────────────────────────────────────────────
+# Run scripts/azure/setup-github-oidc.sh ONCE from your local machine to create
+# the service principal, configure OIDC federation, and set GitHub secrets:
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#
+# After that, every merge to main:
+#   1. Provisions all Azure resources (Key Vault, Azure OpenAI, AI Foundry models)
+#   2. Stores all Azure-native model credentials in Key Vault automatically
+#   3. Configures ALL App Service settings via Key Vault references
+#   4. Deploys the app via OIDC — no PUBLISH_PROFILE needed
+#
+# ── Legacy fallback ──────────────────────────────────────────────────────────────
+# PUBLISH_PROFILE secret: still supported for deploy-only scenarios where OIDC
+# is not yet configured.  Add external API keys as GitHub Secrets and they will
+# be written to the App Service settings automatically.
+#
+# ── External AI provider keys (add once as GitHub Secrets) ──────────────────────
+# Azure OpenAI + all AI Foundry models are provisioned automatically by Bicep.
+# External provider keys must be added as GitHub Secrets manually:
+#   gh secret set ANTHROPIC_API_KEY     --repo $REPO
+#   gh secret set GOOGLE_GEMINI_API_KEY --repo $REPO
+#   gh secret set XAI_GROK_API_KEY      --repo $REPO
+# The workflow stores them in Key Vault and pushes them to App Service on every merge.
 
 name: Build and deploy ASP.Net Core app to Azure Web App - supremeai
 
@@ -12,15 +39,23 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  id-token: write   # Required for OIDC token exchange with Azure
+  contents: read
+
 env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  DOTNET_NOLOGO: 'true'
   WEBAPP_NAME:    ${{ vars.AZURE_WEBAPP_NAME   != '' && vars.AZURE_WEBAPP_NAME   || 'supremeai' }}
   RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_RESOURCE_GROUP || 'supremeai-rg' }}
+  LOCATION:       ${{ vars.AZURE_LOCATION      != '' && vars.AZURE_LOCATION      || 'eastus' }}
+  BASE_NAME:      ${{ vars.AZURE_BASE_NAME     != '' && vars.AZURE_BASE_NAME     || 'supremeai' }}
 
 jobs:
+  # ── 1. Build ──────────────────────────────────────────────────────────────────
   build:
+    name: Build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -51,31 +86,56 @@ jobs:
 
       - name: dotnet publish
         if: github.event_name != 'pull_request'
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp" --nologo
         working-directory: ./src/SupremeAI.Api
 
-      # Inject API keys from GitHub secrets into a .env file that the app
-      # loads at startup.  Only non-empty secrets are written so the file
-      # never contains placeholder values.  The .env file is gitignored and
-      # only lives inside the ephemeral build artifact.
+      # Bundle any configured GitHub Secret API keys into the .env file inside
+      # the publish artifact.  The app reads .env at startup, so keys take effect
+      # immediately — even before Key Vault references have resolved on first deploy.
+      # All Azure-native keys (OpenAI, Phi, Llama, Mistral, etc.) are provisioned
+      # automatically by Bicep and do not need to be set as GitHub Secrets.
       - name: Inject API keys into publish artifact
         if: github.event_name != 'pull_request'
         shell: bash
         env:
-          AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_KEY:   ${{ secrets.AZURE_OPENAI_API_KEY }}
-          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
-          GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
-          XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
+          AZURE_OPENAI_ENDPOINT:    ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:     ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:    ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:         ${{ secrets.XAI_GROK_API_KEY }}
+          PHI_35_MINI_ENDPOINT:     ${{ secrets.PHI_35_MINI_ENDPOINT }}
+          PHI_35_MINI_API_KEY:      ${{ secrets.PHI_35_MINI_API_KEY }}
+          PHI_3_MEDIUM_ENDPOINT:    ${{ secrets.PHI_3_MEDIUM_ENDPOINT }}
+          PHI_3_MEDIUM_API_KEY:     ${{ secrets.PHI_3_MEDIUM_API_KEY }}
+          LLAMA_31_70B_ENDPOINT:    ${{ secrets.LLAMA_31_70B_ENDPOINT }}
+          LLAMA_31_70B_API_KEY:     ${{ secrets.LLAMA_31_70B_API_KEY }}
+          MISTRAL_LARGE_ENDPOINT:   ${{ secrets.MISTRAL_LARGE_ENDPOINT }}
+          MISTRAL_LARGE_API_KEY:    ${{ secrets.MISTRAL_LARGE_API_KEY }}
+          COMMAND_R_PLUS_ENDPOINT:  ${{ secrets.COMMAND_R_PLUS_ENDPOINT }}
+          COMMAND_R_PLUS_API_KEY:   ${{ secrets.COMMAND_R_PLUS_API_KEY }}
+          JAIS_30B_ENDPOINT:        ${{ secrets.JAIS_30B_ENDPOINT }}
+          JAIS_30B_API_KEY:         ${{ secrets.JAIS_30B_API_KEY }}
         run: |
           ENV_FILE="${{ env.DOTNET_ROOT }}/myapp/.env"
-          [ -n "$AZURE_OPENAI_ENDPOINT" ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n' "$AZURE_OPENAI_ENDPOINT" >> "$ENV_FILE"
-          [ -n "$AZURE_OPENAI_API_KEY"  ] && printf 'AZURE_OPENAI_API_KEY=%s\n'  "$AZURE_OPENAI_API_KEY"  >> "$ENV_FILE"
-          [ -n "$OPENAI_API_KEY"        ] && printf 'OPENAI_API_KEY=%s\n'         "$OPENAI_API_KEY"         >> "$ENV_FILE"
-          [ -n "$ANTHROPIC_API_KEY"     ] && printf 'ANTHROPIC_API_KEY=%s\n'      "$ANTHROPIC_API_KEY"      >> "$ENV_FILE"
-          [ -n "$GOOGLE_GEMINI_API_KEY" ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'  "$GOOGLE_GEMINI_API_KEY"  >> "$ENV_FILE"
-          [ -n "$XAI_GROK_API_KEY"      ] && printf 'XAI_GROK_API_KEY=%s\n'       "$XAI_GROK_API_KEY"       >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_ENDPOINT"   ] && printf 'AZURE_OPENAI_ENDPOINT=%s\n'   "$AZURE_OPENAI_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$AZURE_OPENAI_API_KEY"    ] && printf 'AZURE_OPENAI_API_KEY=%s\n'    "$AZURE_OPENAI_API_KEY"    >> "$ENV_FILE"
+          [ -n "$OPENAI_API_KEY"          ] && printf 'OPENAI_API_KEY=%s\n'           "$OPENAI_API_KEY"           >> "$ENV_FILE"
+          [ -n "$ANTHROPIC_API_KEY"       ] && printf 'ANTHROPIC_API_KEY=%s\n'        "$ANTHROPIC_API_KEY"        >> "$ENV_FILE"
+          [ -n "$GOOGLE_GEMINI_API_KEY"   ] && printf 'GOOGLE_GEMINI_API_KEY=%s\n'   "$GOOGLE_GEMINI_API_KEY"   >> "$ENV_FILE"
+          [ -n "$XAI_GROK_API_KEY"        ] && printf 'XAI_GROK_API_KEY=%s\n'        "$XAI_GROK_API_KEY"        >> "$ENV_FILE"
+          [ -n "$PHI_35_MINI_ENDPOINT"    ] && printf 'PHI_35_MINI_ENDPOINT=%s\n'    "$PHI_35_MINI_ENDPOINT"    >> "$ENV_FILE"
+          [ -n "$PHI_35_MINI_API_KEY"     ] && printf 'PHI_35_MINI_API_KEY=%s\n'     "$PHI_35_MINI_API_KEY"     >> "$ENV_FILE"
+          [ -n "$PHI_3_MEDIUM_ENDPOINT"   ] && printf 'PHI_3_MEDIUM_ENDPOINT=%s\n'   "$PHI_3_MEDIUM_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$PHI_3_MEDIUM_API_KEY"    ] && printf 'PHI_3_MEDIUM_API_KEY=%s\n'    "$PHI_3_MEDIUM_API_KEY"    >> "$ENV_FILE"
+          [ -n "$LLAMA_31_70B_ENDPOINT"   ] && printf 'LLAMA_31_70B_ENDPOINT=%s\n'   "$LLAMA_31_70B_ENDPOINT"   >> "$ENV_FILE"
+          [ -n "$LLAMA_31_70B_API_KEY"    ] && printf 'LLAMA_31_70B_API_KEY=%s\n'    "$LLAMA_31_70B_API_KEY"    >> "$ENV_FILE"
+          [ -n "$MISTRAL_LARGE_ENDPOINT"  ] && printf 'MISTRAL_LARGE_ENDPOINT=%s\n'  "$MISTRAL_LARGE_ENDPOINT"  >> "$ENV_FILE"
+          [ -n "$MISTRAL_LARGE_API_KEY"   ] && printf 'MISTRAL_LARGE_API_KEY=%s\n'   "$MISTRAL_LARGE_API_KEY"   >> "$ENV_FILE"
+          [ -n "$COMMAND_R_PLUS_ENDPOINT" ] && printf 'COMMAND_R_PLUS_ENDPOINT=%s\n' "$COMMAND_R_PLUS_ENDPOINT" >> "$ENV_FILE"
+          [ -n "$COMMAND_R_PLUS_API_KEY"  ] && printf 'COMMAND_R_PLUS_API_KEY=%s\n'  "$COMMAND_R_PLUS_API_KEY"  >> "$ENV_FILE"
+          [ -n "$JAIS_30B_ENDPOINT"       ] && printf 'JAIS_30B_ENDPOINT=%s\n'       "$JAIS_30B_ENDPOINT"       >> "$ENV_FILE"
+          [ -n "$JAIS_30B_API_KEY"        ] && printf 'JAIS_30B_API_KEY=%s\n'        "$JAIS_30B_API_KEY"        >> "$ENV_FILE"
           COUNT=$(wc -l < "$ENV_FILE" 2>/dev/null || echo 0)
           echo "Injected ${COUNT} API key(s) into .env"
 
@@ -86,35 +146,25 @@ jobs:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
 
-  deploy:
+  # ── 2. Provision Azure infrastructure (when OIDC credentials are configured) ──
+  provision:
+    name: Provision Azure Infrastructure
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name != 'pull_request'
-    permissions:
-      contents: read
-      id-token: write   # required for OIDC login to configure App Service settings
+    # continue-on-error so a failed/unconfigured provision step never blocks deployment.
+    continue-on-error: true
+    outputs:
+      succeeded:       ${{ steps.outcome.outputs.succeeded }}
+      key_vault_name:  ${{ steps.deploy.outputs.keyVaultName }}
+      key_vault_uri:   ${{ steps.deploy.outputs.keyVaultUri }}
+      openai_endpoint: ${{ steps.deploy.outputs.openAiEndpoint }}
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-      
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.WEBAPP_NAME }}
-          slot-name: 'Production'
-          package: .
-          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # After deploying the package, use Azure CLI to push API key secrets
-      # directly to the App Service configuration.  This step is optional:
-      # if OIDC credentials are not configured the step is skipped and the
-      # .env file baked into the artifact (by the build job) serves as the
-      # fallback key source.
-      - name: Azure Login (OIDC) – configure app settings
+      - name: Azure Login (OIDC)
         id: azure_login
         continue-on-error: true
         uses: azure/login@v2
@@ -123,9 +173,61 @@ jobs:
           tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Set API keys as Azure App Service environment variables
+      - name: Skip provisioning (OIDC not configured)
+        if: steps.azure_login.outcome != 'success'
+        run: |
+          echo "::notice::OIDC credentials are not configured – Azure infrastructure provisioning skipped."
+          echo "  Run scripts/azure/setup-github-oidc.sh to enable zero-manual-setup provisioning."
+          echo "  External API key secrets (from GitHub Secrets) will still be injected via .env."
+
+      - name: Register required Azure resource providers
         if: steps.azure_login.outcome == 'success'
-        continue-on-error: true
+        shell: bash
+        run: |
+          for provider in \
+            Microsoft.CognitiveServices \
+            Microsoft.MachineLearningServices \
+            Microsoft.KeyVault \
+            Microsoft.Storage \
+            Microsoft.Web; do
+            STATE=$(az provider show --namespace "$provider" \
+              --query registrationState -o tsv 2>/dev/null || echo "NotRegistered")
+            if [[ "$STATE" != "Registered" ]]; then
+              echo "  Registering $provider ..."
+              az provider register --namespace "$provider" --wait
+            else
+              echo "  $provider – already registered"
+            fi
+          done
+
+      - name: Create resource group
+        if: steps.azure_login.outcome == 'success'
+        shell: bash
+        run: |
+          az group create \
+            --name     "$RESOURCE_GROUP" \
+            --location "$LOCATION" \
+            --tags     project=SupremeAI environment=production \
+            --output   none
+          echo "Resource group '$RESOURCE_GROUP' is ready in '$LOCATION'."
+
+      - name: Deploy Bicep infrastructure
+        if: steps.azure_login.outcome == 'success'
+        id: deploy
+        uses: azure/arm-deploy@v2
+        with:
+          scope:             resourcegroup
+          resourceGroupName: ${{ env.RESOURCE_GROUP }}
+          template:          scripts/azure/main.bicep
+          parameters: >
+            baseName=${{ env.BASE_NAME }}
+            location=${{ env.LOCATION }}
+            webAppName=${{ env.WEBAPP_NAME }}
+          deploymentName: supremeai-main-${{ github.run_number }}
+          failOnStdErr: false
+
+      - name: Store external AI provider keys in Key Vault
+        if: steps.azure_login.outcome == 'success' && steps.deploy.outcome == 'success'
         shell: bash
         env:
           AZURE_OPENAI_ENDPOINT:  ${{ secrets.AZURE_OPENAI_ENDPOINT }}
@@ -135,22 +237,148 @@ jobs:
           GOOGLE_GEMINI_API_KEY:  ${{ secrets.GOOGLE_GEMINI_API_KEY }}
           XAI_GROK_API_KEY:       ${{ secrets.XAI_GROK_API_KEY }}
         run: |
+          KV_NAME="${{ steps.deploy.outputs.keyVaultName }}"
+          if [[ -z "$KV_NAME" ]]; then
+            echo "⚠ Key Vault name not returned – skipping secret storage."
+            exit 0
+          fi
+          echo "Storing external API keys in Key Vault '$KV_NAME' ..."
+          store_secret() {
+            local name="$1" value="$2"
+            if [[ -n "$value" ]]; then
+              az keyvault secret set \
+                --vault-name "$KV_NAME" --name "$name" --value "$value" \
+                --output none 2>/dev/null \
+              && echo "  ✓ $name stored" \
+              || echo "  ⚠ Could not store $name (ensure CI service principal has Key Vault Secrets Officer role)"
+            else
+              echo "  – $name not provided (that provider will return an error response)"
+            fi
+          }
+          store_secret "azure-openai-endpoint"  "$AZURE_OPENAI_ENDPOINT"
+          store_secret "azure-openai-api-key"   "$AZURE_OPENAI_API_KEY"
+          store_secret "openai-api-key"          "$OPENAI_API_KEY"
+          store_secret "anthropic-api-key"       "$ANTHROPIC_API_KEY"
+          store_secret "google-gemini-api-key"   "$GOOGLE_GEMINI_API_KEY"
+          store_secret "xai-grok-api-key"        "$XAI_GROK_API_KEY"
+
+      - name: Capture provision outcome
+        if: always()
+        id: outcome
+        shell: bash
+        run: |
+          if [[ "${{ steps.deploy.outcome }}" == "success" ]]; then
+            echo "succeeded=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "succeeded=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── 3. Deploy to Azure Web App ────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Azure Web App
+    runs-on: ubuntu-latest
+    needs: [build, provision]
+    if: |
+      always() &&
+      github.event_name != 'pull_request' &&
+      needs.build.result == 'success'
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+
+      # ── Primary: OIDC-based deployment (no PUBLISH_PROFILE needed) ───────────
+      - name: Azure Login (OIDC) – primary deployment method
+        id: azure_login
+        continue-on-error: true
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App (OIDC – no publish profile required)
+        if: steps.azure_login.outcome == 'success'
+        id: deploy-oidc
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
+          package: .
+
+      # ── Fallback: publish-profile-based deployment ────────────────────────────
+      - name: Deploy to Azure Web App (publish profile fallback)
+        if: steps.azure_login.outcome != 'success' && secrets.PUBLISH_PROFILE != ''
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name:        ${{ env.WEBAPP_NAME }}
+          slot-name:       'Production'
+          package:         .
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+
+      # Push ALL AI provider settings directly to App Service configuration.
+      # This ensures all env vars are present immediately after deploy, before
+      # Key Vault references have had time to resolve on a first/fresh deployment.
+      # Azure-native vars (Phi, Llama, Mistral, etc.) are set via Key Vault
+      # references by Bicep — listed here as well so they can be overridden by
+      # GitHub Secrets when Bicep provisioning is skipped.
+      - name: Set all AI provider settings on App Service
+        if: steps.azure_login.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          AZURE_OPENAI_ENDPOINT:    ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:     ${{ secrets.AZURE_OPENAI_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_GEMINI_API_KEY:    ${{ secrets.GOOGLE_GEMINI_API_KEY }}
+          XAI_GROK_API_KEY:         ${{ secrets.XAI_GROK_API_KEY }}
+          PHI_35_MINI_ENDPOINT:     ${{ secrets.PHI_35_MINI_ENDPOINT }}
+          PHI_35_MINI_API_KEY:      ${{ secrets.PHI_35_MINI_API_KEY }}
+          PHI_3_MEDIUM_ENDPOINT:    ${{ secrets.PHI_3_MEDIUM_ENDPOINT }}
+          PHI_3_MEDIUM_API_KEY:     ${{ secrets.PHI_3_MEDIUM_API_KEY }}
+          LLAMA_31_70B_ENDPOINT:    ${{ secrets.LLAMA_31_70B_ENDPOINT }}
+          LLAMA_31_70B_API_KEY:     ${{ secrets.LLAMA_31_70B_API_KEY }}
+          MISTRAL_LARGE_ENDPOINT:   ${{ secrets.MISTRAL_LARGE_ENDPOINT }}
+          MISTRAL_LARGE_API_KEY:    ${{ secrets.MISTRAL_LARGE_API_KEY }}
+          COMMAND_R_PLUS_ENDPOINT:  ${{ secrets.COMMAND_R_PLUS_ENDPOINT }}
+          COMMAND_R_PLUS_API_KEY:   ${{ secrets.COMMAND_R_PLUS_API_KEY }}
+          JAIS_30B_ENDPOINT:        ${{ secrets.JAIS_30B_ENDPOINT }}
+          JAIS_30B_API_KEY:         ${{ secrets.JAIS_30B_API_KEY }}
+          PROVISION_KV_URI:         ${{ needs.provision.outputs.key_vault_uri }}
+        run: |
           SETTINGS=()
-          [ -n "$AZURE_OPENAI_ENDPOINT" ] && SETTINGS+=("AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT")
-          [ -n "$AZURE_OPENAI_API_KEY"  ] && SETTINGS+=("AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY")
-          [ -n "$OPENAI_API_KEY"        ] && SETTINGS+=("OPENAI_API_KEY=$OPENAI_API_KEY")
-          [ -n "$ANTHROPIC_API_KEY"     ] && SETTINGS+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
-          [ -n "$GOOGLE_GEMINI_API_KEY" ] && SETTINGS+=("GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY")
-          [ -n "$XAI_GROK_API_KEY"      ] && SETTINGS+=("XAI_GROK_API_KEY=$XAI_GROK_API_KEY")
+          [ -n "$AZURE_OPENAI_ENDPOINT"   ] && SETTINGS+=("AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT")
+          [ -n "$AZURE_OPENAI_API_KEY"    ] && SETTINGS+=("AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY")
+          [ -n "$OPENAI_API_KEY"          ] && SETTINGS+=("OPENAI_API_KEY=$OPENAI_API_KEY")
+          [ -n "$ANTHROPIC_API_KEY"       ] && SETTINGS+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
+          [ -n "$GOOGLE_GEMINI_API_KEY"   ] && SETTINGS+=("GOOGLE_GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY")
+          [ -n "$XAI_GROK_API_KEY"        ] && SETTINGS+=("XAI_GROK_API_KEY=$XAI_GROK_API_KEY")
+          [ -n "$PHI_35_MINI_ENDPOINT"    ] && SETTINGS+=("PHI_35_MINI_ENDPOINT=$PHI_35_MINI_ENDPOINT")
+          [ -n "$PHI_35_MINI_API_KEY"     ] && SETTINGS+=("PHI_35_MINI_API_KEY=$PHI_35_MINI_API_KEY")
+          [ -n "$PHI_3_MEDIUM_ENDPOINT"   ] && SETTINGS+=("PHI_3_MEDIUM_ENDPOINT=$PHI_3_MEDIUM_ENDPOINT")
+          [ -n "$PHI_3_MEDIUM_API_KEY"    ] && SETTINGS+=("PHI_3_MEDIUM_API_KEY=$PHI_3_MEDIUM_API_KEY")
+          [ -n "$LLAMA_31_70B_ENDPOINT"   ] && SETTINGS+=("LLAMA_31_70B_ENDPOINT=$LLAMA_31_70B_ENDPOINT")
+          [ -n "$LLAMA_31_70B_API_KEY"    ] && SETTINGS+=("LLAMA_31_70B_API_KEY=$LLAMA_31_70B_API_KEY")
+          [ -n "$MISTRAL_LARGE_ENDPOINT"  ] && SETTINGS+=("MISTRAL_LARGE_ENDPOINT=$MISTRAL_LARGE_ENDPOINT")
+          [ -n "$MISTRAL_LARGE_API_KEY"   ] && SETTINGS+=("MISTRAL_LARGE_API_KEY=$MISTRAL_LARGE_API_KEY")
+          [ -n "$COMMAND_R_PLUS_ENDPOINT" ] && SETTINGS+=("COMMAND_R_PLUS_ENDPOINT=$COMMAND_R_PLUS_ENDPOINT")
+          [ -n "$COMMAND_R_PLUS_API_KEY"  ] && SETTINGS+=("COMMAND_R_PLUS_API_KEY=$COMMAND_R_PLUS_API_KEY")
+          [ -n "$JAIS_30B_ENDPOINT"       ] && SETTINGS+=("JAIS_30B_ENDPOINT=$JAIS_30B_ENDPOINT")
+          [ -n "$JAIS_30B_API_KEY"        ] && SETTINGS+=("JAIS_30B_API_KEY=$JAIS_30B_API_KEY")
+          # Store Key Vault URI so app can use SDK-based secret resolution at runtime
+          [ -n "$PROVISION_KV_URI"        ] && SETTINGS+=("AZURE_KEYVAULT_URI=$PROVISION_KV_URI")
 
           if [ ${#SETTINGS[@]} -gt 0 ]; then
             az webapp config appsettings set \
-              --name          "$WEBAPP_NAME" \
+              --name           "$WEBAPP_NAME" \
               --resource-group "$RESOURCE_GROUP" \
-              --settings      "${SETTINGS[@]}" \
-              --output        none
+              --settings       "${SETTINGS[@]}" \
+              --output         none
             echo "✅ Updated ${#SETTINGS[@]} App Service setting(s)."
           else
-            echo "⚠ No API key secrets configured – App Service settings not updated."
+            echo "⚠ No additional API key secrets are configured as GitHub Secrets."
+            echo "  Azure-native model settings are already configured via Bicep Key Vault references."
           fi
           
