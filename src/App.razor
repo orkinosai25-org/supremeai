@@ -1,6 +1,45 @@
 ﻿<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        <ErrorBoundary>
+            <ChildContent>
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <div class="sai-error-boundary" role="alert">
+                    <h2>⚠ An unhandled exception occurred</h2>
+                    <pre class="sai-error-detail">@ex.ToString()</pre>
+                </div>
+            </ErrorContent>
+        </ErrorBoundary>
     </Found>
 </Router>
+
+<style>
+    .sai-error-boundary {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1.25rem 1.5rem;
+        background: #2a0a0a;
+        border: 1.5px solid #a33;
+        border-radius: 10px;
+        font-family: system-ui, sans-serif;
+        color: #f88;
+    }
+    .sai-error-boundary h2 {
+        margin: 0 0 1rem;
+        font-size: 1.1rem;
+    }
+    .sai-error-detail {
+        background: #1a0505;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.78rem;
+        line-height: 1.55;
+        color: #f99;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        overflow: auto;
+        max-height: 70vh;
+    }
+</style>

@@ -76,7 +76,8 @@
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
         <div class="brain-error" role="alert">
-            <strong>Error:</strong> @_errorMessage
+            <strong>Error:</strong>
+            <pre class="brain-error-detail">@_errorMessage</pre>
         </div>
     }
 
@@ -289,6 +290,19 @@
         font-size: 0.875rem;
         color: #f88;
     }
+    .brain-error-detail {
+        margin: 0.5rem 0 0;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        overflow: auto;
+        max-height: 40vh;
+        background: #2a0a0a;
+        border-radius: 5px;
+        padding: 0.5rem 0.75rem;
+        color: #f99;
+    }
 
     /* ── Supreme answer ──────────────────────────────────────────────────── */
     .brain-supreme-section {
@@ -472,7 +486,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = ex.ToString();
         }
         finally
         {
