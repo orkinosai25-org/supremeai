@@ -3,6 +3,7 @@
 @using SupremeAI.Services
 @inject AiApiService AiApi
 @inject IJSRuntime JS
+@inject ILogger<Brain> Logger
 
 <PageTitle>Supreme Model T‑X Brain</PageTitle>
 
@@ -500,7 +501,8 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.ToString();
+            Logger.LogError(ex, "Unexpected error during supreme evaluation");
+            _errorMessage = ex.Message;
         }
         finally
         {
