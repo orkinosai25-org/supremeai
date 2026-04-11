@@ -223,7 +223,7 @@ jobs:
             baseName=${{ env.BASE_NAME }}
             location=${{ env.LOCATION }}
             webAppName=${{ env.WEBAPP_NAME }}
-          deploymentName: supremeai-main-${{ github.run_number }}
+          deploymentName: supremeai-provision-${{ github.run_number }}
           failOnStdErr: false
 
       - name: Store external AI provider keys in Key Vault
@@ -250,9 +250,9 @@ jobs:
                 --vault-name "$KV_NAME" --name "$name" --value "$value" \
                 --output none 2>/dev/null \
               && echo "  ✓ $name stored" \
-              || echo "  ⚠ Could not store $name (ensure CI service principal has Key Vault Secrets Officer role)"
+              || echo "  ⚠ Could not store $name (ensure the GitHub OIDC service principal has Key Vault Secrets Officer role on vault '$KV_NAME')"
             else
-              echo "  – $name not provided (that provider will return an error response)"
+              echo "  – $name not provided (API calls to this provider will fail at runtime until the secret is configured)"
             fi
           }
           store_secret "azure-openai-endpoint"  "$AZURE_OPENAI_ENDPOINT"
