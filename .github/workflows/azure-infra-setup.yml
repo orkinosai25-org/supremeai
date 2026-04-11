@@ -1,9 +1,28 @@
 # Provisions Azure AI infrastructure for SupremeAI using Bicep templates.
 # Triggered manually via workflow_dispatch only.
-# Run this workflow once after setting up AZURE_CLIENT_ID, AZURE_TENANT_ID, and
-# AZURE_SUBSCRIPTION_ID as repository secrets with a federated identity credential
-# configured for GitHub Actions OIDC.
-# See: https://learn.microsoft.com/azure/developer/github/connect-from-azure
+#
+# PREREQUISITES — any ONE of the following secret sets is sufficient:
+#
+#   Set 1 – Auto-created by Azure Portal "GitHub Actions" deployment centre:
+#     AZUREAPPSERVICE_CLIENTID_*       – App Registration (client) ID
+#     AZUREAPPSERVICE_TENANTID_*       – Azure AD tenant ID
+#     AZUREAPPSERVICE_SUBSCRIPTIONID_* – Azure subscription ID
+#
+#   Set 2 – Manually created / created by setup-github-oidc.sh:
+#     AZURE_CLIENT_ID       – App Registration (client) ID
+#     AZURE_TENANT_ID       – Azure AD tenant ID
+#     AZURE_SUBSCRIPTION_ID – Azure subscription ID
+#
+# AUTHENTICATION — choose one of:
+#   Option A (OIDC / Workload Identity Federation — preferred, no long-lived secret):
+#     Add a federated identity credential on the App Registration for:
+#       Issuer:  https://token.actions.githubusercontent.com
+#       Subject: repo:orkinosai25-org/supremeai:ref:refs/heads/main
+#     See: https://learn.microsoft.com/azure/developer/github/connect-from-azure
+#
+#   Option B (Client Secret — simpler, works without federated credentials):
+#     Add AZURE_CLIENT_SECRET as a repository secret.
+#     The workflow detects the secret automatically and uses it instead of OIDC.
 
 name: Azure Infrastructure Setup
 
@@ -34,23 +53,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Azure (OIDC)
+      - name: Verify required secrets are set
+        run: |
+          missing=()
+          [ -z "$CLIENT_ID" ]       && missing+=("AZUREAPPSERVICE_CLIENTID_* or AZURE_CLIENT_ID")
+          [ -z "$TENANT_ID" ]       && missing+=("AZUREAPPSERVICE_TENANTID_* or AZURE_TENANT_ID")
+          [ -z "$SUBSCRIPTION_ID" ] && missing+=("AZUREAPPSERVICE_SUBSCRIPTIONID_* or AZURE_SUBSCRIPTION_ID")
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "::error::Missing required repository secrets: ${missing[*]}"
+            echo "  Go to Settings → Secrets and variables → Actions and add the missing secrets."
+            exit 1
+          fi
+          echo "All required secrets are present."
+        env:
+          CLIENT_ID:       ${{ secrets.AZUREAPPSERVICE_CLIENTID_C7BA4621EF474BBE94974B96CE1B926E || secrets.AZURE_CLIENT_ID }}
+          TENANT_ID:       ${{ secrets.AZUREAPPSERVICE_TENANTID_5ECA2F2096BE48BC85762C6ADDA0AB5D || secrets.AZURE_TENANT_ID }}
+          SUBSCRIPTION_ID: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C54E32D4CA56475EA186436F2EB3641F || secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure (OIDC or Client Secret)
         id: azure_login
         continue-on-error: true
         uses: azure/login@v2
         with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id:       ${{ secrets.AZUREAPPSERVICE_CLIENTID_C7BA4621EF474BBE94974B96CE1B926E || secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZUREAPPSERVICE_TENANTID_5ECA2F2096BE48BC85762C6ADDA0AB5D || secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C54E32D4CA56475EA186436F2EB3641F || secrets.AZURE_SUBSCRIPTION_ID }}
+          # When AZURE_CLIENT_SECRET is set the action uses SP credentials.
+          # When it is empty the action falls back to OIDC / Workload Identity.
+          client-secret:   ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Check Azure login result
         if: steps.azure_login.outcome != 'success'
         run: |
-          echo "::error::Azure login failed. Ensure the service principal has a federated identity credential for GitHub Actions."
-          echo "  See: https://learn.microsoft.com/azure/developer/github/connect-from-azure"
-          echo "  The federated credential must allow the subject matching this workflow run."
-          echo "  Common subjects: repo:${{ github.repository }}:ref:refs/heads/main"
-          echo "                   repo:${{ github.repository }}:environment:production"
+          echo "::error::Azure login failed."
+          echo ""
+          echo "  To fix, choose one of the two authentication options:"
+          echo ""
+          echo "  OPTION A — OIDC / Workload Identity Federation (no long-lived secret):"
+          echo "    1. Open the App Registration in the Azure Portal."
+          echo "    2. Go to Certificates & secrets → Federated credentials → Add credential."
+          echo "    3. Choose 'GitHub Actions deploying Azure resources'."
+          echo "    4. Set:"
+          echo "         Organisation: orkinosai25-org"
+          echo "         Repository:   supremeai"
+          echo "         Entity:       Branch"
+          echo "         Branch:       main"
+          echo "       This creates the required subject: repo:${{ github.repository }}:ref:refs/heads/main"
+          echo "    5. Re-run this workflow — no extra secrets needed."
+          echo "    Docs: https://learn.microsoft.com/azure/developer/github/connect-from-azure"
+          echo ""
+          echo "  OPTION B — Client Secret (simpler, works immediately):"
+          echo "    1. In the App Registration, go to Certificates & secrets → New client secret."
+          echo "    2. Copy the secret value."
+          echo "    3. Add it as repository secret AZURE_CLIENT_SECRET."
+          echo "    4. Re-run this workflow."
           exit 1
 
       - name: Register required Azure resource providers
