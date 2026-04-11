@@ -186,6 +186,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # fetch-depth: 2 fetches the current commit and its parent so that
+          # git diff HEAD~1 HEAD can compare the two commits to detect changes.
           fetch-depth: 2
 
       - name: Detect Bicep / Azure-scripts changes
@@ -199,7 +201,7 @@ jobs:
             exit 0
           fi
           CHANGED=$(git diff --name-only HEAD~1 HEAD | \
-            grep -E '(^scripts/azure/|\.bicep$)' | wc -l)
+            grep -E '(scripts/azure/|\.bicep$)' | wc -l)
           if [[ "$CHANGED" -gt 0 ]]; then
             echo "changed=true"  >> "$GITHUB_OUTPUT"
             echo "Infra files changed ($CHANGED file(s)) – provisioning will run."
