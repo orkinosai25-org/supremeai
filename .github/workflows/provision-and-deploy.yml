@@ -4,29 +4,35 @@
 # Fully provisions Azure infrastructure and deploys the backend API
 # so that no manual commands are ever needed after a PR is merged.
 #
-# Required repository secrets (Settings → Secrets and variables → Actions):
-#   PUBLISH_PROFILE       – Azure Web App publish profile XML (required for deployment).
-#                           Download from Azure Portal → App Service → Get publish profile
-#                           and add as a GitHub Secret named PUBLISH_PROFILE.
+# ── Zero-manual-setup path (recommended) ───────────────────────────────────────
+# Run scripts/azure/setup-github-oidc.sh once from your local machine to:
+#   • Create an Azure service principal with Contributor role
+#   • Configure OIDC Workload Identity Federation for this repository
+#   • Automatically set AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#     as GitHub repository secrets using the GitHub CLI
+# After that, every push to main provisions all Azure resources and deploys
+# the app automatically — no manual Portal steps, no PUBLISH_PROFILE needed.
 #
-# Optional provisioning secrets (required only for Azure infrastructure provisioning):
-#   AZURE_CLIENT_ID       – Service-principal / managed-identity client ID (OIDC)
+# Required secrets (set automatically by setup-github-oidc.sh):
+#   AZURE_CLIENT_ID       – Service-principal client ID (OIDC)
 #   AZURE_TENANT_ID       – Azure Active Directory tenant ID
 #   AZURE_SUBSCRIPTION_ID – Azure subscription ID
-#                           When these are absent, provisioning is skipped and only
-#                           deployment (using PUBLISH_PROFILE) will run.
 #
-# Optional secrets (stored in Key Vault; app runs in demo mode when absent):
-#   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint
-#   AZURE_OPENAI_API_KEY  – Pre-existing Azure OpenAI API key
-#   OPENAI_API_KEY        – Direct OpenAI API key (optional, for future use)
-#   ANTHROPIC_API_KEY     – Anthropic Claude API key
-#   GOOGLE_GEMINI_API_KEY – Google Gemini API key
-#   XAI_GROK_API_KEY      – xAI Grok API key
+# Optional – external AI provider keys (add once to GitHub Secrets; stored in
+# Key Vault by the workflow so App Service reads them via Key Vault references):
+#   ANTHROPIC_API_KEY     – Anthropic Claude API key (https://console.anthropic.com)
+#   GOOGLE_GEMINI_API_KEY – Google Gemini API key    (https://aistudio.google.com)
+#   XAI_GROK_API_KEY      – xAI Grok API key         (https://console.x.ai)
+#   AZURE_OPENAI_ENDPOINT – Pre-existing Azure OpenAI endpoint (optional override)
+#   AZURE_OPENAI_API_KEY  – Pre-existing Azure OpenAI API key  (optional override)
+#   OPENAI_API_KEY        – Direct OpenAI API key              (optional, future use)
 #
-# Note: Azure AI Foundry model secrets (Phi, Llama, Mistral, etc.) are provisioned
-# automatically by the Bicep templates and stored directly in Key Vault.
+# Note: Azure OpenAI and Azure AI Foundry model secrets (Phi, Llama, Mistral, etc.)
+# are provisioned automatically by the Bicep templates and stored in Key Vault.
 # App Service reads all secrets via Key Vault references in its application settings.
+#
+# Legacy fallback: PUBLISH_PROFILE secret is still supported for deployments to a
+# pre-existing App Service without OIDC credentials, but is no longer required.
 #
 # Optional repository variables (Settings → Secrets and variables → Variables):
 #   AZURE_RESOURCE_GROUP  – Resource group name          (default: supremeai-rg)
@@ -98,7 +104,7 @@ jobs:
 
           if [[ ${#OIDC_MISSING[@]} -eq 0 ]]; then
             echo "has_oidc_creds=true" >> "$GITHUB_OUTPUT"
-            echo "✅ All OIDC provisioning secrets are present – infrastructure provisioning will run."
+            echo "✅ All OIDC provisioning secrets are present – infrastructure provisioning and deployment will run."
           else
             echo "has_oidc_creds=false" >> "$GITHUB_OUTPUT"
             if [[ "$PUBLISH_PROFILE_SET" == "true" ]]; then
@@ -109,12 +115,15 @@ jobs:
               done
               echo ""
               echo "  PUBLISH_PROFILE is set, so deployment will proceed using the publish profile."
-              echo "  To enable provisioning, configure OIDC credentials:"
-              echo "  https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure"
+              echo "  To enable zero-manual-setup provisioning and deployment, run:"
+              echo "  scripts/azure/setup-github-oidc.sh --repo ${{ github.repository }}"
             else
               echo "::error title=Missing Required Secrets::Neither OIDC secrets nor PUBLISH_PROFILE are configured."
               echo ""
-              echo "  To provision and deploy, add OIDC secrets at:"
+              echo "  Run the one-time OIDC setup script to configure everything automatically:"
+              echo "  scripts/azure/setup-github-oidc.sh --repo ${{ github.repository }}"
+              echo ""
+              echo "  Or, to provision and deploy manually, add OIDC secrets at:"
               echo "  Repository → Settings → Secrets and variables → Actions → Secrets"
               echo ""
               for secret in "${OIDC_MISSING[@]}"; do
@@ -126,22 +135,22 @@ jobs:
             fi
           fi
 
-          # Check deployment secret (PUBLISH_PROFILE) – warn if absent but do not fail.
-          # On first run the Web App is created by Bicep; download the publish profile from
-          # Azure Portal → App Service → Get publish profile, add it as a GitHub Secret,
-          # then re-run to enable deployment.
+          # PUBLISH_PROFILE is a legacy fallback — not required when OIDC creds are present.
+          # When OIDC is configured, deployment uses OIDC token-based auth automatically.
           if [[ "$PUBLISH_PROFILE_SET" == "true" ]]; then
             echo "has_publish_profile=true"  >> "$GITHUB_OUTPUT"
-            echo "  ✓ PUBLISH_PROFILE is set – deployment will run."
+            echo "  ✓ PUBLISH_PROFILE is set – available as a legacy deployment fallback."
           else
             echo "has_publish_profile=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::PUBLISH_PROFILE is not set. Provisioning will run but deployment will be skipped."
-            echo "  After provisioning, download the publish profile from:"
-            echo "  Azure Portal → App Service → ${{ env.WEBAPP_NAME }} → Get publish profile"
-            echo "  Then add it as a GitHub Secret named PUBLISH_PROFILE and re-run the workflow."
+            if [[ ${#OIDC_MISSING[@]} -eq 0 ]]; then
+              echo "  PUBLISH_PROFILE is not set – deployment will use OIDC credentials (no publish profile needed)."
+            else
+              echo "::warning::PUBLISH_PROFILE is not set and OIDC creds are missing – deployment will be skipped."
+              echo "  Run scripts/azure/setup-github-oidc.sh to configure OIDC and enable automated deployment."
+            fi
           fi
 
-          # Warn (non-fatal) about optional secrets
+          # Warn (non-fatal) about optional external API key secrets
           OPTIONAL_MISSING=()
           [[ "$AZURE_OPENAI_ENDPOINT_SET" != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_ENDPOINT")
           [[ "$AZURE_OPENAI_API_KEY_SET"  != "true" ]] && OPTIONAL_MISSING+=("AZURE_OPENAI_API_KEY")
@@ -152,10 +161,14 @@ jobs:
 
           if [[ ${#OPTIONAL_MISSING[@]} -gt 0 ]]; then
             echo ""
-            echo "⚠️  Optional API-key secrets are not set – those providers will run in demo mode:"
+            echo "⚠️  Optional external API-key secrets are not set – those providers will return error responses:"
             for secret in "${OPTIONAL_MISSING[@]}"; do
               echo "  ⚠  $secret"
             done
+            echo ""
+            echo "  Add these as GitHub repository secrets to enable the corresponding AI providers."
+            echo "  Azure OpenAI and all Azure AI Foundry models (Phi, Llama, Mistral, etc.) are"
+            echo "  provisioned automatically by Bicep – no manual key management needed for those."
           fi
 
   # ── 2. Provision Azure infrastructure ────────────────────────────────────────
@@ -276,7 +289,7 @@ jobs:
                 echo "    'Key Vault Secrets Officer' role on vault '$KV_NAME'."
               fi
             else
-              echo "  – $name not provided (demo mode for that provider)"
+              echo "  – $name not provided (that provider will return an error response until the key is configured)"
             fi
           }
 
@@ -347,14 +360,14 @@ jobs:
     name: Deploy API to Azure Web App
     runs-on: ubuntu-latest
     needs: [validate-secrets, provision, build]
-    # Run only when build succeeded, provision succeeded/skipped/failed (so that
-    # a PUBLISH_PROFILE-based deployment can proceed even when OIDC provisioning
-    # is not yet configured), AND the PUBLISH_PROFILE secret is available.
+    # Run when build succeeded AND either:
+    #   - OIDC creds are configured (primary, zero-manual-setup path), OR
+    #   - PUBLISH_PROFILE is configured (legacy fallback for pre-existing App Service)
     if: |
       always() &&
       needs.build.result == 'success' &&
       (needs.provision.result == 'success' || needs.provision.result == 'skipped' || needs.provision.result == 'failure') &&
-      needs.validate-secrets.outputs.has_publish_profile == 'true'
+      (needs.validate-secrets.outputs.has_oidc_creds == 'true' || needs.validate-secrets.outputs.has_publish_profile == 'true')
 
     steps:
       - name: Download build artifact
@@ -387,27 +400,38 @@ jobs:
           COUNT=$(wc -l < "$ENV_FILE" 2>/dev/null || echo 0)
           echo "Injected ${COUNT} API key(s) into .env"
 
-      - name: Deploy package to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name:        ${{ env.WEBAPP_NAME }}
-          package:         ./publish
-          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
-
-      # After deploying, use Azure CLI to push API key secrets directly to App
-      # Service configuration.  This runs only when OIDC creds are available so
-      # the App Service environment variables are always current, even when the
-      # Key Vault provisioning step was skipped or is still propagating.
-      - name: Azure Login (OIDC) – configure app settings
+      # ── Primary: OIDC-based deployment (no PUBLISH_PROFILE needed) ───────────
+      # azure/webapps-deploy@v3 uses the current Azure login context when
+      # publish-profile is not provided — this is the recommended zero-manual path.
+      - name: Azure Login (OIDC) – primary deployment method
         id: deploy_azure_login
         if: needs.validate-secrets.outputs.has_oidc_creds == 'true'
-        continue-on-error: true
         uses: azure/login@v2
         with:
           client-id:       ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Deploy package to Azure Web App (OIDC – no publish profile required)
+        if: steps.deploy_azure_login.outcome == 'success'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
+          package:  ./publish
+
+      # ── Fallback: publish-profile-based deployment ────────────────────────────
+      # Used when OIDC creds are not configured (e.g. third-party CI, legacy setup).
+      - name: Deploy package to Azure Web App (publish profile fallback)
+        if: steps.deploy_azure_login.outcome != 'success' && needs.validate-secrets.outputs.has_publish_profile == 'true'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name:        ${{ env.WEBAPP_NAME }}
+          package:         ./publish
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+
+      # After deploying, push any GitHub-secret API keys directly to App Service
+      # configuration so they take effect immediately (Key Vault references may
+      # take a few minutes to propagate on first deploy).
       - name: Set API keys as Azure App Service environment variables
         if: steps.deploy_azure_login.outcome == 'success'
         continue-on-error: true
@@ -520,17 +544,16 @@ jobs:
 
           if [[ "$DEPLOY_STATUS" == "success" ]]; then
             if [[ "$PROV_STATUS" == "failure" ]]; then
-              echo "  ✅ SupremeAI backend is live (deployed via PUBLISH_PROFILE)."
+              echo "  ✅ SupremeAI backend is live."
               echo "  ⚠️  Provisioning failed – infrastructure may be out of date."
               echo "     Fix the OIDC/Azure credentials to enable full infrastructure provisioning."
             else
               echo "  ✅ SupremeAI backend is live!"
             fi
           elif [[ "$DEPLOY_STATUS" == "skipped" ]]; then
-            if [[ "${{ needs.validate-secrets.outputs.has_publish_profile }}" != "true" ]]; then
-              echo "  ⏭  Deployment skipped – PUBLISH_PROFILE secret is not yet configured."
-              echo "     Download the publish profile from Azure Portal → App Service → Get publish profile"
-              echo "     and add it as a GitHub Secret named PUBLISH_PROFILE, then re-run this workflow."
+            if [[ "${{ needs.validate-secrets.outputs.has_publish_profile }}" != "true" && "${{ needs.validate-secrets.outputs.has_oidc_creds }}" != "true" ]]; then
+              echo "  ⏭  Deployment skipped – neither OIDC secrets nor PUBLISH_PROFILE are configured."
+              echo "     Run scripts/azure/setup-github-oidc.sh to configure automated deployment."
             else
               echo "  ⏭  Deployment was skipped (build or provision step did not complete)."
             fi
