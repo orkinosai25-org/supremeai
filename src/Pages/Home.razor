@@ -43,6 +43,11 @@
                     }
                 </svg>
             </button>
+            <button class="gm-launch-btn" @onclick='() => Nav.NavigateTo("/groovemaker")'
+                    title="GrooveMaker — AI Image &amp; Video Creation">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                GrooveMaker
+            </button>
             <button class="sai-plans-btn" @onclick='() => Nav.NavigateTo("/pricing")'>
                 <span class="sai-gem-badge @Subscription.CurrentPlan.GemClass" style="font-size:0.65rem;padding:0.1rem 0.4rem">@Subscription.CurrentPlan.Name</span>
                 Plans
