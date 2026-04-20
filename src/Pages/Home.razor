@@ -824,7 +824,14 @@
     private string ModelContextText =>
         SelectionMode == "all" ? "All models selected" :
         SelectedIds.Count == 1 ? "1 model selected" : $"{SelectedIds.Count} models selected";
-    private string SelectedImagePlatformLabel => GrooveImagePlatforms.FirstOrDefault(p => p.id == ImagePlatform).label ?? "Instagram Post (1080×1080)";
+    private string SelectedImagePlatformLabel
+    {
+        get
+        {
+            var selected = GrooveImagePlatforms.FirstOrDefault(p => p.id == ImagePlatform);
+            return string.IsNullOrWhiteSpace(selected.label) ? GrooveImagePlatforms[0].label : selected.label;
+        }
+    }
     private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && (SupremeMode || SelectedIds.Count > 0);
     private string GridColClass
     {
