@@ -829,7 +829,7 @@
         get
         {
             var selected = GrooveImagePlatforms.FirstOrDefault(p => p.id == ImagePlatform);
-            return string.IsNullOrWhiteSpace(selected.label) ? GrooveImagePlatforms[0].label : selected.label;
+            return selected.label ?? GrooveImagePlatforms[0].label;
         }
     }
     private bool CanSend => !string.IsNullOrWhiteSpace(ChatPrompt) && (SupremeMode || SelectedIds.Count > 0);
@@ -1153,8 +1153,9 @@
                 ImageResult = "<div style='text-align:center;padding:1rem;color:var(--sai-text-muted)'>Could not render image. Please try again.</div>";
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"GrooveMaker image render failed: {ex.Message}");
             ImageGenStatus = "error";
             ImageResult = "<div style='text-align:center;padding:1rem;color:var(--sai-text-muted)'>Could not render image. Please try again.</div>";
         }
