@@ -1,0 +1,369 @@
+@page "/groovemaker"
+@using SupremeAI.Models
+@using SupremeAI.Services
+@inject AiApiService AiApi
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject SubscriptionService Subscription
+
+<PageTitle>GrooveMaker — AI Image &amp; Video Creation</PageTitle>
+
+<div class="gm-shell @(IsDark ? "" : "gm-light")">
+
+    <!-- ─── Top Bar ─── -->
+    <header class="gm-topbar">
+        <a class="gm-brand" href="/groovemaker" aria-label="GrooveMaker home">
+            <!-- Inline SVG logo: metallic film-wave mark + wordmark -->
+            <svg class="gm-brand-logo" viewBox="0 0 48 48" width="38" height="38" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                    <linearGradient id="gm-logo-silver" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%"   stop-color="#E8EEF5"/>
+                        <stop offset="40%"  stop-color="#9AAFC4"/>
+                        <stop offset="100%" stop-color="#D0DCEA"/>
+                    </linearGradient>
+                    <linearGradient id="gm-logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%"   stop-color="#00DFFF"/>
+                        <stop offset="100%" stop-color="#0078D4"/>
+                    </linearGradient>
+                    <filter id="gm-logo-glow">
+                        <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+                <!-- Film strip left -->
+                <rect x="3" y="4" width="7" height="40" rx="2" fill="url(#gm-logo-silver)" opacity="0.9"/>
+                <rect x="4.5" y="7"  width="4" height="5" rx="1" fill="#010B16"/>
+                <rect x="4.5" y="15" width="4" height="5" rx="1" fill="#010B16"/>
+                <rect x="4.5" y="23" width="4" height="5" rx="1" fill="#010B16"/>
+                <rect x="4.5" y="31" width="4" height="5" rx="1" fill="#010B16"/>
+                <rect x="4.5" y="39" width="4" height="5" rx="1" fill="#010B16"/>
+                <!-- Waveform bars -->
+                <rect x="13" y="22" width="4" height="6"  rx="1.5" fill="url(#gm-logo-blue)" filter="url(#gm-logo-glow)"/>
+                <rect x="19" y="16" width="4" height="18" rx="1.5" fill="url(#gm-logo-blue)" filter="url(#gm-logo-glow)"/>
+                <rect x="25" y="10" width="4" height="30" rx="1.5" fill="url(#gm-logo-silver)" filter="url(#gm-logo-glow)"/>
+                <rect x="31" y="16" width="4" height="18" rx="1.5" fill="url(#gm-logo-blue)" filter="url(#gm-logo-glow)"/>
+                <rect x="37" y="20" width="4" height="10" rx="1.5" fill="url(#gm-logo-blue)" filter="url(#gm-logo-glow)"/>
+                <!-- Film strip right -->
+                <rect x="43" y="4" width="2" height="40" rx="1" fill="url(#gm-logo-silver)" opacity="0.6"/>
+            </svg>
+            <span class="gm-brand-name">GROOVEMAKER</span>
+        </a>
+
+        <div class="gm-topbar-actions">
+            <button class="gm-icon-btn" @onclick="() => IsDark = !IsDark" title="Toggle theme">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (IsDark) { <text>&#x2600;</text> }
+                    else { <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/> }
+                </svg>
+            </button>
+            <button class="gm-back-btn" @onclick='() => Nav.NavigateTo("/")'>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+                Back to SupremeAI
+            </button>
+        </div>
+    </header>
+
+    <!-- ─── Hero ─── -->
+    <div class="gm-hero">
+        <!-- Banner image (SVG branding) -->
+        <img src="/groovemaker-banner.svg" alt="GrooveMaker — AI Image &amp; Video Creation" class="gm-hero-banner"
+             onerror="this.style.display='none'" />
+
+        <h1 class="gm-hero-title">GROOVEMAKER</h1>
+        <p class="gm-hero-sub">AI Image &amp; Video Creation</p>
+        <p class="gm-hero-tagline">Generate stunning images and cinematic videos using state-of-the-art AI models — all in one place.</p>
+
+        <div class="gm-hero-ctas">
+            <button class="gm-cta-primary" @onclick='() => ActivePane = "images"'>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Generate Image
+            </button>
+            <button class="gm-cta-secondary" @onclick='() => ActivePane = "video"'>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Generate Video
+            </button>
+        </div>
+    </div>
+
+    <!-- ─── Feature badges ─── -->
+    <div class="gm-feature-badges">
+        <span class="gm-badge gm-badge-blue">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            DALL-E 3 · Stable Diffusion
+        </span>
+        <span class="gm-badge gm-badge-silver">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Runway Gen-3 · Kling
+        </span>
+        <span class="gm-badge gm-badge-blue">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Multi-Model AI
+        </span>
+        <span class="gm-badge gm-badge-silver">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            HD &amp; Cinematic
+        </span>
+    </div>
+
+    <!-- ─── Pane navigation ─── -->
+    <div class="gm-content">
+        <nav class="gm-pane-nav" aria-label="Creation modes">
+            <button class="gm-pane-tab @(ActivePane == "images" ? "active" : "")" @onclick='() => ActivePane = "images"'>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Images
+            </button>
+            <button class="gm-pane-tab @(ActivePane == "video" ? "active" : "")" @onclick='() => ActivePane = "video"'>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Video
+            </button>
+        </nav>
+
+        <!-- ─── IMAGE PANE ─── -->
+        <section class="gm-pane @(ActivePane == "images" ? "active" : "")" aria-label="Image generation">
+            <div class="gm-pane-inner">
+                <div class="gm-pane-header">
+                    <div class="gm-pane-icon images">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="gm-pane-title">Image Generation</h2>
+                        <p class="gm-pane-subtitle">Create stunning visuals with best-in-class AI image models</p>
+                    </div>
+                </div>
+
+                <!-- Model selector -->
+                <div class="gm-model-grid">
+                    @foreach (var model in ModelCatalogue.ImageModels)
+                    {
+                        <div class="gm-model-card @(SelectedImageModelId == model.Id ? "selected" : "")"
+                             @onclick="() => SelectedImageModelId = model.Id">
+                            <div class="gm-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="gm-model-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="gm-model-provider">@model.Provider</div>
+                            <span class="gm-tier @TierCss(model.Tier)">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Results -->
+                <div class="gm-results-area">
+                    @if (string.IsNullOrEmpty(ImageResult))
+                    {
+                        <div class="gm-pane-empty">Select a model above and describe an image to generate</div>
+                    }
+                    else
+                    {
+                        var imgModel = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+                        <div class="gm-result-card">
+                            <div class="gm-result-card-header">
+                                <div class="gm-result-card-logo" style="background:@(imgModel?.Color ?? "#888")20;color:@(imgModel?.Color ?? "#888")">@(imgModel?.Initial ?? "?")</div>
+                                <span class="gm-result-card-name">@(imgModel?.Name ?? SelectedImageModelId)</span>
+                                <div class="gm-result-status @ImageGenStatus"></div>
+                            </div>
+                            <div class="gm-result-card-body">@((MarkupString)ImageResult)</div>
+                            <div class="gm-result-card-footer">
+                                <button class="gm-action-btn" disabled="@string.IsNullOrEmpty(ImageDownloadUrl)" @onclick="DownloadImage">Download</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Prompt bar -->
+                <div class="gm-prompt-wrap">
+                    <div class="gm-prompt-form">
+                        <textarea class="gm-prompt-input" rows="1"
+                                  placeholder="A cinematic starship over a neon city skyline at midnight…"
+                                  @bind="ImagePrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="gm-select" @bind="ImageStyle">
+                            <option value="vivid">Vivid</option>
+                            <option value="natural">Natural</option>
+                            <option value="cinematic">Cinematic</option>
+                            <option value="anime">Anime</option>
+                        </select>
+                        <button class="gm-send-btn" @onclick="SubmitImagePrompt"
+                                disabled="@string.IsNullOrWhiteSpace(ImagePrompt)"
+                                aria-label="Generate image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="21 15 16 10 5 21"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── VIDEO PANE ─── -->
+        <section class="gm-pane @(ActivePane == "video" ? "active" : "")" aria-label="Video generation">
+            <div class="gm-pane-inner">
+                <div class="gm-pane-header">
+                    <div class="gm-pane-icon video">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="gm-pane-title">Video Generation</h2>
+                        <p class="gm-pane-subtitle">Generate AI-powered cinematic video clips from text prompts</p>
+                    </div>
+                </div>
+
+                <!-- Model selector -->
+                <div class="gm-model-grid">
+                    @foreach (var model in ModelCatalogue.VideoModels)
+                    {
+                        <div class="gm-model-card @(SelectedVideoModelId == model.Id ? "selected" : "")"
+                             @onclick="() => SelectedVideoModelId = model.Id">
+                            <div class="gm-model-logo" style="background:@(model.Color)20;color:@model.Color">@model.Initial</div>
+                            <div class="gm-model-name">@model.Name@if(model.ComingSoon){<span style="font-size:0.7em;opacity:0.5"> (soon)</span>}</div>
+                            <div class="gm-model-provider">@model.Provider</div>
+                            <span class="gm-tier @TierCss(model.Tier)">@model.TierLabel</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Results -->
+                <div class="gm-results-area">
+                    @if (string.IsNullOrEmpty(VideoResult))
+                    {
+                        <div class="gm-pane-empty">Select a model above and describe a video scene to create</div>
+                    }
+                    else
+                    {
+                        var vidModel = ModelCatalogue.VideoModels.FirstOrDefault(x => x.Id == SelectedVideoModelId);
+                        <div class="gm-result-card">
+                            <div class="gm-result-card-header">
+                                <div class="gm-result-card-logo" style="background:@(vidModel?.Color ?? "#888")20;color:@(vidModel?.Color ?? "#888")">@(vidModel?.Initial ?? "?")</div>
+                                <span class="gm-result-card-name">@(vidModel?.Name ?? SelectedVideoModelId)</span>
+                                <div class="gm-result-status @VideoGenStatus"></div>
+                            </div>
+                            <div class="gm-result-card-body">@((MarkupString)VideoResult)</div>
+                            <div class="gm-result-card-footer">
+                                <button class="gm-action-btn" disabled="@string.IsNullOrEmpty(VideoDownloadUrl)" @onclick="DownloadVideo">Download</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Prompt bar -->
+                <div class="gm-prompt-wrap">
+                    <div class="gm-prompt-form">
+                        <textarea class="gm-prompt-input" rows="1"
+                                  placeholder="A time-lapse of a silver spacecraft docking at a space station…"
+                                  @bind="VideoPrompt" @bind:event="oninput" maxlength="4000"></textarea>
+                        <select class="gm-select" @bind="VideoDuration">
+                            <option value="5s">5 sec</option>
+                            <option value="10s">10 sec</option>
+                            <option value="30s">30 sec</option>
+                        </select>
+                        <button class="gm-send-btn" @onclick="SubmitVideoPrompt"
+                                disabled="@string.IsNullOrWhiteSpace(VideoPrompt)"
+                                aria-label="Generate video">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private bool IsDark = true;
+    private string ActivePane = "images";
+
+    private string SelectedImageModelId = ModelCatalogue.ImageModels[0].Id;
+    private string ImagePrompt = "";
+    private string ImageStyle = "vivid";
+    private string ImageResult = "";
+    private string ImageDownloadUrl = "";
+    private string ImageGenStatus = "loading";
+
+    private string SelectedVideoModelId = ModelCatalogue.VideoModels.Count > 1
+        ? ModelCatalogue.VideoModels[1].Id
+        : ModelCatalogue.VideoModels[0].Id;
+    private string VideoPrompt = "";
+    private string VideoDuration = "5s";
+    private string VideoResult = "";
+    private string VideoDownloadUrl = "";
+    private string VideoGenStatus = "loading";
+
+    private static string TierCss(ModelTier tier) => tier switch
+    {
+        ModelTier.Diamond => "gm-tier-diamond",
+        ModelTier.Gold    => "gm-tier-gold",
+        _                 => "gm-tier-silver",
+    };
+
+    private static string EscHtml(string s) =>
+        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+
+    private async Task SubmitImagePrompt()
+    {
+        if (string.IsNullOrWhiteSpace(ImagePrompt)) return;
+        var prompt = ImagePrompt.Trim();
+        var model = ModelCatalogue.ImageModels.FirstOrDefault(x => x.Id == SelectedImageModelId);
+        ImageGenStatus = "loading";
+        ImageDownloadUrl = "";
+        ImageResult = "<div style='text-align:center;padding:1rem'>" +
+                      "<span class='gm-skeleton gm-skeleton-lg'></span>" +
+                      "<p style='margin-top:0.75rem;font-size:0.85rem;color:var(--gm-text-muted)'>Generating image…</p></div>";
+        ImagePrompt = "";
+        StateHasChanged();
+
+        var apiResult = await AiApi.ImageAsync(SelectedImageModelId, prompt);
+
+        ImageGenStatus = "done";
+        if (apiResult is not null && apiResult.Status == "done" && !string.IsNullOrWhiteSpace(apiResult.ImageUrl))
+        {
+            ImageDownloadUrl = apiResult.ImageUrl;
+            var revised = string.IsNullOrWhiteSpace(apiResult.RevisedPrompt) ? "" :
+                $"<p style='margin-top:0.5rem;font-size:0.75rem;color:var(--gm-text-muted)'>Revised: {EscHtml(apiResult.RevisedPrompt)}</p>";
+            ImageResult = $"<div style='text-align:center;padding:1rem'>" +
+                          $"<img src='{apiResult.ImageUrl}' alt='Generated image' style='max-width:100%;border-radius:10px' />{revised}</div>";
+        }
+        else
+        {
+            ImageDownloadUrl = "";
+            var errorMsg = apiResult?.ErrorMessage;
+            var note = string.IsNullOrWhiteSpace(errorMsg)
+                ? "Connect Azure AI Foundry to render real images."
+                : EscHtml(errorMsg);
+            ImageResult = $"<div style='text-align:center;padding:1rem'>" +
+                          $"<div style='width:100%;height:180px;background:linear-gradient(135deg,{model?.Color ?? "#0078D4"}22,var(--gm-bg-mid));border-radius:10px;" +
+                          $"display:flex;align-items:center;justify-content:center;color:var(--gm-text-muted);font-size:0.875rem'>" +
+                          $"🖼️ Image generated for: &quot;{EscHtml(prompt)}&quot;</div>" +
+                          $"<p style='margin-top:0.75rem;font-size:0.78rem;color:var(--gm-text-muted)'>{note}</p></div>";
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubmitVideoPrompt()
+    {
+        if (string.IsNullOrWhiteSpace(VideoPrompt)) return;
+        var prompt = VideoPrompt.Trim();
+        var model = ModelCatalogue.VideoModels.FirstOrDefault(x => x.Id == SelectedVideoModelId);
+        VideoGenStatus = "loading";
+        VideoDownloadUrl = "";
+        VideoResult = "<div style='text-align:center;padding:1rem'>" +
+                      "<span class='gm-skeleton gm-skeleton-lg'></span>" +
+                      "<p style='margin-top:0.75rem;font-size:0.85rem;color:var(--gm-text-muted)'>Generating video…</p></div>";
+        VideoPrompt = "";
+        StateHasChanged();
+        await Task.Delay(2500);
+        VideoGenStatus = "done";
+        VideoResult = $"<div style='text-align:center;padding:1rem'>" +
+                      $"<div style='width:100%;height:160px;background:linear-gradient(135deg,{model?.Color ?? "#0078D4"}22,var(--gm-bg-mid));" +
+                      $"border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--gm-text-muted);font-size:0.875rem'>" +
+                      $"🎬 Video generated for: &quot;{EscHtml(prompt)}&quot;</div>" +
+                      $"<p style='margin-top:0.75rem;font-size:0.78rem;color:var(--gm-text-muted)'>Connect Azure AI Foundry for real video output.</p></div>";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DownloadImage()
+    {
+        if (!string.IsNullOrEmpty(ImageDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", ImageDownloadUrl, "groovemaker-image.png");
+    }
+
+    private async Task DownloadVideo()
+    {
+        if (!string.IsNullOrEmpty(VideoDownloadUrl))
+            await JS.InvokeVoidAsync("saiDownloadUrl", VideoDownloadUrl, "groovemaker-video.mp4");
+    }
+}
