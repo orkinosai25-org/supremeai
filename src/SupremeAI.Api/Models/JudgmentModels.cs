@@ -116,8 +116,74 @@ public sealed class JudgmentRecord
     /// </summary>
     public string Rationale { get; set; } = "";
 
+    /// <summary>
+    /// The T-101 canonical judgement output contract — a structured, defensible
+    /// recommendation that is explainable by non-technical users.
+    /// Confidence and caveat are always populated.
+    /// </summary>
+    public JudgmentRecommendation Recommendation { get; set; } = new();
+
     /// <summary>UTC timestamp when this judgment was produced.</summary>
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
+}
+
+// ── T-101 Judgement Output Contract ──────────────────────────────────────────
+
+/// <summary>
+/// An alternative approach with its associated trade-off, as part of the
+/// T-101 canonical judgement output contract.
+/// </summary>
+public sealed class RecommendationAlternative
+{
+    /// <summary>Brief description of the alternative approach.</summary>
+    public string Approach { get; set; } = "";
+
+    /// <summary>Plain-language trade-off compared to the primary recommendation.</summary>
+    public string Tradeoff { get; set; } = "";
+}
+
+/// <summary>
+/// The canonical T-101 Judgement Output Contract.
+///
+/// Every SupremeAI recommendation exposes this structured, defensible result.
+/// Scores and raw metrics are intentionally absent — only plain-language
+/// judgements are surfaced so that non-technical users can act on the output.
+/// </summary>
+public sealed class JudgmentRecommendation
+{
+    /// <summary>
+    /// Inferred task domain (e.g. "code", "analysis", "creative", "research", "general").
+    /// </summary>
+    public string Domain { get; set; } = "";
+
+    /// <summary>
+    /// Plain-language description of the recommended approach (not a specific model ID).
+    /// </summary>
+    public string Recommendation { get; set; } = "";
+
+    /// <summary>
+    /// Confidence in the recommendation: "High", "Medium", or "Low".
+    /// Always populated — if no strong recommendation exists the level is "Low"
+    /// and <see cref="Recommendation"/> indicates no confident choice.
+    /// </summary>
+    public string Confidence { get; set; } = "Low";
+
+    /// <summary>
+    /// Up to three plain-language primary reasons that justify the recommendation.
+    /// </summary>
+    public List<string> Reasons { get; set; } = [];
+
+    /// <summary>
+    /// The primary caveat — what could go wrong or the key limitation to be aware of.
+    /// Always populated.
+    /// </summary>
+    public string Caveat { get; set; } = "";
+
+    /// <summary>
+    /// Optional alternative approaches with their trade-offs relative to the
+    /// primary recommendation.
+    /// </summary>
+    public List<RecommendationAlternative> Alternatives { get; set; } = [];
 }
 
 /// <summary>Response body for POST /supreme/judge.</summary>
