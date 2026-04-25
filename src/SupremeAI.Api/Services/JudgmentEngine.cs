@@ -386,36 +386,34 @@ public sealed class JudgmentEngine
     /// </summary>
     internal static string InferDomain(string prompt)
     {
-        var text = prompt.ToLowerInvariant();
-
         // Code / engineering
-        if (ContainsAny(text, "code", "function", "program", "algorithm", "debug",
+        if (ContainsAny(prompt, "code", "function", "program", "algorithm", "debug",
                 "compile", "script", "api", "sql", "python", "javascript",
-                "typescript", "java", "csharp", "c#", "rust", "golang", " go ",
+                "typescript", "java", "csharp", "c#", "rust", "golang",
                 "html", "css", "dockerfile", "regex", "unit test", "refactor",
-                "implement", "class ", "method ", "syntax", "bug", "error"))
+                "implement", "class", "method", "syntax", "bug", "error"))
             return "code";
 
         // Marketing / brand
-        if (ContainsAny(text, "marketing", "brand", "campaign", "advertisement",
-                " ad ", "social media", "audience", "customer", "copywriting",
+        if (ContainsAny(prompt, "marketing", "brand", "campaign", "advertisement",
+                "social media", "audience", "copywriting",
                 "slogan", "tagline", "engagement", "conversion", "funnel"))
             return "marketing";
 
         // Creative writing
-        if (ContainsAny(text, "story", "poem", "fiction", "narrative", "creative writing",
-                "write a ", "compose a", "song", "lyrics", "screenplay", "dialogue",
+        if (ContainsAny(prompt, "story", "poem", "fiction", "narrative", "creative writing",
+                "compose a", "song", "lyrics", "screenplay", "dialogue",
                 "character", "plot", "novel", "short story"))
             return "creative";
 
         // Data / analysis
-        if (ContainsAny(text, "analyz", "analys", "data", "statistics", "metrics",
+        if (ContainsAny(prompt, "analyz", "analys", "data", "statistics", "metrics",
                 "report", "evaluate", "assess", "chart", "graph", "trend",
                 "compare", "contrast", "pros and cons", "advantages", "disadvantages"))
             return "analysis";
 
         // Research / knowledge
-        if (ContainsAny(text, "explain", "what is", "how does", "why does",
+        if (ContainsAny(prompt, "explain", "what is", "how does", "why does",
                 "what are", "history", "historical", "research", "summarize",
                 "summarise", "overview", "describe", "definition", "difference between"))
             return "research";
@@ -565,7 +563,7 @@ public sealed class JudgmentEngine
         return $"Lower overall score than the recommended approach; may be preferable when {weakestWinnerDim.Label} is less critical.";
     }
 
-    /// <summary>Returns true when <paramref name="text"/> contains any of the given substrings.</summary>
+    /// <summary>Returns true when <paramref name="text"/> contains any of the given substrings (case-insensitive).</summary>
     private static bool ContainsAny(string text, params string[] terms) =>
-        terms.Any(t => text.Contains(t, StringComparison.Ordinal));
+        terms.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
 }
