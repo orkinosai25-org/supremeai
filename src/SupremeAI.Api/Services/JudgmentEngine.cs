@@ -378,7 +378,7 @@ public sealed class JudgmentEngine
     internal static string Sanitize(string value) =>
         value.Replace('\r', ' ').Replace('\n', ' ');
 
-    // ── T-101 Judgement Output Contract ───────────────────────────────────────
+    // ── T-101 Judgment Output Contract ────────────────────────────────────────
 
     /// <summary>
     /// Infers the task domain from prompt keywords.
@@ -407,7 +407,7 @@ public sealed class JudgmentEngine
             return "creative";
 
         // Data / analysis
-        if (ContainsAny(prompt, "analyz", "analys", "data", "statistics", "metrics",
+        if (ContainsAny(prompt, "analy", "data", "statistics", "metrics",
                 "report", "evaluate", "assess", "chart", "graph", "trend",
                 "compare", "contrast", "pros and cons", "advantages", "disadvantages"))
             return "analysis";
@@ -555,6 +555,7 @@ public sealed class JudgmentEngine
             ("latency",      winnerBd.Latency,          runnerBd.Latency),
         };
 
+        // dims is always a 4-element array so MaxBy/MinBy are guaranteed to return a result.
         var bestRunnerDim = dims.MaxBy(d => d.RunnerVal - d.WinnerVal);
         if (bestRunnerDim.RunnerVal > bestRunnerDim.WinnerVal)
             return $"Stronger on {bestRunnerDim.Label}, but lower overall score than the recommended approach.";

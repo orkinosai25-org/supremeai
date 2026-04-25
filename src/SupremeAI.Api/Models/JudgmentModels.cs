@@ -117,7 +117,7 @@ public sealed class JudgmentRecord
     public string Rationale { get; set; } = "";
 
     /// <summary>
-    /// The T-101 canonical judgement output contract — a structured, defensible
+    /// The T-101 canonical judgment output contract — a structured, defensible
     /// recommendation that is explainable by non-technical users.
     /// Confidence and caveat are always populated.
     /// </summary>
@@ -127,11 +127,11 @@ public sealed class JudgmentRecord
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 }
 
-// ── T-101 Judgement Output Contract ──────────────────────────────────────────
+// ── T-101 Judgment Output Contract ───────────────────────────────────────────
 
 /// <summary>
 /// An alternative approach with its associated trade-off, as part of the
-/// T-101 canonical judgement output contract.
+/// T-101 canonical judgment output contract.
 /// </summary>
 public sealed class RecommendationAlternative
 {
@@ -143,7 +143,7 @@ public sealed class RecommendationAlternative
 }
 
 /// <summary>
-/// The canonical T-101 Judgement Output Contract.
+/// The canonical T-101 Judgment Output Contract.
 ///
 /// Every SupremeAI recommendation exposes this structured, defensible result.
 /// Scores and raw metrics are intentionally absent — only plain-language
