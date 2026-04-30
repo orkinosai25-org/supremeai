@@ -73,16 +73,19 @@ public sealed class JudgmentEngine
 
     private readonly ModelProviderFactory _factory;
     private readonly JudgmentStore _store;
+    private readonly DomainProfileRegistry _profiles;
     private readonly ILogger<JudgmentEngine> _logger;
 
     public JudgmentEngine(
         ModelProviderFactory factory,
         JudgmentStore store,
+        DomainProfileRegistry profiles,
         ILogger<JudgmentEngine> logger)
     {
-        _factory = factory;
-        _store   = store;
-        _logger  = logger;
+        _factory  = factory;
+        _store    = store;
+        _profiles = profiles;
+        _logger   = logger;
     }
 
     // ── Public API ─────────────────────────────────────────────────────────────
@@ -146,6 +149,12 @@ public sealed class JudgmentEngine
             Sanitize(winner.ModelId), winner.Score);
 
         // ── 6. Assemble and persist record ─────────────────────────────────────
+        // Look up the domain authority profile so that confidence, reasons, and
+        // caveats are grounded in the domain's accepted sources, hallucination
+        // tolerance, and evidence expectations (T-101 domain profile requirement).
+        var domain  = InferDomain(request.Prompt);
+        var profile = _profiles.GetProfile(domain);
+
         var record = new JudgmentRecord
         {
             Prompt         = request.Prompt,
@@ -153,7 +162,7 @@ public sealed class JudgmentEngine
             WinnerId       = winner.ModelId,
             WinnerAnswer   = winner.Answer,
             Rationale      = rationale,
-            Recommendation = BuildRecommendation(request.Prompt, winner, ranked),
+            Recommendation = BuildRecommendation(request.Prompt, winner, ranked, profile),
             Timestamp      = DateTimeOffset.UtcNow,
         };
 
@@ -431,11 +440,29 @@ public sealed class JudgmentEngine
     /// Builds the canonical T-101 <see cref="JudgmentRecommendation"/> from the
     /// scored results.  Raw scores are never exposed — only plain-language
     /// judgements are surfaced.
+    ///
+    /// When a <paramref name="profile"/> is supplied the recommendation is
+    /// grounded in the domain's authority profile:
+    /// <list type="bullet">
+    ///   <item><description>
+    ///     <b>Confidence</b> — thresholds are tightened for domains with
+    ///     <c>HallucinationTolerance = "low"</c> (code, research, analysis).
+    ///   </description></item>
+    ///   <item><description>
+    ///     <b>Reasons</b> — a domain-profile reason is added when the winner
+    ///     meets the domain's evidence expectations.
+    ///   </description></item>
+    ///   <item><description>
+    ///     <b>Caveat</b> — low-tolerance domains receive a source-verification
+    ///     note citing the domain's accepted source types.
+    ///   </description></item>
+    /// </list>
     /// </summary>
     internal static JudgmentRecommendation BuildRecommendation(
         string prompt,
         ModelJudgmentResult winner,
-        IReadOnlyList<ModelJudgmentResult> ranked)
+        IReadOnlyList<ModelJudgmentResult> ranked,
+        DomainAuthorityProfile? profile = null)
     {
         var domain = InferDomain(prompt);
 
@@ -458,7 +485,7 @@ public sealed class JudgmentEngine
             };
         }
 
-        // ── Derive confidence from score, margin, and domain clarity ──────────
+        // ── Derive confidence from score, margin, and domain authority profile ──
         // Max achievable score is MaxClarityScore + MaxReasoningScore +
         // MaxCompletenessScore + MaxLatencyBonus + MaxReasoningQuality = 11.0
         const double MaxPossibleScore = MaxClarityScore + MaxReasoningScore
@@ -469,12 +496,26 @@ public sealed class JudgmentEngine
         var runnerUp     = successfulResults.FirstOrDefault(r => r.ModelId != winner.ModelId);
         var margin       = runnerUp is not null ? winner.Score - runnerUp.Score : winner.Score;
 
-        var confidence = (normalised, margin) switch
-        {
-            (>= 0.60, >= 1.5) => "High",
-            (>= 0.40, _)      => "Medium",
-            _                 => "Low",
-        };
+        // When the domain authority profile specifies low hallucination tolerance
+        // (code, research, analysis) the confidence thresholds are tightened:
+        // a higher normalised score AND a larger margin are required to reach "High".
+        // This ensures that SupremeAI does not overstate certainty in domains where
+        // errors carry real-world consequences.
+        var hallucinationTolerance = profile?.HallucinationTolerance ?? "medium";
+
+        var confidence = hallucinationTolerance == "low"
+            ? (normalised, margin) switch
+            {
+                (>= 0.70, >= 2.0) => "High",
+                (>= 0.45, _)      => "Medium",
+                _                 => "Low",
+            }
+            : (normalised, margin) switch
+            {
+                (>= 0.60, >= 1.5) => "High",
+                (>= 0.40, _)      => "Medium",
+                _                 => "Low",
+            };
 
         // Guard: if the domain could not be determined from the prompt (i.e. no strong
         // domain signal was detected), we must not silently claim High confidence.
@@ -562,6 +603,27 @@ public sealed class JudgmentEngine
         if (reasons.Count < 3 && bd.Latency >= 0.7)
             reasons.Add("Delivered with notably fast response time.");
 
+        // Domain authority profile reason — added when the profile is available and the
+        // winner's scores satisfy the domain's evidence expectations.  This explicitly
+        // grounds the recommendation in the domain's authority profile (T-101 requirement).
+        if (profile is not null && reasons.Count < 3)
+        {
+            if (hallucinationTolerance == "low"
+                && (bd.Reasoning >= 2.0 || bd.Completeness >= 2.0)
+                && !reasons.Any(r => r.Contains("evidence") || r.Contains("source")))
+            {
+                // First sentence of EvidenceExpectations used as a concise signal.
+                var evidenceSentence = profile.EvidenceExpectations.Split('.')[0].TrimEnd();
+                reasons.Add($"Meets the '{profile.DisplayName}' domain evidence standard: {evidenceSentence}.");
+            }
+            else if (hallucinationTolerance == "high"
+                && bd.Clarity >= 2.0
+                && !reasons.Any(r => r.Contains("creative") || r.Contains("originality") || r.Contains("coherence")))
+            {
+                reasons.Add($"Aligns with the creative latitude permitted in the '{profile.DisplayName}' domain.");
+            }
+        }
+
         // Last-resort fallback if all scores are below thresholds
         if (reasons.Count == 0)
             reasons.Add("Ranked highest among all evaluated models for this prompt.");
@@ -570,7 +632,11 @@ public sealed class JudgmentEngine
         if (reasons.Count > 3)
             reasons = reasons[..3];
 
-        // ── Primary caveat ────────────────────────────────────────────────────
+        // ── Primary caveat — grounded in domain authority profile ─────────────
+        // Base caveats are derived from the (confidence, domain) pair.  When a
+        // domain profile is available and specifies low hallucination tolerance,
+        // the caveat is enriched with the domain's accepted source types so that
+        // reviewers know exactly where to look for authoritative verification.
         var caveat = (confidence, domain) switch
         {
             ("Low", _)            => "Results are inconclusive. Human expert review is strongly recommended before acting on this output.",
@@ -581,6 +647,16 @@ public sealed class JudgmentEngine
             ("High", "creative")  => "Creative content is AI-generated; review for originality and suitability before publication.",
             _                     => "AI-generated content should be validated against authoritative sources before use.",
         };
+
+        // Enrich caveat with domain-profile source guidance for low-tolerance domains.
+        if (profile is not null
+            && hallucinationTolerance == "low"
+            && profile.AcceptedSourceTypes.Count > 0
+            && confidence != "Low")
+        {
+            var sources = string.Join(", ", profile.AcceptedSourceTypes.Take(2));
+            caveat += $" Cross-reference against accepted {profile.DisplayName} sources (e.g. {sources}).";
+        }
 
         // ── Alternatives ──────────────────────────────────────────────────────
         var alternatives = new List<RecommendationAlternative>();
