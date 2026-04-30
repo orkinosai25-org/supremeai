@@ -11,7 +11,8 @@
     ],
     "hallucinationTolerance": "low",
     "creativityTolerance": "low",
-    "evidenceExpectations": "Responses must demonstrate concrete, executable logic. Syntactically valid and runnable code snippets are the primary evidence type. Vague or pseudocode-only responses are insufficient."
+    "evidenceExpectations": "Responses must demonstrate concrete, executable logic. Syntactically valid and runnable code snippets are the primary evidence type. Vague or pseudocode-only responses are insufficient.",
+    "version": "1.0"
   },
   "research": {
     "domain": "research",
@@ -25,7 +26,8 @@
     ],
     "hallucinationTolerance": "low",
     "creativityTolerance": "low",
-    "evidenceExpectations": "Factual claims must be traceable to authoritative sources. Responses should acknowledge gaps and uncertainty rather than speculate beyond available evidence."
+    "evidenceExpectations": "Factual claims must be traceable to authoritative sources. Responses should acknowledge gaps and uncertainty rather than speculate beyond available evidence.",
+    "version": "1.0"
   },
   "analysis": {
     "domain": "analysis",
@@ -39,7 +41,8 @@
     ],
     "hallucinationTolerance": "low",
     "creativityTolerance": "medium",
-    "evidenceExpectations": "Evaluative conclusions must be supported by quantitative or qualitative evidence. Opinions stated without supporting data are treated as low-confidence assertions."
+    "evidenceExpectations": "Evaluative conclusions must be supported by quantitative or qualitative evidence. Opinions stated without supporting data are treated as low-confidence assertions.",
+    "version": "1.0"
   },
   "creative": {
     "domain": "creative",
@@ -52,7 +55,8 @@
     ],
     "hallucinationTolerance": "high",
     "creativityTolerance": "high",
-    "evidenceExpectations": "Creative coherence and originality are the primary quality signals. Factual accuracy requirements are relaxed for fictional content; narrative quality and adherence to the user brief take precedence."
+    "evidenceExpectations": "Creative coherence and originality are the primary quality signals. Factual accuracy requirements are relaxed for fictional content; narrative quality and adherence to the user brief take precedence.",
+    "version": "1.0"
   },
   "marketing": {
     "domain": "marketing",
@@ -66,17 +70,19 @@
     ],
     "hallucinationTolerance": "medium",
     "creativityTolerance": "high",
-    "evidenceExpectations": "Claims about products, services, or audiences must align with brand guidelines. Persuasive language is appropriate; unsupported factual assertions about competitors or market share are not."
+    "evidenceExpectations": "Claims about products, services, or audiences must align with brand guidelines. Persuasive language is appropriate; unsupported factual assertions about competitors or market share are not.",
+    "version": "1.0"
   },
   "general": {
     "domain": "general",
     "displayName": "General Purpose",
-    "description": "Tasks that do not match a specific domain, or multi-domain and ambiguous prompts.",
+    "description": "Fallback profile for prompts that do not match a specific domain, span multiple domains, or are ambiguous. Applies medium-tolerance thresholds and does not impose domain-specific evidence requirements — preserving user agency without forcing a strict classification.",
     "acceptedSourceTypes": [
       "any credible source"
     ],
     "hallucinationTolerance": "medium",
     "creativityTolerance": "medium",
-    "evidenceExpectations": "No domain-specific evidence standards apply. General accuracy, clarity, and logical coherence are the primary quality signals."
+    "evidenceExpectations": "No domain-specific evidence standards apply. General accuracy, clarity, and logical coherence are the primary quality signals.",
+    "version": "1.0"
   }
 }

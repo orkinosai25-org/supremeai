@@ -396,6 +396,12 @@ public sealed class JudgmentEngine
     /// When no strong domain signal is present the method returns "general" so that
     /// <see cref="BuildRecommendation"/> can treat ambiguous prompts with appropriately
     /// reduced confidence rather than silently guessing a specific domain.
+    ///
+    /// Mixed-domain prompts (e.g. creative marketing with code examples) will match
+    /// whichever domain's vocabulary appears first in the keyword scan.  If the
+    /// first match is uncertain the caller should treat the result conservatively;
+    /// the "general" fallback is always the lowest-risk classification and is used
+    /// whenever no strong signal is detected.
     /// </summary>
     internal static string InferDomain(string prompt)
     {
@@ -658,13 +664,15 @@ public sealed class JudgmentEngine
         };
 
         // Enrich caveat with domain-profile source guidance for low-tolerance domains.
+        // Source types are framed as guidance for verification — they indicate where to
+        // look when cross-checking AI output, not that those sources are guaranteed correct.
         if (profile is not null
             && hallucinationTolerance == "low"
             && profile.AcceptedSourceTypes.Count > 0
             && confidence != "Low")
         {
             var sources = string.Join(", ", profile.AcceptedSourceTypes.Take(2));
-            caveat += $" Cross-reference against accepted {profile.DisplayName} sources (e.g. {sources}).";
+            caveat += $" For defensible verification, cross-reference using accepted {profile.DisplayName} source types (e.g. {sources}).";
         }
 
         // ── Alternatives ──────────────────────────────────────────────────────

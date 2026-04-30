@@ -6,7 +6,8 @@ namespace SupremeAI.Api.Models;
 /// Formalises how SupremeAI judges acceptability per domain so that
 /// recommendations are defensible and auditable.  Each profile captures:
 ///
-///  - <see cref="AcceptedSourceTypes"/>  — what counts as a credible source.
+///  - <see cref="AcceptedSourceTypes"/>  — guidance on where to verify claims
+///    (not assertions of factual truth — see property documentation).
 ///  - <see cref="HallucinationTolerance"/> — risk sensitivity (low → stricter
 ///    confidence thresholds and stronger caveats).
 ///  - <see cref="CreativityTolerance"/>  — latitude for non-literal interpretation.
@@ -17,12 +18,20 @@ namespace SupremeAI.Api.Models;
 /// <see cref="Services.DomainProfileRegistry"/> and referenced by the
 /// T-101 Judgment Output Contract when generating confidence, reasons,
 /// and caveats.
+///
+/// <b>Design intent:</b> domain profiles are deterministic governance artefacts.
+/// They do not assert objective truth, model capabilities, or source reliability.
+/// They exist to make SupremeAI's decision criteria inspectable and auditable.
 /// </summary>
 public sealed class DomainAuthorityProfile
 {
     /// <summary>
     /// Canonical domain key used by <see cref="Services.JudgmentEngine.InferDomain"/>
     /// (e.g. "code", "research", "creative").
+    ///
+    /// Prompts that do not match any specific domain are assigned the
+    /// <c>"general"</c> key, which applies medium-tolerance thresholds
+    /// and does not assert any domain-specific evidence requirements.
     /// </summary>
     public string Domain { get; set; } = "";
 
@@ -33,8 +42,14 @@ public sealed class DomainAuthorityProfile
     public string Description { get; set; } = "";
 
     /// <summary>
-    /// Source types considered authoritative for this domain
-    /// (e.g. "peer-reviewed publications", "official documentation").
+    /// Source types that provide a reasonable basis for verifying claims in
+    /// this domain (e.g. "peer-reviewed publications", "official documentation").
+    ///
+    /// <b>Important:</b> these are guidance for defensible verification — they
+    /// indicate <em>where to look</em> when cross-checking AI output, not that
+    /// any source is guaranteed correct.  SupremeAI does not assert the factual
+    /// accuracy of any source; human judgement remains mandatory.
+    ///
     /// Used to enrich caveats for low-tolerance domains.
     /// </summary>
     public List<string> AcceptedSourceTypes { get; set; } = [];
@@ -64,6 +79,15 @@ public sealed class DomainAuthorityProfile
     /// response for this domain — what constitutes acceptable support for claims.
     /// </summary>
     public string EvidenceExpectations { get; set; } = "";
+
+    /// <summary>
+    /// Semantic version of this profile definition (e.g. <c>"1.0"</c>).
+    ///
+    /// Judgment records can reference this version so that auditors can
+    /// determine which authority profile was active at decision time —
+    /// important when profiles are updated and historical comparisons are needed.
+    /// </summary>
+    public string Version { get; set; } = "1.0";
 }
 
 /// <summary>Response body for <c>GET /supreme/domains</c>.</summary>
