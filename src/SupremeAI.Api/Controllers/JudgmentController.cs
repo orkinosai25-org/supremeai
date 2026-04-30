@@ -7,11 +7,13 @@ namespace SupremeAI.Api.Controllers;
 /// <summary>
 /// SupremeAI Judgment Engine endpoints.
 ///
-///   POST /supreme/judge          — Run the full judgment pipeline.
-///   GET  /supreme/history?n=20   — Retrieve the n most-recent judgments.
-///   GET  /supreme/models         — List all model profiles with analytics.
-///   GET  /supreme/models/{id}    — Get the profile for a single model.
-///   GET  /supreme/metrics        — Get aggregated system-level metrics.
+///   POST /supreme/judge              — Run the full judgment pipeline.
+///   GET  /supreme/history?n=20       — Retrieve the n most-recent judgments.
+///   GET  /supreme/models             — List all model profiles with analytics.
+///   GET  /supreme/models/{id}        — Get the profile for a single model.
+///   GET  /supreme/metrics            — Get aggregated system-level metrics.
+///   GET  /supreme/domains            — List all domain authority profiles.
+///   GET  /supreme/domains/{domain}   — Get the authority profile for a single domain.
 /// </summary>
 [ApiController]
 [Route("supreme")]
@@ -21,18 +23,21 @@ public sealed class JudgmentController : ControllerBase
     private readonly JudgmentEngine _engine;
     private readonly JudgmentStore  _store;
     private readonly JudgmentAnalyticsService _analytics;
+    private readonly DomainProfileRegistry _domainProfiles;
     private readonly ILogger<JudgmentController> _logger;
 
     public JudgmentController(
         JudgmentEngine engine,
         JudgmentStore store,
         JudgmentAnalyticsService analytics,
+        DomainProfileRegistry domainProfiles,
         ILogger<JudgmentController> logger)
     {
-        _engine    = engine;
-        _store     = store;
-        _analytics = analytics;
-        _logger    = logger;
+        _engine         = engine;
+        _store          = store;
+        _analytics      = analytics;
+        _domainProfiles = domainProfiles;
+        _logger         = logger;
     }
 
     // ── POST /supreme/judge ───────────────────────────────────────────────────
@@ -142,5 +147,52 @@ public sealed class JudgmentController : ControllerBase
 
         var metrics = await _analytics.GetMetricsAsync(ct);
         return Ok(new MetricsResponse { Metrics = metrics });
+    }
+
+    // ── GET /supreme/domains ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns all domain authority profiles that govern how SupremeAI judges
+    /// acceptability per task domain (accepted source types, hallucination
+    /// tolerance, creativity tolerance, evidence expectations).
+    ///
+    /// These profiles are the basis for T-101 confidence modulation, domain-
+    /// specific reasons, and source-verification caveats.
+    /// </summary>
+    [HttpGet("domains")]
+    public IActionResult GetDomains()
+    {
+        _logger.LogInformation("JudgmentController: GET /supreme/domains");
+
+        var profiles = _domainProfiles.GetAll();
+        return Ok(new DomainProfilesResponse
+        {
+            Profiles = [.. profiles],
+            Total    = profiles.Count,
+        });
+    }
+
+    // ── GET /supreme/domains/{domain} ─────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the authority profile for the domain identified by
+    /// <paramref name="domain"/> (e.g. "code", "research", "creative").
+    /// Returns 404 if no profile is registered for that domain.
+    /// </summary>
+    [HttpGet("domains/{domain}")]
+    public IActionResult GetDomain(string domain)
+    {
+        if (string.IsNullOrWhiteSpace(domain))
+            return BadRequest(new ErrorResponse { Error = "Domain must not be empty." });
+
+        _logger.LogInformation(
+            "JudgmentController: GET /supreme/domains/{Domain}",
+            domain.Replace('\r', ' ').Replace('\n', ' '));
+
+        var profile = _domainProfiles.GetProfile(domain.ToLowerInvariant());
+        if (profile is null)
+            return NotFound(new ErrorResponse { Error = $"No domain authority profile found for '{domain}'." });
+
+        return Ok(profile);
     }
 }
