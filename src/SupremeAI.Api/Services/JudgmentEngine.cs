@@ -383,10 +383,14 @@ public sealed class JudgmentEngine
     /// <summary>
     /// Infers the task domain from prompt keywords.
     /// Returns one of: "code", "analysis", "creative", "research", "marketing", "general".
+    ///
+    /// When no strong domain signal is present the method returns "general" so that
+    /// <see cref="BuildRecommendation"/> can treat ambiguous prompts with appropriately
+    /// reduced confidence rather than silently guessing a specific domain.
     /// </summary>
     internal static string InferDomain(string prompt)
     {
-        // Code / engineering
+        // Code / engineering — strong technical vocabulary required
         if (ContainsAny(prompt, "code", "function", "program", "algorithm", "debug",
                 "compile", "script", "api", "sql", "python", "javascript",
                 "typescript", "java", "csharp", "c#", "rust", "golang",
@@ -394,30 +398,32 @@ public sealed class JudgmentEngine
                 "implement", "class", "method", "syntax", "bug", "error"))
             return "code";
 
-        // Marketing / brand
+        // Marketing / brand — persuasive or brand-oriented vocabulary
         if (ContainsAny(prompt, "marketing", "brand", "campaign", "advertisement",
                 "social media", "audience", "copywriting",
                 "slogan", "tagline", "engagement", "conversion", "funnel"))
             return "marketing";
 
-        // Creative writing
+        // Creative writing — narrative or artistic vocabulary
         if (ContainsAny(prompt, "story", "poem", "fiction", "narrative", "creative writing",
                 "compose a", "song", "lyrics", "screenplay", "dialogue",
                 "character", "plot", "novel", "short story"))
             return "creative";
 
-        // Data / analysis
+        // Data / analysis — evaluative or quantitative vocabulary
         if (ContainsAny(prompt, "analy", "data", "statistics", "metrics",
                 "report", "evaluate", "assess", "chart", "graph", "trend",
                 "compare", "contrast", "pros and cons", "advantages", "disadvantages"))
             return "analysis";
 
-        // Research / knowledge
+        // Research / knowledge — explanatory or inquiry vocabulary
         if (ContainsAny(prompt, "explain", "what is", "how does", "why does",
                 "what are", "history", "historical", "research", "summarize",
                 "summarise", "overview", "describe", "definition", "difference between"))
             return "research";
 
+        // No strong signal — return "general" so the caller can downgrade confidence
+        // rather than assigning a domain with false certainty.
         return "general";
     }
 
@@ -434,6 +440,10 @@ public sealed class JudgmentEngine
         var domain = InferDomain(prompt);
 
         // ── No confident recommendation when all models failed ────────────────
+        // This is an expected, correct outcome — not an error condition.
+        // SupremeAI's governance posture treats honesty about uncertainty as a
+        // first-class feature: surfacing "no confident recommendation" is
+        // preferable to manufacturing a false recommendation.
         var successfulResults = ranked.Where(r => r.Status == "done").ToList();
         if (successfulResults.Count == 0)
         {
@@ -448,7 +458,7 @@ public sealed class JudgmentEngine
             };
         }
 
-        // ── Derive confidence from score and margin ───────────────────────────
+        // ── Derive confidence from score, margin, and domain clarity ──────────
         // Max achievable score is MaxClarityScore + MaxReasoningScore +
         // MaxCompletenessScore + MaxLatencyBonus + MaxReasoningQuality = 11.0
         const double MaxPossibleScore = MaxClarityScore + MaxReasoningScore
@@ -466,6 +476,12 @@ public sealed class JudgmentEngine
             _                 => "Low",
         };
 
+        // Guard: if the domain could not be determined from the prompt (i.e. no strong
+        // domain signal was detected), we must not silently claim High confidence.
+        // A domain of "general" indicates ambiguity — downgrade to Medium at most.
+        if (domain == "general" && confidence == "High")
+            confidence = "Medium";
+
         // ── Recommended approach (plain language, no model IDs) ───────────────
         var approachDescription = domain switch
         {
@@ -477,22 +493,76 @@ public sealed class JudgmentEngine
             _            => "general-purpose language model",
         };
 
-        // ── Primary reasons (max 3, plain language) ───────────────────────────
+        // ── Primary reasons (max 3) — domain-anchored where possible ─────────
+        // Domain-relevant signals are preferred over generic LLM quality traits
+        // because they are what distinguishes SupremeAI from a generic router.
+        // Generic structural quality signals are used only as fallback.
         var reasons = new List<string>();
         var bd      = winner.ScoreBreakdown;
 
-        if (bd.Clarity >= 2.0)
+        // Domain-anchored reasons — surfaced first when the signal is present
+        switch (domain)
+        {
+            case "code":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Response demonstrates precise, well-structured code formatting — a key quality signal for code tasks.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Logical step-by-step reasoning present — important for defensible code correctness.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Coverage of the implementation is thorough, reducing the need for follow-up clarification.");
+                break;
+
+            case "research":
+                if (bd.Completeness >= 2.0)
+                    reasons.Add("Comprehensive coverage of the topic indicates strong sourcing discipline for research tasks.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Evidence of structured reasoning aligns with the factual rigour required for research.");
+                if (bd.Clarity >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Clear, organised presentation makes the information easy to verify and cite.");
+                break;
+
+            case "analysis":
+                if (bd.Reasoning >= 2.0)
+                    reasons.Add("Strong logical connectives indicate evaluative depth — critical for analytical tasks.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Broad coverage of the analytical dimensions reduces blind spots in the assessment.");
+                if (bd.Clarity >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Structured presentation aids comparison and decision-making.");
+                break;
+
+            case "creative":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Well-structured narrative or composition demonstrates creative coherence.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Sufficient depth and development for the creative brief.");
+                if (bd.ReasoningQuality >= 0.5 && reasons.Count < 3)
+                    reasons.Add("Articulated creative intent reveals intentional, not accidental, choices.");
+                break;
+
+            case "marketing":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Persuasive, structured language aligned with marketing communication standards.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Comprehensive coverage of the brief reduces the need for revision rounds.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Rationale-backed messaging supports brand alignment review.");
+                break;
+        }
+
+        // Generic quality signals — used as fallback when domain-anchored reasons
+        // do not yet fill all three slots
+        if (reasons.Count < 3 && bd.Clarity >= 2.0 && !reasons.Any(r => r.Contains("structured")))
             reasons.Add("Response is well-structured with clear, readable formatting.");
-        if (bd.Reasoning >= 2.0)
+        if (reasons.Count < 3 && bd.Reasoning >= 2.0 && !reasons.Any(r => r.Contains("reasoning")))
             reasons.Add("Demonstrates strong logical reasoning and analysis.");
-        if (bd.Completeness >= 2.0)
+        if (reasons.Count < 3 && bd.Completeness >= 2.0 && !reasons.Any(r => r.Contains("coverage") || r.Contains("thorough")))
             reasons.Add("Provides thorough, comprehensive coverage of the topic.");
         if (reasons.Count < 3 && bd.ReasoningQuality >= 0.5)
             reasons.Add("Self-explanation reveals a coherent and transparent reasoning process.");
         if (reasons.Count < 3 && bd.Latency >= 0.7)
             reasons.Add("Delivered with notably fast response time.");
 
-        // Fallback if all scores are low
+        // Last-resort fallback if all scores are below thresholds
         if (reasons.Count == 0)
             reasons.Add("Ranked highest among all evaluated models for this prompt.");
 
