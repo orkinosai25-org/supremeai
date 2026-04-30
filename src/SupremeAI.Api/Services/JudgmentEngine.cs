@@ -148,12 +148,13 @@ public sealed class JudgmentEngine
         // ── 6. Assemble and persist record ─────────────────────────────────────
         var record = new JudgmentRecord
         {
-            Prompt       = request.Prompt,
-            ModelResults = ranked,
-            WinnerId     = winner.ModelId,
-            WinnerAnswer = winner.Answer,
-            Rationale    = rationale,
-            Timestamp    = DateTimeOffset.UtcNow,
+            Prompt         = request.Prompt,
+            ModelResults   = ranked,
+            WinnerId       = winner.ModelId,
+            WinnerAnswer   = winner.Answer,
+            Rationale      = rationale,
+            Recommendation = BuildRecommendation(request.Prompt, winner, ranked),
+            Timestamp      = DateTimeOffset.UtcNow,
         };
 
         await _store.SaveAsync(record, ct);
@@ -376,4 +377,264 @@ public sealed class JudgmentEngine
     /// </summary>
     internal static string Sanitize(string value) =>
         value.Replace('\r', ' ').Replace('\n', ' ');
+
+    // ── T-101 Judgment Output Contract ────────────────────────────────────────
+
+    /// <summary>
+    /// Infers the task domain from prompt keywords.
+    /// Returns one of: "code", "analysis", "creative", "research", "marketing", "general".
+    ///
+    /// When no strong domain signal is present the method returns "general" so that
+    /// <see cref="BuildRecommendation"/> can treat ambiguous prompts with appropriately
+    /// reduced confidence rather than silently guessing a specific domain.
+    /// </summary>
+    internal static string InferDomain(string prompt)
+    {
+        // Code / engineering — strong technical vocabulary required
+        if (ContainsAny(prompt, "code", "function", "program", "algorithm", "debug",
+                "compile", "script", "api", "sql", "python", "javascript",
+                "typescript", "java", "csharp", "c#", "rust", "golang",
+                "html", "css", "dockerfile", "regex", "unit test", "refactor",
+                "implement", "class", "method", "syntax", "bug", "error"))
+            return "code";
+
+        // Marketing / brand — persuasive or brand-oriented vocabulary
+        if (ContainsAny(prompt, "marketing", "brand", "campaign", "advertisement",
+                "social media", "audience", "copywriting",
+                "slogan", "tagline", "engagement", "conversion", "funnel"))
+            return "marketing";
+
+        // Creative writing — narrative or artistic vocabulary
+        if (ContainsAny(prompt, "story", "poem", "fiction", "narrative", "creative writing",
+                "compose a", "song", "lyrics", "screenplay", "dialogue",
+                "character", "plot", "novel", "short story"))
+            return "creative";
+
+        // Data / analysis — evaluative or quantitative vocabulary
+        if (ContainsAny(prompt, "analy", "data", "statistics", "metrics",
+                "report", "evaluate", "assess", "chart", "graph", "trend",
+                "compare", "contrast", "pros and cons", "advantages", "disadvantages"))
+            return "analysis";
+
+        // Research / knowledge — explanatory or inquiry vocabulary
+        if (ContainsAny(prompt, "explain", "what is", "how does", "why does",
+                "what are", "history", "historical", "research", "summarize",
+                "summarise", "overview", "describe", "definition", "difference between"))
+            return "research";
+
+        // No strong signal — return "general" so the caller can downgrade confidence
+        // rather than assigning a domain with false certainty.
+        return "general";
+    }
+
+    /// <summary>
+    /// Builds the canonical T-101 <see cref="JudgmentRecommendation"/> from the
+    /// scored results.  Raw scores are never exposed — only plain-language
+    /// judgements are surfaced.
+    /// </summary>
+    internal static JudgmentRecommendation BuildRecommendation(
+        string prompt,
+        ModelJudgmentResult winner,
+        IReadOnlyList<ModelJudgmentResult> ranked)
+    {
+        var domain = InferDomain(prompt);
+
+        // ── No confident recommendation when all models failed ────────────────
+        // This is an expected, correct outcome — not an error condition.
+        // SupremeAI's governance posture treats honesty about uncertainty as a
+        // first-class feature: surfacing "no confident recommendation" is
+        // preferable to manufacturing a false recommendation.
+        var successfulResults = ranked.Where(r => r.Status == "done").ToList();
+        if (successfulResults.Count == 0)
+        {
+            return new JudgmentRecommendation
+            {
+                Domain         = domain,
+                Recommendation = "No confident recommendation",
+                Confidence     = "Low",
+                Reasons        = ["All evaluated models returned errors or incomplete responses."],
+                Caveat         = "No reliable output was produced. Please retry or consult a domain expert.",
+                Alternatives   = [],
+            };
+        }
+
+        // ── Derive confidence from score, margin, and domain clarity ──────────
+        // Max achievable score is MaxClarityScore + MaxReasoningScore +
+        // MaxCompletenessScore + MaxLatencyBonus + MaxReasoningQuality = 11.0
+        const double MaxPossibleScore = MaxClarityScore + MaxReasoningScore
+                                      + MaxCompletenessScore + MaxLatencyBonus
+                                      + MaxReasoningQuality;
+
+        var normalised   = winner.Score / MaxPossibleScore;
+        var runnerUp     = successfulResults.FirstOrDefault(r => r.ModelId != winner.ModelId);
+        var margin       = runnerUp is not null ? winner.Score - runnerUp.Score : winner.Score;
+
+        var confidence = (normalised, margin) switch
+        {
+            (>= 0.60, >= 1.5) => "High",
+            (>= 0.40, _)      => "Medium",
+            _                 => "Low",
+        };
+
+        // Guard: if the domain could not be determined from the prompt (i.e. no strong
+        // domain signal was detected), we must not silently claim High confidence.
+        // A domain of "general" indicates ambiguity — downgrade to Medium at most.
+        if (domain == "general" && confidence == "High")
+            confidence = "Medium";
+
+        // ── Recommended approach (plain language, no model IDs) ───────────────
+        var approachDescription = domain switch
+        {
+            "code"       => "language model with code specialisation",
+            "marketing"  => "language model optimised for persuasive content",
+            "creative"   => "generative language model for creative content",
+            "analysis"   => "analytical language model",
+            "research"   => "general-purpose language model for knowledge retrieval",
+            _            => "general-purpose language model",
+        };
+
+        // ── Primary reasons (max 3) — domain-anchored where possible ─────────
+        // Domain-relevant signals are preferred over generic LLM quality traits
+        // because they are what distinguishes SupremeAI from a generic router.
+        // Generic structural quality signals are used only as fallback.
+        var reasons = new List<string>();
+        var bd      = winner.ScoreBreakdown;
+
+        // Domain-anchored reasons — surfaced first when the signal is present
+        switch (domain)
+        {
+            case "code":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Response demonstrates precise, well-structured code formatting — a key quality signal for code tasks.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Logical step-by-step reasoning present — important for defensible code correctness.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Coverage of the implementation is thorough, reducing the need for follow-up clarification.");
+                break;
+
+            case "research":
+                if (bd.Completeness >= 2.0)
+                    reasons.Add("Comprehensive coverage of the topic indicates strong sourcing discipline for research tasks.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Evidence of structured reasoning aligns with the factual rigour required for research.");
+                if (bd.Clarity >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Clear, organised presentation makes the information easy to verify and cite.");
+                break;
+
+            case "analysis":
+                if (bd.Reasoning >= 2.0)
+                    reasons.Add("Strong logical connectives indicate evaluative depth — critical for analytical tasks.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Broad coverage of the analytical dimensions reduces blind spots in the assessment.");
+                if (bd.Clarity >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Structured presentation aids comparison and decision-making.");
+                break;
+
+            case "creative":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Well-structured narrative or composition demonstrates creative coherence.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Sufficient depth and development for the creative brief.");
+                if (bd.ReasoningQuality >= 0.5 && reasons.Count < 3)
+                    reasons.Add("Articulated creative intent reveals intentional, not accidental, choices.");
+                break;
+
+            case "marketing":
+                if (bd.Clarity >= 2.0)
+                    reasons.Add("Persuasive, structured language aligned with marketing communication standards.");
+                if (bd.Completeness >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Comprehensive coverage of the brief reduces the need for revision rounds.");
+                if (bd.Reasoning >= 2.0 && reasons.Count < 3)
+                    reasons.Add("Rationale-backed messaging supports brand alignment review.");
+                break;
+        }
+
+        // Generic quality signals — used as fallback when domain-anchored reasons
+        // do not yet fill all three slots
+        if (reasons.Count < 3 && bd.Clarity >= 2.0 && !reasons.Any(r => r.Contains("structured")))
+            reasons.Add("Response is well-structured with clear, readable formatting.");
+        if (reasons.Count < 3 && bd.Reasoning >= 2.0 && !reasons.Any(r => r.Contains("reasoning")))
+            reasons.Add("Demonstrates strong logical reasoning and analysis.");
+        if (reasons.Count < 3 && bd.Completeness >= 2.0 && !reasons.Any(r => r.Contains("coverage") || r.Contains("thorough")))
+            reasons.Add("Provides thorough, comprehensive coverage of the topic.");
+        if (reasons.Count < 3 && bd.ReasoningQuality >= 0.5)
+            reasons.Add("Self-explanation reveals a coherent and transparent reasoning process.");
+        if (reasons.Count < 3 && bd.Latency >= 0.7)
+            reasons.Add("Delivered with notably fast response time.");
+
+        // Last-resort fallback if all scores are below thresholds
+        if (reasons.Count == 0)
+            reasons.Add("Ranked highest among all evaluated models for this prompt.");
+
+        // Cap at 3
+        if (reasons.Count > 3)
+            reasons = reasons[..3];
+
+        // ── Primary caveat ────────────────────────────────────────────────────
+        var caveat = (confidence, domain) switch
+        {
+            ("Low", _)            => "Results are inconclusive. Human expert review is strongly recommended before acting on this output.",
+            ("Medium", "code")    => "Generated code should be reviewed and tested in a sandboxed environment before production use.",
+            ("Medium", _)         => "Results may vary for complex or highly nuanced queries; validate before relying on this recommendation.",
+            ("High", "code")      => "Always verify generated code with automated tests and peer review before deploying to production.",
+            ("High", "marketing") => "Creative output reflects AI inference and should be reviewed for brand alignment and accuracy.",
+            ("High", "creative")  => "Creative content is AI-generated; review for originality and suitability before publication.",
+            _                     => "AI-generated content should be validated against authoritative sources before use.",
+        };
+
+        // ── Alternatives ──────────────────────────────────────────────────────
+        var alternatives = new List<RecommendationAlternative>();
+        if (runnerUp is not null)
+        {
+            var tradeoff = BuildAlternativeTradeoff(winner, runnerUp);
+            alternatives.Add(new RecommendationAlternative
+            {
+                Approach  = approachDescription + " (alternative panel member)",
+                Tradeoff  = tradeoff,
+            });
+        }
+
+        return new JudgmentRecommendation
+        {
+            Domain         = domain,
+            Recommendation = approachDescription,
+            Confidence     = confidence,
+            Reasons        = reasons,
+            Caveat         = caveat,
+            Alternatives   = alternatives,
+        };
+    }
+
+    /// <summary>
+    /// Generates a plain-language trade-off description comparing the winner
+    /// to a runner-up based on their score breakdowns.
+    /// </summary>
+    private static string BuildAlternativeTradeoff(
+        ModelJudgmentResult winner,
+        ModelJudgmentResult runnerUp)
+    {
+        var winnerBd   = winner.ScoreBreakdown;
+        var runnerBd   = runnerUp.ScoreBreakdown;
+
+        // Identify the dimension where the runner-up comes closest to or beats the winner
+        var dims = new (string Label, double WinnerVal, double RunnerVal)[]
+        {
+            ("clarity",      winnerBd.Clarity,          runnerBd.Clarity),
+            ("reasoning",    winnerBd.Reasoning,        runnerBd.Reasoning),
+            ("completeness", winnerBd.Completeness,     runnerBd.Completeness),
+            ("latency",      winnerBd.Latency,          runnerBd.Latency),
+        };
+
+        // dims is always a 4-element array so MaxBy/MinBy are guaranteed to return a result.
+        var bestRunnerDim = dims.MaxBy(d => d.RunnerVal - d.WinnerVal);
+        if (bestRunnerDim.RunnerVal > bestRunnerDim.WinnerVal)
+            return $"Stronger on {bestRunnerDim.Label}, but lower overall score than the recommended approach.";
+
+        var weakestWinnerDim = dims.MinBy(d => d.WinnerVal);
+        return $"Lower overall score than the recommended approach; may be preferable when {weakestWinnerDim.Label} is less critical.";
+    }
+
+    /// <summary>Returns true when <paramref name="text"/> contains any of the given substrings (case-insensitive).</summary>
+    private static bool ContainsAny(string text, params string[] terms) =>
+        terms.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
 }
