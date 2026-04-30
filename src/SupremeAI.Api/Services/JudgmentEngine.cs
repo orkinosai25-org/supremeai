@@ -612,9 +612,18 @@ public sealed class JudgmentEngine
                 && (bd.Reasoning >= 2.0 || bd.Completeness >= 2.0)
                 && !reasons.Any(r => r.Contains("evidence") || r.Contains("source")))
             {
-                // First sentence of EvidenceExpectations used as a concise signal.
-                var evidenceSentence = profile.EvidenceExpectations.Split('.')[0].TrimEnd();
-                reasons.Add($"Meets the '{profile.DisplayName}' domain evidence standard: {evidenceSentence}.");
+                // Use the first sentence of EvidenceExpectations as a concise signal.
+                // Fall back to the full text when no period is present, and skip the
+                // reason entirely when the field is empty.
+                var expectations = profile.EvidenceExpectations;
+                if (!string.IsNullOrWhiteSpace(expectations))
+                {
+                    var dotIndex       = expectations.IndexOf('.');
+                    var evidenceSentence = dotIndex > 0
+                        ? expectations[..dotIndex].TrimEnd()
+                        : expectations.TrimEnd();
+                    reasons.Add($"Meets the '{profile.DisplayName}' domain evidence standard: {evidenceSentence}.");
+                }
             }
             else if (hallucinationTolerance == "high"
                 && bd.Clarity >= 2.0
