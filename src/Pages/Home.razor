@@ -1047,16 +1047,36 @@
             ApiSupremeResponse supremeResult;
             var modelIds = SelectedIds.Count > 0 ? SelectedIds : null;
             var apiResponse = await AiApi.SupremeAsync(prompt, modelIds);
-            supremeResult = (apiResponse is { SupremeAnswer.Length: > 0 })
-                ? apiResponse
-                : BuildDemoSupremeResult(prompt);
+            supremeResult = apiResponse ?? BuildDemoSupremeResult(prompt);
+
+            // Detect when the backend responded but every model returned an error
+            // (e.g. API keys are missing). Show real error details instead of empty text.
+            var allModelsFailed = apiResponse is not null &&
+                string.IsNullOrWhiteSpace(supremeResult.SupremeAnswer) &&
+                supremeResult.Results.Count > 0 &&
+                supremeResult.Results.All(r => string.Equals(r.Status, "error", StringComparison.OrdinalIgnoreCase));
+
+            var answerText   = supremeResult.SupremeAnswer;
+            var answerStatus = "done";
+            if (allModelsFailed)
+            {
+                var errors = supremeResult.Results
+                    .Where(r => !string.IsNullOrWhiteSpace(r.ErrorMessage))
+                    .Select(r => $"• {r.ModelId}: {r.ErrorMessage}")
+                    .Take(5)
+                    .ToList();
+                answerText = errors.Count > 0
+                    ? $"⚠️ No model returned a response.\n\n{string.Join('\n', errors)}\n\nPlease configure API keys in Azure App Service → Configuration."
+                    : "⚠️ All models failed to respond. Please check your API key configuration in Azure App Service → Configuration.";
+                answerStatus = "error";
+            }
 
             var winnerModel = ModelCatalogue.ChatModels.FirstOrDefault(m => m.Id == supremeResult.WinnerId);
             conv.Responses[0] = new ModelResponse
             {
                 ModelId = supremeResult.WinnerId,
-                Text    = supremeResult.SupremeAnswer,
-                Status  = "done",
+                Text    = answerText,
+                Status  = answerStatus,
                 Tokens  = supremeResult.Results.FirstOrDefault(r => r.ModelId == supremeResult.WinnerId)?.Tokens ?? 0,
                 Ms      = supremeResult.TotalMs,
             };
@@ -1103,21 +1123,9 @@
             }
             else
             {
-                await Task.Delay(idx * 220 + Random.Shared.Next(300));
-                var demoText = ModelCatalogue.DemoResponses[idx % ModelCatalogue.DemoResponses.Length];
-                var totalChars = demoText.Length;
-                var chunkSize = Math.Max(1, totalChars / 60);
-                var charIndex = 0;
-                while (charIndex < totalChars)
-                {
-                    charIndex = Math.Min(charIndex + chunkSize, totalChars);
-                    resp.Text = demoText[..charIndex];
-                    await InvokeAsync(StateHasChanged);
-                    await Task.Delay(50);
-                }
-                resp.Status = "done";
-                resp.Tokens = totalChars / 4;
-                resp.Ms = Environment.TickCount - startMs;
+                resp.Text   = $"⚠️ Could not reach the SupremeAI API for {model.Name}. Please ensure the backend is running.";
+                resp.Status = "error";
+                resp.Ms     = Environment.TickCount - startMs;
             }
 
             await InvokeAsync(StateHasChanged);
