@@ -22,6 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Domain authority profiles configuration — ensure the file is copied to
+         the build output directory so DomainProfileRegistry can resolve it at
+         runtime when running from BaseDirectory rather than ContentRootPath. -->
+    <Content Update="domain_profiles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Reference the Blazor WASM frontend so its output is included when the API is published -->
     <ProjectReference Include="../SupremeAI.csproj" />
   </ItemGroup>

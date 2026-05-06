@@ -122,6 +122,7 @@ builder.Services.AddScoped<BrainService>();
 
 // ── Judgment Engine ──────────────────────────────────────────────────────────
 builder.Services.AddSingleton<JudgmentStore>();
+builder.Services.AddSingleton<DomainProfileRegistry>();
 builder.Services.AddScoped<JudgmentEngine>();
 builder.Services.AddScoped<JudgmentAnalyticsService>();
 

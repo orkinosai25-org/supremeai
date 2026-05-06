@@ -1,0 +1,88 @@
+{
+  "code": {
+    "domain": "code",
+    "displayName": "Software & Code",
+    "description": "Code generation, debugging, algorithm design, refactoring, and software engineering tasks.",
+    "acceptedSourceTypes": [
+      "official documentation",
+      "open-source repositories",
+      "peer-reviewed publications",
+      "vendor technical references"
+    ],
+    "hallucinationTolerance": "low",
+    "creativityTolerance": "low",
+    "evidenceExpectations": "Responses must demonstrate concrete, executable logic. Syntactically valid and runnable code snippets are the primary evidence type. Vague or pseudocode-only responses are insufficient.",
+    "version": "1.0"
+  },
+  "research": {
+    "domain": "research",
+    "displayName": "Research & Knowledge",
+    "description": "Explanatory, historical, or inquiry-based tasks requiring factual accuracy and source discipline.",
+    "acceptedSourceTypes": [
+      "peer-reviewed publications",
+      "academic preprints",
+      "official government reports",
+      "established encyclopaedias"
+    ],
+    "hallucinationTolerance": "low",
+    "creativityTolerance": "low",
+    "evidenceExpectations": "Factual claims must be traceable to authoritative sources. Responses should acknowledge gaps and uncertainty rather than speculate beyond available evidence.",
+    "version": "1.0"
+  },
+  "analysis": {
+    "domain": "analysis",
+    "displayName": "Data & Analysis",
+    "description": "Evaluative, comparative, or quantitative tasks requiring structured reasoning and evidence-backed conclusions.",
+    "acceptedSourceTypes": [
+      "primary data",
+      "peer-reviewed publications",
+      "reputable industry reports",
+      "audited financial statements"
+    ],
+    "hallucinationTolerance": "low",
+    "creativityTolerance": "medium",
+    "evidenceExpectations": "Evaluative conclusions must be supported by quantitative or qualitative evidence. Opinions stated without supporting data are treated as low-confidence assertions.",
+    "version": "1.0"
+  },
+  "creative": {
+    "domain": "creative",
+    "displayName": "Creative Writing",
+    "description": "Fiction, poetry, narrative, screenplay, and artistic composition tasks.",
+    "acceptedSourceTypes": [
+      "original content",
+      "user briefs",
+      "style guides"
+    ],
+    "hallucinationTolerance": "high",
+    "creativityTolerance": "high",
+    "evidenceExpectations": "Creative coherence and originality are the primary quality signals. Factual accuracy requirements are relaxed for fictional content; narrative quality and adherence to the user brief take precedence.",
+    "version": "1.0"
+  },
+  "marketing": {
+    "domain": "marketing",
+    "displayName": "Marketing & Brand",
+    "description": "Persuasive content, brand messaging, campaign copy, and audience-oriented communication tasks.",
+    "acceptedSourceTypes": [
+      "brand guidelines",
+      "market research reports",
+      "audience analysis data",
+      "campaign briefs"
+    ],
+    "hallucinationTolerance": "medium",
+    "creativityTolerance": "high",
+    "evidenceExpectations": "Claims about products, services, or audiences must align with brand guidelines. Persuasive language is appropriate; unsupported factual assertions about competitors or market share are not.",
+    "version": "1.0"
+  },
+  "general": {
+    "domain": "general",
+    "displayName": "General Purpose",
+    "description": "Fallback profile for prompts that do not match a specific domain, span multiple domains, or are ambiguous. Applies medium-tolerance thresholds and does not impose domain-specific evidence requirements — preserving user agency without forcing a strict classification.",
+    "acceptedSourceTypes": [
+      "any credible source"
+    ],
+    "hallucinationTolerance": "medium",
+    "creativityTolerance": "medium",
+    "evidenceExpectations": "No domain-specific evidence standards apply. General accuracy, clarity, and logical coherence are the primary quality signals.",
+    "version": "1.0"
+  }
+}
