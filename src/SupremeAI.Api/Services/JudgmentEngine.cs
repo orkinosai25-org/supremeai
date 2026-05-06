@@ -682,6 +682,7 @@ public sealed class JudgmentEngine
             var tradeoff = BuildAlternativeTradeoff(winner, runnerUp);
             alternatives.Add(new RecommendationAlternative
             {
+                Label     = "Alternative",
                 Approach  = approachDescription + " (alternative panel member)",
                 Tradeoff  = tradeoff,
             });
@@ -689,12 +690,13 @@ public sealed class JudgmentEngine
 
         return new JudgmentRecommendation
         {
-            Domain         = domain,
-            Recommendation = approachDescription,
-            Confidence     = confidence,
-            Reasons        = reasons,
-            Caveat         = caveat,
-            Alternatives   = alternatives,
+            Domain          = domain,
+            Recommendation  = approachDescription,
+            IsRecommended   = true,
+            Confidence      = confidence,
+            Reasons         = reasons,
+            Caveat          = caveat,
+            Alternatives    = alternatives,
         };
     }
 

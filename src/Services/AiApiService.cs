@@ -96,6 +96,57 @@ public sealed class AiApiService
             return null;
         }
     }
+
+    /// <summary>
+    /// Calls the Judgment Engine endpoint: fans the prompt to the panel models,
+    /// scores responses, and returns a full <see cref="ApiJudgmentRecord"/> that
+    /// includes the structured advisory recommendation and alternatives.
+    /// Returns null on network error.
+    /// </summary>
+    public async Task<ApiJudgmentResponse?> JudgeAsync(
+        string prompt,
+        IEnumerable<string>? modelIds = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var request = new
+            {
+                prompt,
+                modelIds = modelIds?.ToList() ?? [],
+            };
+            var response = await _http.PostAsJsonAsync("supreme/judge", request, ct);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<ApiJudgmentResponse>(cancellationToken: ct);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Records the user's advisory override for the given judgment.
+    /// Returns null on network error.
+    /// </summary>
+    public async Task<ApiOverrideResponse?> SubmitOverrideAsync(
+        string judgmentId,
+        string selectedApproach,
+        string? reason = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var request = new { selectedApproach, reason };
+            var response = await _http.PostAsJsonAsync($"supreme/judge/{judgmentId}/override", request, ct);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<ApiOverrideResponse>(cancellationToken: ct);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 // ── Lightweight DTOs matching the backend API contract ────────────────────────
@@ -145,4 +196,68 @@ public sealed class ApiSupremeResponse
     public string                   WinnerId      { get; init; } = "";
     public string                   SupremeAnswer { get; init; } = "";
     public int                      TotalMs       { get; init; }
+}
+
+// ── Judgment Engine DTOs ──────────────────────────────────────────────────────
+
+public sealed class ApiRecommendationAlternative
+{
+    public string Label    { get; init; } = "Alternative";
+    public string Approach { get; init; } = "";
+    public string Tradeoff { get; init; } = "";
+}
+
+public sealed class ApiJudgmentRecommendation
+{
+    public string                              Domain         { get; init; } = "";
+    public string                              Recommendation { get; init; } = "";
+    public bool                                IsRecommended  { get; init; } = true;
+    public string                              Confidence     { get; init; } = "Low";
+    public List<string>                        Reasons        { get; init; } = [];
+    public string                              Caveat         { get; init; } = "";
+    public List<ApiRecommendationAlternative>  Alternatives   { get; init; } = [];
+}
+
+public sealed class ApiJudgmentModelResult
+{
+    public string  ModelId      { get; init; } = "";
+    public string  Answer       { get; init; } = "";
+    public string  Status       { get; init; } = "done";
+    public int     Ms           { get; init; }
+    public int     Tokens       { get; init; }
+    public double  Score        { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+
+public sealed class ApiJudgmentRecord
+{
+    public string                      Id             { get; init; } = "";
+    public string                      Prompt         { get; init; } = "";
+    public string                      WinnerId       { get; init; } = "";
+    public string                      WinnerAnswer   { get; init; } = "";
+    public string                      Rationale      { get; init; } = "";
+    public ApiJudgmentRecommendation   Recommendation { get; init; } = new();
+    public List<ApiJudgmentModelResult> ModelResults  { get; init; } = [];
+    public DateTimeOffset              Timestamp      { get; init; }
+}
+
+public sealed class ApiJudgmentResponse
+{
+    public ApiJudgmentRecord Judgment { get; init; } = new();
+}
+
+public sealed class ApiUserOverrideRecord
+{
+    public string  Id                     { get; init; } = "";
+    public string  JudgmentId             { get; init; } = "";
+    public string  SystemRecommendation   { get; init; } = "";
+    public string  SelectedApproach       { get; init; } = "";
+    public bool    IsSystemRecommendation { get; init; }
+    public string? Reason                 { get; init; }
+    public DateTimeOffset Timestamp       { get; init; }
+}
+
+public sealed class ApiOverrideResponse
+{
+    public ApiUserOverrideRecord Override { get; init; } = new();
 }
