@@ -14,6 +14,7 @@ namespace SupremeAI.Api.Controllers;
 ///   GET  /supreme/metrics            — Get aggregated system-level metrics.
 ///   GET  /supreme/domains            — List all domain authority profiles.
 ///   GET  /supreme/domains/{domain}   — Get the authority profile for a single domain.
+///   POST /supreme/judge/{id}/override — Record a user's advisory override choice.
 /// </summary>
 [ApiController]
 [Route("supreme")]
@@ -194,5 +195,90 @@ public sealed class JudgmentController : ControllerBase
             return NotFound(new ErrorResponse { Error = $"No domain authority profile found for '{domain}'." });
 
         return Ok(profile);
+    }
+
+    // ── POST /supreme/judge/{id}/override ─────────────────────────────────────
+
+    /// <summary>
+    /// Records a user's choice for the advisory recommendation produced by
+    /// the judgment identified by <paramref name="id"/>.
+    ///
+    /// The user may accept the system recommendation or choose any listed
+    /// alternative.  The choice is logged verbatim — the system never silently
+    /// reroutes.  A 404 is returned when the judgment does not exist.
+    ///
+    /// The <c>selectedApproach</c> field must match either the judgment's
+    /// <c>recommendation.recommendation</c> value or one of the
+    /// <c>recommendation.alternatives[].approach</c> values.
+    /// </summary>
+    [HttpPost("judge/{id}/override")]
+    public async Task<IActionResult> RecordOverride(
+        string id,
+        [FromBody] UserOverrideRequest request,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest(new ErrorResponse { Error = "Judgment id must not be empty." });
+
+        if (string.IsNullOrWhiteSpace(request.SelectedApproach))
+            return BadRequest(new ErrorResponse { Error = "selectedApproach is required." });
+
+        // Sanitise user-supplied strings before writing to the log.
+        var sanitisedId       = JudgmentEngine.Sanitize(id);
+        var sanitisedApproach = JudgmentEngine.Sanitize(request.SelectedApproach);
+        var sanitisedReason   = request.Reason is not null
+            ? JudgmentEngine.Sanitize(request.Reason)
+            : null;
+
+        _logger.LogInformation(
+            "JudgmentController: override request for judgment {JudgmentId} — selectedApproach='{Approach}'",
+            sanitisedId, sanitisedApproach);
+
+        // Retrieve original judgment to validate the selected approach.
+        var judgment = await _store.GetByIdAsync(id, ct);
+        if (judgment is null)
+            return NotFound(new ErrorResponse { Error = $"Judgment '{id}' not found." });
+
+        var rec        = judgment.Recommendation;
+        var systemRec  = rec.Recommendation;
+
+        // Build the set of valid choices: system recommendation + all alternatives.
+        var validApproaches = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            systemRec,
+        };
+        foreach (var alt in rec.Alternatives)
+            validApproaches.Add(alt.Approach);
+
+        if (!validApproaches.Contains(request.SelectedApproach))
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Error = "selectedApproach does not match any option from the original judgment recommendation.",
+            });
+        }
+
+        var isSystemRec = string.Equals(
+            request.SelectedApproach,
+            systemRec,
+            StringComparison.OrdinalIgnoreCase);
+
+        var overrideRecord = new UserOverrideRecord
+        {
+            JudgmentId           = id,
+            SystemRecommendation = systemRec,
+            SelectedApproach     = request.SelectedApproach,
+            IsSystemRecommendation = isSystemRec,
+            Reason               = sanitisedReason,
+        };
+
+        await _store.SaveOverrideAsync(overrideRecord, ct);
+
+        _logger.LogInformation(
+            "JudgmentController: override {OverrideId} recorded — judgment={JudgmentId}, " +
+            "isSystemRecommendation={IsSystemRec}, approach='{Approach}'",
+            overrideRecord.Id, sanitisedId, isSystemRec, sanitisedApproach);
+
+        return Ok(new OverrideResponse { Override = overrideRecord });
     }
 }
