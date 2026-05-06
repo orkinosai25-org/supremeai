@@ -36,6 +36,13 @@ public sealed class JudgmentStore
         _logger.LogInformation("JudgmentStore: persistence file = {Path}", _filePath);
     }
 
+    /// <summary>
+    /// Strips newline and carriage-return characters from a user-supplied value,
+    /// preventing log-injection attacks (CWE-117 / CodeQL cs/log-forging).
+    /// </summary>
+    private static string Sanitize(string value) =>
+        value.Replace('\r', ' ').Replace('\n', ' ');
+
     /// <summary>Appends <paramref name="record"/> to the store.</summary>
     public async Task SaveAsync(JudgmentRecord record, CancellationToken ct = default)
     {
@@ -201,8 +208,10 @@ public sealed class JudgmentStore
         try
         {
             await File.AppendAllTextAsync(OverrideFilePath, line + Environment.NewLine, ct);
+            // Sanitise user-supplied values before writing to the log to prevent
+            // log-forging attacks (CWE-117 / CodeQL cs/log-forging).
             _logger.LogInformation("JudgmentStore: saved override {Id} for judgment {JudgmentId}",
-                record.Id, record.JudgmentId);
+                record.Id, Sanitize(record.JudgmentId));
         }
         finally
         {
