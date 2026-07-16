@@ -156,9 +156,9 @@ jobs:
         continue-on-error: true
         uses: azure/login@v2
         with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id:       ${{ secrets.AZUREAPPSERVICE_CLIENTID_C7BA4621EF474BBE94974B96CE1B926E || secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZUREAPPSERVICE_TENANTID_5ECA2F2096BE48BC85762C6ADDA0AB5D || secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C54E32D4CA56475EA186436F2EB3641F || secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App (OIDC – no publish profile required)
         if: steps.azure_login.outcome == 'success'
