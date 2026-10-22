@@ -34,6 +34,6 @@ These are product concepts and intended roles, not claims that the planned evalu
 ## Contributing
 
 1. Review the [epics](docs/epics.md) to understand the big picture.
-2. Pick up a user story from the [backlog](docs/user-stories.md) or an open [GitHub Issue](../../issues).
+2. Pick up a user story from the [backlog](docs/user-stories.md) or an open [GitHub Issue](https://github.com/orkinosai25-org/supremeai/issues).
 3. Follow the acceptance criteria defined in the story before raising a PR.
 4. All contributions should align with the **T‑Series** brand identity described in [`docs/brand.md`](docs/brand.md).

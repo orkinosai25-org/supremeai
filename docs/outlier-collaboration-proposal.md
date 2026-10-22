@@ -33,7 +33,7 @@ Hello [Manager name],
 
 I’m developing Supreme Model T‑X, a proposed human-governed platform for evaluating AI models across multiple subjects. Terminal-Bench would be one bounded track for terminal and coding capabilities; the broader plan includes dedicated subject suites and expert-reviewed scorecards.
 
-I’ve recently started expert-level work with Outlier involving Terminal-Bench. I want to keep any external work and startup materials clearly separate and would not seek or reuse confidential tasks, client data, internal workflows, proprietary rubrics, or work product.
+I have recently begun work with Outlier involving Terminal-Bench. I mention this as background context only, not as a claim of endorsement, a broader partnership, or permission to use any Outlier materials. I want to keep external work and startup assets separate and would not seek or reuse confidential tasks, client data, internal workflows, proprietary rubrics, or work product.
 
 Would you be open to a brief scoping call to discuss whether there might be an appropriate way to exchange feedback on public task-design methodology, rubric calibration, or a small pilot using public or independently licensed tasks? Any next step would be subject to mutual agreement and rights review; I am not assuming an existing partnership or endorsement.
 
