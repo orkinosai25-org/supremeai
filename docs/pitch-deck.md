@@ -1,659 +1,192 @@
-# Supreme Model T‑X — Investor Pitch Deck
+# Supreme Model T‑X — Investor Pitch
 
-> **Confidential — For discussion purposes only**
+> **Discussion draft · revised October 22, 2026**
+>
+> This document distinguishes repository artifacts, founder-reported context, proposals, and future plans. It is not evidence of live operations, customer traction, external endorsement, or independent certification.
 
 ---
 
-## Slide 1 — Cover
+## Slide 1 — The proposition
 
 **Supreme Model T‑X**
-*T‑Series Autonomous Governance Models — Benchmarking-Driven Multi-Model Orchestration & Sovereign AI Intelligence Platform*
 
-> Supreme Model T‑X is a benchmarking-driven multi-model orchestration platform built on Azure AI Foundry that automatically evaluates, routes, and improves responses across foundation models while generating datasets to train its own enterprise reasoning layer.
+*Human-governed, multidisciplinary evaluation for AI models.*
 
-**Raising: £3 M Seed Round** — to train the Supreme Model T‑X meta-reasoning layer and launch the benchmark infrastructure platform.
+We are proposing a platform to benchmark, evaluate, and grade models across subjects. Domain experts define the tasks and standards; reproducible evaluations and structured interviews produce evidence for human review. Orchestration and API components in the repository are potential enabling infrastructure, not the product's core purpose.
 
-- Website: [github.com/orkinosai25-org/supremeai](https://github.com/orkinosai25-org/supremeai)
-- Contact: [founder@supremeai.io](mailto:founder@supremeai.io)
-- Date: Q2 2026
+**Status:** Product direction and roadmap, not a claim that the proposed platform or councils are operational.
 
 ---
 
-## Slide 2 — What is Supreme Model T‑X? — Full Platform Overview
+## Slide 2 — Why evaluation needs context
 
-Supreme Model T‑X is **not a chatbot wrapper**. It is a five-layer AI infrastructure platform built on Azure AI Foundry, combining multi-model orchestration, independent benchmarking, and an evaluation-driven proprietary reasoning model into a single unified product.
+Models can sound confident while being mistaken, poorly calibrated, brittle under follow-up, or unsafe in a particular context. A single leaderboard score can conceal differences between domains, prompts, versions, and evaluation conditions.
 
-### The Platform in One View
+Supreme Model T‑X aims to make those differences inspectable through:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│  SUPREMEAI PLATFORM                                                         │
-│                                                                             │
-│  ┌────────────────────┐  ┌───────────────────────┐  ┌───────────────────┐  │
-│  │  B2C SUBSCRIPTIONS │  │  B2B BENCHMARKING API  │  │  SUPREME LLM API  │  │
-│  │  £5 – £39 / mo     │  │  £5K – £100K / yr      │  │  Enterprise (Y2+) │  │
-│  └────────┬───────────┘  └──────────┬────────────┘  └────────┬──────────┘  │
-│           │                         │                         │             │
-│  ┌────────▼─────────────────────────▼─────────────────────────▼──────────┐  │
-│  │  Layer 5 — Supreme LLM  (proprietary reasoning model)                 │  │
-│  ├───────────────────────────────────────────────────────────────────────┤  │
-│  │  Layer 4 — Training Dataset Generator  (evaluation pipeline outputs)  │  │
-│  ├───────────────────────────────────────────────────────────────────────┤  │
-│  │  Layer 3 — Benchmarking Intelligence Platform  (B2B revenue engine)   │  │
-│  ├───────────────────────────────────────────────────────────────────────┤  │
-│  │  Layer 2 — Multi-Model Orchestration Engine  (parallel · routing)     │  │
-│  ├───────────────────────────────────────────────────────────────────────┤  │
-│  │  Layer 1 — Azure AI Foundry Model Catalogue  (50+ foundation models)  │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+- domain-specific tasks and rubrics authored and approved by people with relevant expertise;
+- documented evidence, uncertainty, and limitations alongside scores;
+- repeatable model/version comparisons with human review and appeal;
+- carefully scoped findings—not universal claims that a model is safe or suitable for every use.
 
-### What users get
-
-| Tier | Monthly price | Key capability |
-|------|:------------:|----------------|
-| Starter | £5 | Choose any model from the Azure AI Foundry catalogue; 100K tokens |
-| Pro | £19 | All 50+ models; run up to 3 simultaneously; vision, audio, agents |
-| Unlimited | £39 | High-volume token access (fair-use policy applies); up to 10 parallel models; video (Sora); Supreme LLM reports |
-| Enterprise | Custom | B2B Benchmarking API; private deployment; SSO; EU AI Act audit trail |
-
-### What Supreme Model T‑X earns
-
-1. **B2C subscriptions** — recurring monthly revenue across all tiers
-2. **Enterprise licensing** — multi-seat agreements with custom SLAs
-3. **Metered overage usage** — pay-as-you-go above tier limits
-4. **Benchmark dataset licensing** — evaluation reports sold to enterprises, labs, regulators
-5. **Model marketplace commissions** — revenue share from third-party fine-tuned models
-
-### What makes it defensible
-
-The **Benchmark Flywheel**: every user query generates evaluation data → data trains the Supreme LLM → Supreme LLM improves routing → better routing attracts more users → repeat. No competitor can replicate this loop without the same user base.
+This is a proposed approach to contributing evidence to AI governance, not a claim to solve all AI risks or satisfy legal requirements.
 
 ---
 
-## Slide 3 — The Problem
+## Slide 3 — Planned evaluation flow
 
-**AI is fragmented, untrustworthy to evaluate, and inaccessible at scale.**
-
-| Pain Point | Who Suffers | Impact |
-|------------|-------------|--------|
-| 100+ competing LLMs with no unified access point | Developers, enterprises | Weeks lost on procurement, integration, and API wrangling |
-| Model quality is opaque and vendor self-reported | Enterprise AI teams, researchers | No trusted baseline for buy/build decisions |
-| Per-API costs spiral unpredictably | Startups, indie developers | Priced out before they can iterate |
-| Multimodal capability (video, audio, vision) locked behind separate, incompatible APIs | Product teams | Complex, brittle multi-vendor architectures |
-| No neutral, reproducible evaluation infrastructure | LLM developers, regulators | Billions spent on models with no independent audit trail |
-
-> *"Every team is rebuilding the same LLM router. No one is building the independent brain that evaluates, connects, and improves them all."*
-
----
-
-## Slide 4 — The Solution
-
-**Supreme Model T‑X is three complementary engines on a single platform.**
-
-> Supreme Model T‑X is building the evaluation and routing intelligence layer between foundation models and enterprise deployment environments.
-
-### Engine 1 — Multi-Model Orchestration Control Layer
-A single subscription unlocks every model on Azure AI Foundry. Users choose their model per request, run multiple models in parallel to compare responses, and access multimodal capabilities (text, vision, video, agents) — all through one unified API and UI.
-
-### Engine 2 — Benchmarking-as-a-Service (B2B)
-An independent, reproducible evaluation platform that enterprises, LLM developers, research labs, and government procurement teams use to score and compare models across accuracy, latency, cost, safety, and domain-specific tasks — without relying on vendor self-reporting.
-
-### Engine 3 — Evaluation-Driven Distillation (Supreme LLM)
-Supreme Model T‑X runs structured multi-model evaluation pipelines, curates the highest-quality response signals, and uses them to continuously train a proprietary reasoning model — the Supreme LLM — that gets smarter the more models it evaluates.
-
----
-
-## Slide 5 — Platform Architecture
-
-Supreme Model T‑X is an infrastructure play, not a single-model gamble.
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  Layer 5 — Supreme LLM (proprietary reasoning model)            │
-│             Trained on structured evaluation pipeline outputs    │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 4 — Training Dataset Generator                           │
-│             Curates high-quality signals from evaluation results │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 3 — Benchmarking Intelligence Platform (B2B revenue)     │
-│             Accuracy · Latency · Cost · Hallucination · Safety   │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 2 — Multi-Model Orchestration Engine                     │
-│             Parallel responses · Smart routing · Model picker    │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 1 — Azure AI Foundry Model Catalogue                     │
-│   GPT-4o · Llama 3 · Mistral · Phi-4 · Sora · Whisper · +50    │
-└──────────────────────────────────────────────────────────────────┘
+```text
+Human council approves versioned guidelines and rubrics
+        ↓
+Experts design subject tasks; approved external benchmark adapters are scoped
+        ↓
+Models are evaluated under recorded, reproducible conditions
+        ↓
+Controlled follow-up interviews probe observable answers and evidence
+        ↓
+Domain scorecards, weighted scores, uncertainty, and milestone decisions
+        ↓
+Human review, adjudication, and an appeal/revision route
+        ↓
+Advisory model council suggests tests and roadmap options
+        ↓
+Human council reviews and approves any roadmap or rubric changes
 ```
 
-Each layer creates compounding value: more users → more evaluation data → better Supreme LLM → stronger benchmarking product → more enterprise customers → more training data.
+The human council retains final authority throughout. Model-generated suggestions are advisory and are logged with their provenance.
 
 ---
 
-## Slide 6 — Product: Subscription Tiers
+## Slide 4 — A multidisciplinary suite, built domain by domain
 
-Every tier draws from the same Azure AI Foundry catalogue. Higher tiers unlock parallel model usage, multimodal capabilities, and B2B evaluation APIs.
+Dedicated history, music, and cinema suites are proposed as startup-owned work, with scope to add other subjects after expert and rights review.
 
-| Feature | Starter £5/mo | Pro £19/mo | Unlimited £39/mo | Enterprise (Custom) |
-|---------|:-------------:|:----------:|:----------------:|:-------------------:|
-| Model selection from Azure AI Foundry catalogue | ✅ (top 10) | ✅ (all 50+) | ✅ (all 50+) | ✅ + private models |
-| Monthly token allowance | 100 K | 1 M | High-volume (fair-use) | Unlimited |
-| Simultaneous multi-model responses | ❌ | ✅ (up to 3) | ✅ (up to 10) | ✅ Unlimited |
-| Side-by-side model comparison UI | ❌ | ✅ | ✅ | ✅ |
-| Multimodal — vision & image generation | ❌ | ✅ | ✅ | ✅ |
-| Multimodal — video generation (Sora etc.) | ❌ | ❌ | ✅ | ✅ |
-| Voice & audio models (Whisper etc.) | ❌ | ✅ | ✅ | ✅ |
-| Agentic & function-calling models | ❌ | ✅ | ✅ | ✅ |
-| Community benchmark leaderboard | ✅ | ✅ | ✅ | ✅ |
-| Supreme LLM evaluation reports (early access) | ❌ | ❌ | ✅ | ✅ |
-| B2B Benchmarking API access | ❌ | ❌ | ❌ | ✅ |
-| SSO, SLA, private deployment | ❌ | ❌ | ❌ | ✅ |
+| Proposed suite | Examples of evaluation questions | Important limits |
+|---|---|---|
+| **History** | Are claims attributed to appropriate sources and placed in context? Can the model explain competing interpretations and distinguish evidence from inference? | Sources can be incomplete or contested; a rubric should not erase legitimate scholarly disagreement. |
+| **Music** | Can a model analyze musical structures or concepts and explain its reasoning with relevant evidence? Does it handle cultural context appropriately? | Judgments about meaning, quality, and tradition may be plural and culturally situated. |
+| **Cinema** | Can a model analyze narrative and technical choices, and accurately attribute factual claims? | Interpretive readings can differ; factual attribution and subjective analysis should be scored separately. |
+
+Task design should respect cultural pluralism, lawful source use, consent, and expert disagreement. Scores describe performance on the stated tasks and rubric, not the worth of a culture, artwork, or interpretation.
 
 ---
 
-## Slide 7 — Product: Multi-Model Simultaneous Responses
+## Slide 5 — Terminal-Bench: one bounded track
 
-**Higher tiers let users run multiple models on the same prompt at once**, compare outputs side-by-side, and choose — or blend — the best answer.
+Terminal-Bench is an external benchmark of terminal-task performance for AI agents. A future adapter may help test coding and terminal capabilities as one track within a broader evaluation program; it is not the whole platform and does not make DevOps the startup's purpose.
 
-```
-User prompt: "Draft a product announcement for our new AI feature"
-         │
-         ├──► GPT-4o        → Response A (formal, detailed)
-         ├──► Mistral Large  → Response B (concise, punchy)
-         ├──► Llama 3.3 70B  → Response C (creative, casual)
-         └──► Phi-4          → Response D (technical, precise)
-                │
-         Side-by-side comparison UI
-                │
-         User selects, merges, or routes to Supreme LLM for synthesis
-```
+Any use is contingent on verifying the selected upstream version, benchmark terms, attribution, permissions, execution environment, and reproducibility requirements. Results should identify the exact dataset/version and harness used. History, music, and cinema are proposed subject suites, not Terminal-Bench extensions.
 
-Use cases:
-- **A/B content testing** — which tone resonates best?
-- **Safety cross-checking** — do all models agree on a sensitive query?
-- **Cost optimisation** — route to cheapest model that meets quality bar
-- **Ensemble answers** — synthesise the best from multiple responses
+Planned safeguards for terminal evaluation include sandboxing, least privilege, resource limits, and restricted network access. These are requirements for a future pilot, not claims about safeguards already implemented.
+
+Sources: [Terminal-Bench](https://www.tbench.ai/) and its [upstream repository](https://github.com/harbor-framework/terminal-bench).
 
 ---
 
-## Slide 8 — Product: The Supreme LLM (Evaluation-Driven Distillation)
+## Slide 6 — A trained model interviewer, with human oversight
 
-The Supreme LLM is not trained on raw model outputs. It is trained on **structured evaluation pipeline results** — a legally sound, reproducible approach to building a proprietary reasoning model.
+A future proprietary AI evaluator/interviewer is intended to ask controlled prompts and follow-ups, record observable answers, request verifiable support, and help organize grading evidence. It will not be represented as having access to hidden chain-of-thought, and its judgments will not replace expert review.
 
-```
-Multi-model evaluation pipeline
-       │
-       ├─ Benchmark task sent to Model A, B, C, D simultaneously
-       ├─ Responses scored automatically (accuracy, latency, safety)
-       ├─ Human-in-the-loop quality review for ambiguous cases
-       └─ High-quality (task, winning-response, reasoning trace) tuples
-              │
-       Curated training dataset
-              │
-       Supreme LLM fine-tuning (RLHF + Constitutional AI)
-              │
-       Supreme LLM — continuously improving reasoning model
-              │
-       ┌─────┴──────────────────────────┐
-       │ Open leaderboard & model cards  │  (community trust + B2B sales)
-       └────────────────────────────────┘
-```
+Before use in final assessment, the interviewer would need:
 
-**Investor framing:** This is an evaluation-driven distillation architecture — a recursive model improvement loop where each benchmarking cycle generates proprietary training signal, compounding Supreme Model T‑X's advantage over time.
+- separate training and held-out assessment data, with rights and consent reviewed;
+- calibration against expert ratings, bias analysis, inter-rater agreement checks, and uncertainty reporting;
+- tests for self-evaluation and model-family conflicts;
+- versioned prompts, evaluator model, settings, and reproducible records;
+- human adjudication of disagreement and an appeal/revision process.
 
-> Aligned with emerging evaluation-first training strategies used across modern LLM routing research and ensemble reasoning systems.
+User queries are not automatically training data. Evaluated models must not influence their own assessment.
 
 ---
 
-## Slide 9 — Supreme LLM: Model Strategy & Roadmap
+## Slide 7 — Weighted scorecards and progressive milestones
 
-The Supreme LLM is not a single product — it is a multi-phase reasoning model that evolves as Supreme Model T‑X's evaluation pipeline matures. GPU investment at seed stage funds Phase 1 and Phase 2.
+Each approved domain rubric would state its dimensions, weights and rationale, scoring scale, evidence standard, and treatment of missing or ambiguous data. A weighted score summarizes performance under that rubric; it does not change the parameters or capabilities of a third-party model.
 
-| Phase | Timeline | Capability | What GPU compute delivers |
-|-------|----------|------------|---------------------------|
-| **Phase 1** | Year 1 | Evaluation + routing intelligence | Routing intelligence model trained on benchmark pipeline outputs; latency/cost/quality scoring engine |
-| **Phase 2** | Year 2 | Meta-reasoning orchestration model | Multi-model response synthesis; ensemble reasoning; benchmark scoring engine for B2B |
-| **Phase 3** | Year 3 | Domain-specific enterprise reasoning LLM | DevOps automation reasoning; enterprise support agent; code review and audit LLM |
-| **Phase 4** | Year 4+ | Autonomous infrastructure agents | Self-improving agentic routing; model procurement agents; AI governance automation |
+**Illustrative only — not an approved rubric:** a sample scorecard could weight task performance 30%, factual support 25%, calibration 15%, robustness 15%, and appropriate safety behavior 15% (100% total). Dimensions might use a documented 0–4 scale. Domain experts would set and validate actual criteria and weights before a pilot.
 
-### What the £3 M GPU budget delivers (Phase 1 outcomes)
+Critical failures may be non-compensable: a high average cannot cancel a defined critical failure. Missing evidence is reported as missing, not silently treated as success. Human reviewers inspect evidence, uncertainty, and any threshold decision.
 
-> GPU investment will train the Supreme Model T‑X meta-reasoning layer using evaluation-driven dataset generation across multi-model responses from Azure AI Foundry.
-
-Specific deliverables from the GPU allocation:
-
-- **Routing intelligence model** — selects the optimal model per request based on task, cost, and latency signals from the benchmark pipeline
-- **Benchmark scoring engine** — automated scoring infrastructure that powers the B2B Benchmarking-as-a-Service product
-- **Enterprise reasoning assistant layer** — Phase 1 Supreme LLM capable of synthesising multi-model responses for enterprise workflows
-- **DevOps orchestration reasoning core** — first domain-specific fine-tune targeting the multi-billion-pound DevOps automation market
-
-This is GPU spend that directly generates revenue — not infrastructure cost.
+Proposed milestones could progress from **baseline** → **domain competence** → **robustness** → **human-reviewed guideline alignment**. Thresholds and evidence requirements remain to be approved. Passing a milestone is limited to a specified model/version, domain, date, rubric, dataset, harness, and conditions; it is not a production-readiness guarantee or safety certification.
 
 ---
 
-## Slide 10 — GPU Strategy & Training Plan
+## Slide 8 — Human council and advisory model council
 
-The £3 M seed round converts GPU budget into an engineering roadmap with clear Phase 1 deliverables and a compounding training data advantage.
+### Proposed human council
 
-### Training Approach
+The council would include appropriately qualified disciplinary and evaluation expertise. Its proposed responsibilities are to author, review, and approve versioned guidelines; oversee testing; resolve escalations; and approve rubric, roadmap, and milestone changes. Appointment criteria, membership, conflicts and recusals, recorded decisions and rationale, review, and appeal mechanisms still need to be established.
 
-| Phase | Model Target | Approach |
-|-------|-------------|----------|
-| **Phase 1** | Routing intelligence model | Fine-tuning open-weight base models on benchmark pipeline outputs |
-| **Phase 2** | Meta-reasoning orchestration layer | Multi-model response synthesis trained on curated evaluation datasets |
-| **Phase 3** | Domain-specific DevOps reasoning LLM | Enterprise workflow fine-tuning; code review and audit reasoning |
+### Proposed advisory model council
 
-### Compute Strategy
+Models may propose tests, critique evaluation plans, and offer roadmap options. The council is supervised by the human council; it cannot independently alter rubrics or scores, pass itself, grant access, or override human decisions. Cross-model agreement is not proof of truth or safety. Any evaluated model is kept out of decisions about its own result.
 
-- **Azure ML GPU clusters** — spot training and batch fine-tuning for cost efficiency
-- **Evaluation dataset pipeline automation** — continuous curation from live platform evaluation runs
-- **Multi-cloud resilience** — AWS Bedrock and Google Vertex AI as fallback inference layers
-
-### Estimated Compute Allocation (Phase 1)
-
-| Workload | GPU Budget Share |
-|---------|:---------------:|
-| Routing intelligence training | 40 % |
-| Meta-reasoning synthesis model | 35 % |
-| Evaluation dataset generation | 15 % |
-| Experimentation & benchmarking | 10 % |
-
-This breakdown gives investors a clear, auditable map from capital to model capability — not a generic "AI training" line item.
+Neither council is represented as already formed.
 
 ---
 
-## Slide 11 — The Supreme Model T‑X Benchmark Flywheel
+## Slide 9 — Independence, evidence, and limitations
 
-**Investors fund flywheels. This is ours.**
+Because the startup plans to train its own evaluator while evaluating other models, impartiality requires explicit safeguards: evaluator/model-family conflicts are disclosed; evaluator training is separated from held-out assessment; rubrics and scoring changes are versioned and human-approved; and results include enough audit evidence for review.
 
-```
-                     ┌─────────────────────────┐
-                     │  1. Users query          │
-                     │     multiple models      │
-                     └────────────┬────────────┘
-                                  │
-          ┌───────────────────────▼──────────────────────┐
-          │  6. Better routing attracts more users        │
-          └───────────────────────┬──────────────────────┘
-                                  │                ▲
-          ┌───────────────────────▼──────────────┐ │
-          │  2. Supreme Model T‑X evaluates              │ │
-          │     all responses                   │ │
-          └───────────────────────┬─────────────┘ │
-                                  │               │
-          ┌───────────────────────▼──────────────┐ │
-          │  5. Reasoning improves               │ │
-          │     routing accuracy                 ├─┘
-          └───────────────────────┬─────────────┘
-                                  │
-          ┌───────────────────────▼──────────────┐
-          │  3. Best answers become              │
-          │     structured dataset               │
-          └───────────────────────┬─────────────┘
-                                  │
-          ┌───────────────────────▼──────────────┐
-          │  4. Dataset trains                   │
-          │     Supreme LLM reasoning layer      │
-          └──────────────────────────────────────┘
-```
+For each run, a future system should record model and evaluator versions, prompts, dataset provenance and version, harness, rubric, settings, date, costs, missing data, and adjudication evidence. Held-out tests should be protected from training leakage and benchmark contamination. Data use requires appropriate rights and consent. External task reuse requires a separate license/permission and attribution check.
 
-Each cycle deepens Supreme Model T‑X's proprietary data moat and widens the gap with competitors who lack the same evaluation loop.
-
-As enterprises integrate Supreme Model T‑X routing APIs into production workflows, switching costs increase due to embedded benchmark datasets, routing policies, and evaluation histories.
-
-**Comparable strategies** (but applied to multi-model orchestration — a newer, larger opportunity):
-- Scale AI — built a data flywheel for model training; reached $13 B valuation
-- Weights & Biases — built an evaluation flywheel for MLOps; reached $1 B valuation
-
-Supreme Model T‑X's flywheel combines both — plus a consumer subscription front-end that generates evaluation signal at scale.
+Scores are bounded observations under documented conditions. They cannot guarantee behavior outside those conditions, certify universal safety, or establish legal compliance. Evidence may inform governance review but cannot replace it.
 
 ---
 
-## Slide 12 — Five-Layer Revenue Architecture
+## Slide 10 — Pilot plan and collaboration ask
 
-Supreme Model T‑X is a **platform economy** — recurring + data + marketplace revenue stacked across five complementary streams.
+**Proposed, dependency-gated phases; no dates or outcomes are promised.**
 
-### Stream 1 — B2C SaaS Subscriptions *(recurring, predictable)*
-Monthly revenue from individual developers, researchers, and teams across Starter (£5), Pro (£19), and Unlimited (£39) tiers.
+1. **Scope and permission:** select a narrow subject/task set; confirm expert availability, data rights, benchmark terms, safety needs, and evaluation access.
+2. **Design and baseline:** have human reviewers approve the first rubric and test plan; establish model/version records, controls, held-out data, and a baseline.
+3. **Run and review:** conduct reproducible evaluations and controlled interviews; document evidence, limitations, disagreement, and costs; review results with experts.
+4. **Revise or stop:** publish or share findings only with agreed permissions; address appeals and lessons; let the human council approve any next phase.
 
-### Stream 2 — Enterprise Licensing *(high ACV, sticky)*
-Multi-seat agreements with custom SLAs, private deployment, and priority engineering support for enterprises integrating Supreme Model T‑X into production workflows.
+We seek expert feedback on rubric design, public task-design methodology, subject-expert participation, and calibration against expert ratings. These are discussion topics, subject to mutual agreement, rights review, and clear separation of each party's work and materials.
 
-### Stream 3 — Metered Overage Usage *(pay-as-you-go scalability)*
-Token/request overage charges when subscribers exceed their monthly tier limits — capturing high-usage power users without requiring them to jump to a higher tier immediately.
-
-### Stream 4 — Benchmark Dataset Licensing *(high margin, B2B, compounding)*
-Evaluation datasets, model scoring reports, and comparative benchmark studies sold to enterprises, LLM developers, research institutions, and government AI procurement teams. No comparable neutral dataset at scale exists today.
-
-### Stream 5 — Model Marketplace Commissions *(network effects)*
-Revenue share from third-party fine-tuned and domain-specific model providers who list their models on the Supreme Model T‑X platform, accessed by subscribers.
-
-### Revenue Summary
-
-| Stream | Type | Gross Margin | Target Year-2 ARR Share |
-|--------|------|:------------:|:-----------------------:|
-| B2C Subscriptions | Recurring | ~68 % | 55 % |
-| Enterprise Licensing | B2B contract | ~75 % | 20 % |
-| Metered Overage | Usage-based | ~65 % | 10 % |
-| Benchmark Dataset Licensing | B2B data | ~85 % | 10 % |
-| Marketplace Commissions | Platform take-rate | ~90 % | 5 % |
-
-### Unit Economics (blended, target Year 2)
-
-| Metric | Value |
-|--------|-------|
-| Blended B2C ARPU | £22 / mo |
-| Enterprise licensing ACV | £15 K / yr |
-| Estimated Cost to Serve (cloud + inference) | £7 / mo |
-| Blended Gross Margin | ~72 % |
-| CAC (developer / PLG) | ~£40 |
-| LTV (18-mo avg. retention) | ~£396 |
-| LTV : CAC | **9.9×** |
+See [Outlier collaboration proposal](outlier-collaboration-proposal.md) for a concise draft and outreach message. No external communication is included or sent by this document.
 
 ---
 
-## Slide 13 — Market Opportunity
+## Slide 11 — What exists, what is proposed
 
-**Supreme Model T‑X's category: AI model access + evaluation + routing infrastructure market**
+The repository contains application and documentation artifacts, including API and orchestration-related material. Their presence is evidence of files in this repository only; it does not establish deployment, production operation, benchmark results, customers, revenue, partnerships, or traction.
 
-Supreme Model T‑X sits between **Microsoft Azure AI Foundry** (the model supply layer) and **enterprise AI developers** (the demand layer) — making it the critical platform-layer opportunity in the fastest-growing segment of enterprise software.
+**Founder-reported context:** the founder reports just starting expert/PhD-level work with Outlier involving Terminal-Bench. This statement is not independent verification of qualifications, employment, endorsement, partnership, access rights, or completed work. No external work product or confidential material is assumed to be available to the startup.
 
-| Segment | Size (2025) | CAGR |
-|---------|:-----------:|:----:|
-| Global AI/ML Platform Market | ~£40 B | 38 % |
-| LLM API & Inference Market | ~£9.5 B | 62 % |
-| AI Benchmarking & Evaluation Tools | ~£2 B | 55 % |
-| Enterprise AI Safety & Compliance | ~£3 B | 48 % |
-| **Supreme Model T‑X SAM (orchestration + benchmarking + routing)** | **~£8 B** | **50 %** |
-| **Supreme Model T‑X SOM (Year 3 target)** | **~£400 M** | — |
-
-*Market sizes are global industry figures converted at ~1.25 USD/GBP for consistency.*
-
-> The AI services market is projected to exceed **~£800 B by 2030**.  
-> Supreme Model T‑X captures value from three of the fastest-growing sub-segments simultaneously: access, evaluation, and infrastructure routing.
-
-### UK / European Regulatory Tailwind
-
-UK government and EU AI Act compliance requirements are generating urgent, funded demand for:
-- **Independent model evaluation infrastructure** — Supreme Model T‑X's benchmarking layer is this
-- **Sovereign AI capability** — Supreme Model T‑X's trained reasoning model is this
-- **Enterprise AI safety tooling** — Supreme Model T‑X's hallucination and safety scoring is this
-
-Supreme Model T‑X fills the critical gap: UK currently has no neutral, independent evaluation-layer platform sitting between foundation-model providers and enterprise deployment environments. Supreme Model T‑X is that platform — positioned at precisely the moment government procurement budgets are moving into this space.
+**Roadmap, not current claims:** multidisciplinary suites, benchmark adapters, trained interviewer, weighted milestone system, human council, model council, and associated safeguards are proposed future work.
 
 ---
 
-## Slide 14 — Competitive Landscape
+## Slide 12 — Funding discussion
 
-| Platform | Multi-model orchestration | Flat subscription | Parallel model responses | Multimodal (video etc.) | Independent benchmarking | Proprietary meta-model |
-|----------|:-------------------------:|:-----------------:|:------------------------:|:-----------------------:|:------------------------:|:----------------------:|
-| **Supreme Model T‑X** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Poe (Quora) | ✅ | ✅ | ❌ | ⚠️ (limited) | ❌ | ❌ |
-| OpenRouter | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Together AI / Fireworks | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Scale AI / HELM | ❌ | N/A | N/A | ❌ | ✅ | ❌ |
-| Weights & Biases | ❌ | ❌ | N/A | ❌ | ⚠️ (MLOps only) | ❌ |
-| Azure OpenAI direct | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+**Proposed seed target: £3 million.** This is a fundraising target, not money raised. No validated financial forecast, pricing, market sizing, or compute estimate is asserted here.
 
-**Our moat — the flywheel:**
-More subscribers → more evaluation pipeline runs → richer training signal → better Supreme LLM → stronger benchmarking product → more B2B enterprise trust → more subscribers.
+An **illustrative allocation** for discussion (subject to expert review and budget validation):
 
-No competitor has all six capabilities in one platform. We are building the moat before the category consolidates.
+| Use | Share | Amount |
+|---|---:|---:|
+| Compute and evaluation infrastructure | 35% | £1.05m |
+| Expert review, domain task design, and evaluation governance | 25% | £0.75m |
+| Product and engineering capacity | 25% | £0.75m |
+| Data rights, security, legal, and operating needs | 10% | £0.30m |
+| Reserve | 5% | £0.15m |
+| **Total** | **100%** | **£3.00m** |
 
----
-
-## Slide 15 — Technology Stack
-
-- **Model Catalogue:** Azure AI Foundry (50+ models: GPT-4o, Llama 3.3, Mistral Large, Phi-4, Sora, Whisper, DALL·E 3, and more)
-- **Orchestration Engine:** Intelligent router with latency-aware load balancing, cost optimisation, and parallel dispatch
-- **Multimodal Pipeline:** Unified interface for text, image, vision, video, and audio models
-- **Benchmarking Engine:** Automated scoring across accuracy, latency, cost, hallucination rate, and safety — task-suite extensible
-- **Supreme LLM Training:** Azure ML GPU compute clusters; RLHF + Constitutional AI fine-tuning pipeline; evaluation-driven distillation
-- **Backend:** .NET 9 / ASP.NET Core (`SupremeAI.Api`); Blazor WebAssembly front-end
-- **Observability:** OpenTelemetry → Azure Monitor; per-request tracing including model, latency, cost, and quality score
-- **Security & Compliance:** RBAC, end-to-end encryption, SOC 2 Type II roadmap, EU AI Act audit trail
-- **Failover:** AWS Bedrock + Google Vertex AI for multi-cloud resilience
+Actual scope, sequencing, staffing, compute needs, pricing, and runway require a researched plan and founder approval. This is not a quote, commitment, or validated operating budget.
 
 ---
 
-## Slide 16 — Deployment Strategy
+## Decisions needed before a pilot or fundraising use
 
-Supreme Model T‑X is designed from the ground up to meet enterprise and government deployment requirements — not retrofitted for compliance after growth.
-
-### Deployment Modes
-
-| Mode | Description | Target Segment |
-|------|-------------|----------------|
-| **SaaS platform** | Fully managed, multi-tenant cloud service on Azure | Developers, SMEs, researchers |
-| **Enterprise VNet deployment** | Private virtual network deployment within customer Azure tenancy | Enterprise AI teams, financial services |
-| **Sovereign on-prem option** *(future)* | Air-gapped or government-managed infrastructure | Defence, intelligence, regulated industries |
-
-### Why This Matters
-
-This deployment flexibility enables:
-
-- **Regulated industries adoption** — financial services, healthcare, legal sectors with strict data residency requirements
-- **Government benchmarking usage** — UK DSIT, GCHQ/NCSC, and EU AI Act compliance environments
-- **Defence and financial services integration** — environments where data cannot leave organisational boundaries
-- **EU AI Act compliance** — Supreme Model T‑X's audit trail and evaluation infrastructure maps directly to Article 9 (risk management) and Article 10 (data governance) requirements
-
-Supreme Model T‑X is not just a SaaS product — it is procurement-grade AI evaluation infrastructure suitable for the most regulated deployment environments.
+- Who will serve on the proposed human council, and what appointment and conflict rules will apply?
+- Which domain rubric, weights, critical-failure gates, and milestone thresholds are approved?
+- What funding, pricing, and budget assumptions are supported by research?
+- What model access, external benchmark permissions, data rights, and pilot conditions are confirmed?
+- What traction, deployment, and founder background claims can be independently substantiated and are approved for disclosure?
 
 ---
 
-## Slide 17 — Go-to-Market Strategy
-
-### Phase 1 — Developer & Community-Led Growth (Months 1–6)
-- Free/Starter tier with generous limits drives organic adoption
-- Open benchmark leaderboard and model cards published on GitHub and Hugging Face
-- Developer community on Discord, Reddit (r/LocalLLaMA, r/MachineLearning), and X/Twitter
-- Content strategy: "Which LLM actually wins on your task?" comparison posts
-
-### Phase 2 — Paid Conversion & B2B Pilots (Months 6–18)
-- In-product upgrade prompts at Starter tier limits
-- Outbound to enterprise AI teams for benchmarking pilot contracts
-- Partnerships with AI-adjacent tooling (LangChain, LlamaIndex, Weights & Biases)
-- UK innovation grant applications (Innovate UK, DSIT AI Safety programmes)
-
-### Phase 3 — Enterprise Scale & Sovereign AI (Year 2+)
-- Dedicated enterprise sales team; SOC 2 Type II certification
-- Government AI procurement contracts (UK, EU, US NIST frameworks)
-- Supreme LLM Inference API for enterprise orchestration and DevOps automation
-- White-label benchmarking platform for cloud providers and AI regulators
-
----
-
-## Slide 18 — Traction & Milestones
-
-### Traction (March 2026)
-
-- Multi-model orchestration engine operational on Azure AI Foundry
-- Parallel-response routing implemented across GPT-4o, Llama, Mistral, Phi
-- Benchmark pipeline v0.1 running internally
-- Subscription tier architecture complete
-- SupremeAI.Api production backend live (.NET 9)
-- First developer waitlist forming
-- Enterprise benchmarking pilot discussions initiated
-
-### Milestone Roadmap
-
-| Date | Milestone |
-|------|-----------|
-| Q1 2026 ✅ | Platform architecture live on Azure AI Foundry; multi-model routing implemented |
-| Q2 2026 | Public beta; parallel model response UI launched; benchmark v0.1 published |
-| Q3 2026 | Paid tiers active (£5–£39); multimodal (vision, audio) available on Pro+ |
-| Q4 2026 | Video model access (Sora) live on Unlimited; B2B benchmarking pilots begin |
-| Q1 2027 | 10 K paying subscribers; first enterprise benchmarking contracts signed |
-| Q3 2027 | Supreme LLM v1.0 — first evaluation-driven training cycle complete |
-| Q4 2027 | 50 K subscribers; B2B benchmarking ARR > £1 M; Series A close |
-| 2028 | Supreme LLM v2.0; multi-cloud; £20 M ARR target |
-
----
-
-## Slide 19 — Team
-
-| Name | Role | Background |
-|------|------|------------|
-| **[Founder]** | CEO & CTO | AI/ML engineer; production LLM systems; Azure AI Foundry experience |
-| **[Co-founder / hire]** | Head of Product | Enterprise SaaS product management; developer tooling |
-| **[Co-founder / hire]** | Head of ML Research | LLM fine-tuning, RLHF, benchmark design, evaluation science |
-| **[Hire]** | Head of Enterprise Sales | B2B SaaS sales; government and financial services accounts |
-| **[Advisor]** | Cloud Infrastructure | Former Azure AI engineering leader |
-| **[Advisor]** | Go-to-Market | Scaled B2B SaaS from £0 to £50 M ARR |
-
-> *Actively hiring: senior ML engineers (×2), DevRel lead, enterprise sales lead.*
-
----
-
-## Slide 20 — Financial Projections
-
-| Year | B2C Subscribers | B2B Contracts | ARR | Gross Margin | EBITDA |
-|------|:--------------:|:-------------:|-----|:------------:|:------:|
-| 2026 | 2 K | 5 | £520 K | 65 % | -£1.4 M |
-| 2027 | 15 K | 25 | £4.1 M | 69 % | -£0.6 M |
-| 2028 | 80 K | 80 | £21 M | 71 % | £3 M |
-| 2029 | 280 K | 200 | £74 M | 73 % | £19 M |
-| 2030 | 850 K | 450 | £210 M | 75 % | £62 M |
-
-*Key assumptions (investors: reject unexplained numbers, not ambitious ones):*
-
-| Assumption | Value | Rationale |
-|------------|-------|-----------|
-| Free-to-paid conversion rate | 2 % | Conservative vs. 3–5 % PLG benchmark |
-| B2C ARPU (blended) | £20 / mo | Weighted average of Starter/Pro/Unlimited mix |
-| B2B benchmarking ACV | £15 K / yr | Based on comparable Scale AI / HELM pricing |
-| Churn rate (monthly) | 4 % | Industry average for developer SaaS |
-| Cloud inference cost per user | £7 / mo, declining 10 % YoY | Azure volume discounts + Foundry pricing trends |
-| Enterprise licensing growth | 3× B2C growth rate | Dedicated sales team from Year 2 |
-| Benchmark dataset licensing ARR | Grows to £5 M by Year 3 | Government + research demand driven by EU AI Act |
-| Benchmark dataset licensing revenue start | Year 2 | Begins following enterprise pilot conversions from Year 1 B2B outreach |
-
----
-
-## Slide 21 — £3 M Seed Round to Train the Supreme Model T‑X Meta-Reasoning Layer and Launch the Benchmark Infrastructure Platform
-
-### Raising: £3 M Seed Round
-
-This is an **infrastructure and engineering raise** — not a SaaS marketing budget. The capital funds the GPU compute and talent required to build the Supreme LLM training pipeline and benchmarking platform that generate Supreme Model T‑X's compounding data moat.
-
-| Use of Funds | Allocation | Amount |
-|--------------|:----------:|:------:|
-| GPU / Azure ML compute credits (Supreme LLM training pipeline) | 35 % | £1.05 M |
-| Engineering hiring — ML engineers, backend, ML research (×4) | 30 % | £0.90 M |
-| Go-to-market, B2B sales, and developer growth | 20 % | £0.60 M |
-| Operations, legal, SOC 2 compliance, EU AI Act readiness | 10 % | £0.30 M |
-| Reserve | 5 % | £0.15 M |
-
-**Runway:** 18–24 months to Series A milestone:
-- 10 K paying subscribers
-- Supreme LLM v1.0 evaluation-driven training cycle complete
-- 10+ B2B benchmarking contracts signed
-
-### Strategic Partners We Seek
-
-- **Cloud GPU / infrastructure** — Microsoft Azure for Startups, CoreWeave, Lambda Labs, Oracle Cloud
-- **AI-focused VCs** — a16z AI, Sequoia UK, Balderton Capital, Index Ventures, Hoxton Ventures
-- **Corporate innovation arms** — Microsoft M12, Google Gradient Ventures, NVIDIA Inception Program
-- **UK funding & grants** — Innovate UK Smart Grants, DSIT Frontier AI Safety programmes, British Business Bank Future Fund
-- **Accelerators** — Y Combinator, Entrepreneur First, Zinc VC
-
----
-
-## Slide 22 — Why Now?
-
-1. **Azure AI Foundry provides the catalogue today.** We have production-ready access to 50+ models without building infrastructure from scratch — our moat is the layer above it.
-2. **Model proliferation is overwhelming teams.** 2026 will see 200+ capable models. The evaluation and routing layer is the critical bottleneck.
-3. **Subscription AI is proven at scale.** ChatGPT Plus, Claude Pro, and Copilot prove mass willingness to pay £20–£39/month for AI access.
-4. **The EU AI Act and UK AI governance create institutional demand for independent benchmarking** — a new billion-pound regulatory compliance market.
-5. **Evaluation-driven distillation is an emerging architecture.** The window to become the trusted independent evaluation layer is open now — not in two years.
-6. **UK has a sovereign AI gap.** No UK-headquartered platform independently evaluates, routes, and benchmarks foundation models at scale. Supreme Model T‑X is being built to fill that institutional role before the category consolidates.
-
----
-
-## Slide 23 — Vision
-
-> **"Supreme Model T‑X will become the world's independent intelligence layer for AI — the platform that every developer, researcher, enterprise, and regulator trusts to access, evaluate, and continuously improve the foundation models that power the future."**
-
-We are not building a chatbot wrapper. We are building the institution that makes AI trustworthy, accessible, and self-improving — for everyone.
-
-*The AI market will exceed $5 trillion. Supreme Model T‑X is building its foundational evaluation and orchestration infrastructure — the layer that every model, team, and regulator will depend on.*
-
----
-
-## Appendix A — Sample Investor Outreach Email
-
-```
-Subject: Seed Investment Opportunity — Supreme Model T‑X:
-         Multi-Model Orchestration + Benchmarking-as-a-Service Platform
-
-Dear [Investor / Partner Name],
-
-I am the founder of Supreme Model T‑X (https://github.com/orkinosai25-org/supremeai),
-a benchmarking-driven multi-model orchestration platform built on Azure AI
-Foundry that automatically evaluates, routes, and improves responses across
-foundation models while generating datasets to train its own enterprise
-reasoning layer.
-
-The platform has three revenue engines:
-
-1. B2C SaaS subscriptions (£5–£39/mo) — users select any model from the
-   Azure AI Foundry catalogue; higher tiers run multiple models simultaneously
-   and access video, audio, and agentic models in one unified UI.
-
-2. B2B Benchmarking-as-a-Service — enterprise AI teams, LLM developers,
-   research labs, and government procurement teams pay to independently
-   evaluate model performance across accuracy, latency, cost, and safety.
-
-3. Supreme LLM Inference API — our proprietary reasoning model, trained
-   using structured multi-model evaluation pipelines, available as a
-   premium enterprise API from Year 2.
-
-We are raising a £3 M seed round to fund GPU compute for the Supreme LLM
-training pipeline, four engineering hires, and our B2B go-to-market. That
-gives us 18–24 months runway to 10 K subscribers, our first B2B benchmarking
-contracts, and Supreme LLM v1.0.
-
-I would welcome a 30-minute call to walk you through our architecture, demo,
-and financial model.
-
-Best regards,
-[Your Name]
-Supreme Model T‑X | founder@supremeai.io
-```
-
----
-
-## Appendix B — B2B Benchmarking Service — Example Offerings
-
-| Service | Target Customer | Price Range |
-|---------|----------------|-------------|
-| Model comparison report (50 tasks, 4 models) | LLM startup pre-launch | £5 K–£10 K |
-| Domain accuracy benchmark (custom task suite) | Enterprise AI team | £15 K–£30 K |
-| Annual evaluation subscription (quarterly reports) | Research institution | £20 K–£50 K/yr |
-| Regulatory compliance audit (EU AI Act / NIST) | Government, regulated industries | £30 K–£100 K |
-| White-label benchmarking platform | Cloud providers, AI consultancies | Custom |
-
----
-
-## Appendix C — Key Metrics Glossary
-
-| Term | Definition |
-|------|-----------|
-| ACV | Annual Contract Value (B2B) |
-| ARR | Annual Recurring Revenue |
-| ARPU | Average Revenue Per User |
-| CAC | Customer Acquisition Cost |
-| RLHF | Reinforcement Learning from Human Feedback |
-| SAM | Serviceable Addressable Market |
-| SOM | Serviceable Obtainable Market |
-| TAM | Total Addressable Market |
-| LTV | Lifetime Value of a customer |
-| PLG | Product-Led Growth |
-
----
-
-*Supreme Model T‑X — Confidential pitch materials. All financial projections are forward-looking statements and subject to change.*  
-*Last updated: March 31, 2026*
+*Supreme Model T‑X · Discussion draft · October 22, 2026*
