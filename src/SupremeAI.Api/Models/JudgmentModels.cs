@@ -135,10 +135,21 @@ public sealed class JudgmentRecord
 /// </summary>
 public sealed class RecommendationAlternative
 {
+    /// <summary>
+    /// Human-readable label displayed to the user.
+    /// Always "Alternative" — present so that UI clients can surface
+    /// the label without hard-coding it.
+    /// </summary>
+    public string Label { get; set; } = "Alternative";
+
     /// <summary>Brief description of the alternative approach.</summary>
     public string Approach { get; set; } = "";
 
-    /// <summary>Plain-language trade-off compared to the primary recommendation.</summary>
+    /// <summary>
+    /// Plain-language trade-off compared to the primary recommendation.
+    /// Prefixed with "Trade-off: " to make the nature of the field
+    /// explicit in API responses and UI displays.
+    /// </summary>
     public string Tradeoff { get; set; } = "";
 }
 
@@ -148,6 +159,10 @@ public sealed class RecommendationAlternative
 /// Every SupremeAI recommendation exposes this structured, defensible result.
 /// Scores and raw metrics are intentionally absent — only plain-language
 /// judgements are surfaced so that non-technical users can act on the output.
+///
+/// This is an <em>advisory</em> output: the system recommends, the user chooses.
+/// The user may accept the recommendation or select an alternative via the
+/// override endpoint without the system silently rerouting.
 /// </summary>
 public sealed class JudgmentRecommendation
 {
@@ -160,6 +175,13 @@ public sealed class JudgmentRecommendation
     /// Plain-language description of the recommended approach (not a specific model ID).
     /// </summary>
     public string Recommendation { get; set; } = "";
+
+    /// <summary>
+    /// Always <c>true</c> — signals that this is the system's primary advisory
+    /// recommendation.  Clients should surface a visible "Recommended" label
+    /// alongside this output so that users understand it is guidance, not a mandate.
+    /// </summary>
+    public bool IsRecommended { get; set; } = true;
 
     /// <summary>
     /// Confidence in the recommendation: "High", "Medium", or "Low".
@@ -181,7 +203,8 @@ public sealed class JudgmentRecommendation
 
     /// <summary>
     /// Optional alternative approaches with their trade-offs relative to the
-    /// primary recommendation.
+    /// primary recommendation.  Each entry is labelled "Alternative" and includes
+    /// a plain-language trade-off so users can make an informed choice.
     /// </summary>
     public List<RecommendationAlternative> Alternatives { get; set; } = [];
 }
@@ -371,4 +394,70 @@ public sealed class MetricsResponse
 {
     /// <summary>Aggregated system metrics.</summary>
     public JudgmentMetrics Metrics { get; set; } = new();
+}
+
+// ── T-101 User Override Contract ──────────────────────────────────────────────
+
+/// <summary>
+/// Request body for POST /supreme/judge/{id}/override.
+///
+/// The user may accept the system recommendation or choose any of the listed
+/// alternatives.  The override is logged for audit purposes.  The system
+/// never silently reroutes — the user's choice is always persisted and visible.
+/// </summary>
+public sealed class UserOverrideRequest
+{
+    /// <summary>
+    /// The approach the user selected.  Must match the system's
+    /// <see cref="JudgmentRecommendation.Recommendation"/> or one of the
+    /// <see cref="RecommendationAlternative.Approach"/> values from the
+    /// original judgment.
+    /// </summary>
+    public string SelectedApproach { get; set; } = "";
+
+    /// <summary>
+    /// Optional plain-language reason the user provides for their choice.
+    /// Stored verbatim for accountability and future analysis.
+    /// </summary>
+    public string? Reason { get; set; }
+}
+
+/// <summary>
+/// Immutable record of a user's override decision, persisted for audit.
+///
+/// An override is created whenever a user actively selects an option —
+/// whether they choose the system recommendation or an alternative.
+/// </summary>
+public sealed class UserOverrideRecord
+{
+    /// <summary>Unique identifier for this override record (UUID).</summary>
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>The judgment this override applies to.</summary>
+    public string JudgmentId { get; set; } = "";
+
+    /// <summary>The system's original recommended approach.</summary>
+    public string SystemRecommendation { get; set; } = "";
+
+    /// <summary>The approach the user selected.</summary>
+    public string SelectedApproach { get; set; } = "";
+
+    /// <summary>
+    /// True when the user selected the system recommendation;
+    /// false when the user chose an alternative.
+    /// </summary>
+    public bool IsSystemRecommendation { get; set; }
+
+    /// <summary>Optional reason the user provided for their choice.</summary>
+    public string? Reason { get; set; }
+
+    /// <summary>UTC timestamp when the override was recorded.</summary>
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>Response body for POST /supreme/judge/{id}/override.</summary>
+public sealed class OverrideResponse
+{
+    /// <summary>The persisted override record.</summary>
+    public UserOverrideRecord Override { get; set; } = new();
 }
